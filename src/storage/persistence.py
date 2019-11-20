@@ -19,12 +19,13 @@ class Persistence(ABC):
         pass
 
     @abstractmethod
-    def fetch(self, data, fields, pipeline=None, lock=False):
+    def fetch(self, data, fields, transformation=None, lock=False):
         """
         :param data: Data object before being transformed by a Pipeline or a
         string indicating the name of a dataset that suffered no transformations
-        :param fields: matrices to fetch
-        :param pipeline: Pipeline object containing a list of transformers
+        :param fields: list of names of the matrices to fetch
+        :param transformation: Tuple (Pipeline, operation) containing a
+        list of transformers and the stage of transformation 'a':apply; 'u':use
         :param lock: whether to mark entry (input data and pipeline combination)
                         as locked, when no data is found for the entry
         :return: Data or None
@@ -35,13 +36,13 @@ class Persistence(ABC):
 
 class LockedEntryException(Exception):
     """Another node is generating output data for this input data
-    and pipeline combination."""
+    and transformation combination."""
 
 
 class FailedEntryException(Exception):
-    """This input data and pipeline combination have already failed before."""
+    """This input data and transformation combination have already failed before."""
 
 
 class DuplicateEntryException(Exception):
-    """This input data and pipeline combination have already been inserted
+    """This input data and transformation combination have already been inserted
     before."""

@@ -5,5 +5,5 @@ class Amnesia(Persistence):
     def store(self, data, fields):
         return None
 
-    def fetch(self, data, fields, pipeline=None, lock=False):
+    def fetch(self, data, fields, transformation=None, lock=False):
         return None
