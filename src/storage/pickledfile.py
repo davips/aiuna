@@ -1,4 +1,4 @@
-from encoding.encoders import unpack_object, pack_object
+from information.encoders import unpack_object, pack_object
 from storage.persistence import Persistence, LockedEntryException, \
     FailedEntryException, DuplicateEntryException
 import _pickle as pickle
@@ -47,7 +47,7 @@ class PickledFile(Persistence):
     def _load(self, file):
         """
         Retrieve a Data object from disk.
-        :param file: file name
+        :param file: file dataset
         :return: Data
         """
         f = open(self.db + file, 'rb')
@@ -60,7 +60,7 @@ class PickledFile(Persistence):
         """
         Dump a Data object to disk.
         :param data: Data
-        :param file: file name
+        :param file: file dataset
         :return: None
         """
         f = open(self.db + file, 'wb')

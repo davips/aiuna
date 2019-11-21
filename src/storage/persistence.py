@@ -22,7 +22,7 @@ class Persistence(ABC):
     def fetch(self, data, fields, transformation=None, lock=False):
         """
         :param data: Data object before being transformed by a Pipeline or a
-        string indicating the name of a dataset that suffered no transformations
+        string indicating the dataset of a dataset that suffered no transformations
         :param fields: list of names of the matrices to fetch
         :param transformation: Tuple (Pipeline, operation) containing a
         list of transformers and the stage of transformation 'a':apply; 'u':use

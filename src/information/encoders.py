@@ -28,6 +28,19 @@ def unpack_object(dump):
     fast_decompressed = lz.decompress(decompressed)
     return pickle.loads(fast_decompressed)
 
+
+def uuid(packed_content):
+    """
+    Generates a UUID for any reasonably finite universe.
+    It is preferred to generate such MD5 on compressed data,
+    since MD5 is much slower for bigger data than the compression itself.
+    :param packed_content: packed Data of Xy... or a JSON dump of Component args
+    :return: currently a MD5 hash in hex format
+    """
+    if packed_content is None:
+        return None
+    return tiny_md5(hashlib.md5(packed_content).hexdigest())
+
 # def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 #                       'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
 #                       'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ'):
@@ -118,17 +131,6 @@ def unpack_object(dump):
 #     return enc(int(hexdigest, 16))
 #
 #
-# def uuid(packed_content):
-#     """
-#     Generates a UUID for any reasonably finite universe.
-#     It is preferred to generate such MD5 on compressed data,
-#     since MD5 is much slower for bigger data than the compression itself.
-#     :param packed_content: packed Data of Xy... or a JSON dump of Component args
-#     :return: currently a MD5 hash in hex format
-#     """
-#     if packed_content is None:
-#         return None
-#     return tiny_md5(hashlib.md5(packed_content).hexdigest())
 #
 #
 #
