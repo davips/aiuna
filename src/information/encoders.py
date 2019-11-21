@@ -18,6 +18,7 @@ def md5_int(bytes_content: bytes):
     bytes_content
         encoded content; it can be a packed object, a text, JSON,...
 
+<<<<<<< HEAD
     Returns
     -------
         a big integer in [0; 2^128[
@@ -35,6 +36,19 @@ def enc(number: int, alphabet: str = alph.letters800, padding: int = 14) -> str:
     disruptive characters, i.e. any combination of adjacent characters will be
     understood as a single word by most linux terminals and editors.
     This can be seen as the subset of 'double-click-friendly chars'.
+=======
+def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                      'abcdefghijklmnopqrstuvwxyz'
+                      'ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ'):
+    """
+    Encode an integer to base-X.
+    The default is base107 since it is enough to represent MD5 as 19 chars.
+    The selected alphabet contains only numbers and letters. Similar letters
+    were arbitrarily removed.
+    This alphabet is intended to be printable and seen as part of a single
+    word by most linux terminals and editors.
+    I would call this subset as the 'subset of the double_click_friendly chars'.
+>>>>>>> 2f329f9... improved tinyMD5
 
     The following list shows how the alphabet size relates to the number of
     necessary digits to represent the biggest MD5 number (2^128).
@@ -77,6 +91,7 @@ def enc(number: int, alphabet: str = alph.letters800, padding: int = 14) -> str:
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz
 ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
 
+<<<<<<< HEAD
     gnome-terminal/terminator/intellij without _ and some twin chars (107)
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ
@@ -127,13 +142,37 @@ Out[7]: 22.32449128323706
         number, rem = divmod(number, l)
         res.append(alphabet[rem])
         if number == 0:
+=======
+    gnome-terminal/terminator/intellij without _ and most similar chars (107)
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ
+
+    :param alphabet: string with allowed digits
+    :param big: an integer, usually a big MD5-like one
+    :return: string representing a base-107 number (or any other base,
+    depending on the given alphabet length)"""
+    l = len(alphabet)
+    res = []
+    while True:
+        res.append(alphabet[big % l])
+        big = big // l
+        if big == 0:
+>>>>>>> 2f329f9... improved tinyMD5
             break
     return "".join(res)[::-1].rjust(padding, "0")
 
 
+<<<<<<< HEAD
 def dec(digits: str, lookup: Dict[str, int] = alph.lookup800) -> int:
     """Decode digits from base-len(alphabet).
     
+=======
+def dec(digest, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                         'abcdefghijklmnopqrstuvwxyz'
+                         'ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ'):
+    """
+    Decode digest from base-len(alphabet).
+>>>>>>> 2f329f9... improved tinyMD5
     See enc() for more info.
     
     Parameters
@@ -162,6 +201,7 @@ def encrypt(msg: bytes, key: bytes) -> bytes:
     cipher = AES.new(key, AES.MODE_ECB)
     return cipher.encrypt(msg)
 
+<<<<<<< HEAD
 
 def decrypt(encrypted_msg: bytes, key: bytes) -> bytes:
     """AES 16 bytes decryption."""
@@ -208,3 +248,18 @@ def pretty2pmatrix(text: str, side: int, alphabet_dict: Dict[str, int]) -> List[
     if side % 2 == 1:
         m.append(alphabet_dict[text[-1]])
     return m
+=======
+def uuid(content, prefix='Ø'):
+    """
+    Generates a UUID for any reasonably finite universe.
+    It is preferred to generate such hash on compressed data,
+    since MD5 is much slower for bigger data than the compression itself.
+    :param content: encoded content; it can be a packed object, a text, JSON,...
+    :param prefix: adds a (preferably single character) prefix to the output,
+     adding up to 20 characters
+    :return: prefix + (18 or 19) characters
+    """
+    if content is None:
+        return None
+    return prefix + tiny_md5(hashlib.md5(content).hexdigest())
+>>>>>>> 2f329f9... improved tinyMD5
