@@ -9,7 +9,9 @@ class Dataset:
         hash of its data to avoid conflicting names)
         :param description: purpose of the dataset
         :param fields: a dictionary explaining the attributes of each field:
-        {'X': ['weight', 'heigth'], 'Y': ['gender']}
+        {'I': 'image',
+         'X': {'weight':'float', 'heigth':'float'},
+         'Y': ['gender']}
         """
 
         # Add lazy cache for uuid

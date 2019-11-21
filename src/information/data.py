@@ -45,3 +45,6 @@ class Data:
         :return:
         """
         return self.uuid()[:10]
+
+    def check_against_dataset(self):
+        raise NotImplementedError

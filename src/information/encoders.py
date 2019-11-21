@@ -26,16 +26,16 @@ def unpack_object(dump):
 
 
 def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                      'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
-                      'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ'):
+                      'abcdefghijklmnopqrstuvwxyz'
+                      'ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ'):
     """
     Encode an integer to base-X.
-    The default is base113 since it is enough to represent MD5 as 19 chars.
+    The default is base107 since it is enough to represent MD5 as 19 chars.
     The selected alphabet contains only numbers and letters. Similar letters
     were arbitrarily removed.
     This alphabet is intended to be printable and seen as part of a single
     word by most linux terminals and editors.
-    I would call this subset as a subset of the double_click_friendly chars.
+    I would call this subset as the 'subset of the double_click_friendly chars'.
 
     The following list shows how the alphabet size relates to the number of
     necessary digits to represent the biggest MD5 number (2^128).
@@ -66,20 +66,29 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     Example alphabets are given below:
 
-    gnome-terminal friendly (base147)  [\\ <- escaped slash]
+    gnome-terminal friendly (147)  [\\ <- escaped slash]
 #%&+,-./0123456789=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\_abcdefghijklmnopqrstuvwxyz
 ~ª²³µ·¹º¼½¾ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
 
-    gnome-terminal/terminator/intellij friendly (base125)
+    gnome-terminal/terminator/intellij friendly (125)
 #0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz
 ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
 
+    gnome-terminal/terminator/intellij[ctrl+w] friendly (124)
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz
+ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
+
+    gnome-terminal/terminator/intellij without _ and most similar chars (107)
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ
+
     :param alphabet: string with allowed digits
     :param big: an integer, usually a big MD5-like one
-    :return: string representing a base-113 number"""
+    :return: string representing a base-107 number (or any other base,
+    depending on the given alphabet length)"""
     l = len(alphabet)
     res = []
-    while (True):
+    while True:
         res.append(alphabet[big % l])
         big = big // l
         if big == 0:
@@ -88,8 +97,8 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 
 def dec(digest, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                         'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
-                         'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ '):
+                         'abcdefghijklmnopqrstuvwxyz'
+                         'ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ'):
     """
     Decode digest from base-len(alphabet).
     See enc() for more info.
@@ -115,14 +124,16 @@ def tiny_md5(hexdigest):
     return enc(int(hexdigest, 16))
 
 
-def uuid(packed_content):
+def uuid(content, prefix='Ø'):
     """
     Generates a UUID for any reasonably finite universe.
-    It is preferred to generate such MD5 on compressed data,
+    It is preferred to generate such hash on compressed data,
     since MD5 is much slower for bigger data than the compression itself.
-    :param packed_content: packed Data of Xy... or a JSON dump of Component args
-    :return: currently a MD5 hash in hex format
+    :param content: encoded content; it can be a packed object, a text, JSON,...
+    :param prefix: adds a (preferably single character) prefix to the output,
+     adding up to 20 characters
+    :return: prefix + (18 or 19) characters
     """
-    if packed_content is None:
+    if content is None:
         return None
-    return tiny_md5(hashlib.md5(packed_content).hexdigest())
+    return prefix + tiny_md5(hashlib.md5(content).hexdigest())

@@ -21,6 +21,6 @@ class Transformation:
         :return: unique identifier
         """
         if self._uuid is None:
-            txt = (self.transformer.uuid() + self.operation).encode()
-            self._uuid = uuid(txt)
+            txt = (self.transformer.uuid()).encode()
+            self._uuid = uuid(txt, prefix=self.operation)
         return self._uuid

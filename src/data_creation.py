@@ -19,7 +19,7 @@ def read_arff(file, target=None):
     data = arff.load(open(file, 'r'), encode_nominal=True)
     df = pd.DataFrame(data['data'],
                       columns=[attr[0] for attr in data['attributes']])
-    return Data.read_data_frame(df, file, target)
+    return read_data_frame(df, file, target)
 
 
 def read_csv(file, target=None):
@@ -31,7 +31,7 @@ def read_csv(file, target=None):
     :return:
     """
     df = pd.read_csv(file)  # 1169_airlines explodes here with RAM < 6GiB
-    return Data.read_data_frame(df, file, target)
+    return read_data_frame(df, file, target)
 
 
 def read_data_frame(df, file, target=None):
@@ -44,7 +44,7 @@ def read_data_frame(df, file, target=None):
     :return:
     """
     name = file.split('/')[-1]
-    Y = target and Data._as_column_vector(
+    Y = target and as_column_vector(
         df.pop(target).values.astype('float'))
     X = df.values.astype('float')  # Do not call this before setting Y!
     dataset = Dataset(name, "descrip stub", X=list(df.columns), Y=['class'])
@@ -68,7 +68,7 @@ def random_classification(n_attributes, n_classes, n_instances):
     dataset = Dataset(
         name, "rnd", X=enumerate(n_attributes * ['rnd']), Y=['class']
     )
-    return Data(dataset, X=X, Y=Data._as_column_vector(y))
+    return Data(dataset, X=X, Y=as_column_vector(y))
 
 
 def as_column_vector(vec):
