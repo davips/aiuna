@@ -20,6 +20,6 @@ class History:
         if self._uuid is None:
             uuids = ""
             for transf in self.transformations:
-                uuids = uuids + uuid(transf)
+                uuids = uuids + transf.uuid()
             self._uuid = uuid(uuids.encode())
         return self._uuid
