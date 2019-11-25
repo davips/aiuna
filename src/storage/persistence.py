@@ -33,6 +33,15 @@ class Persistence(ABC):
         """
         pass
 
+    @abstractmethod
+    def list_by_name(self, substring):
+        """
+        Convenience method to retrieve a list of currently stored Data
+        objects by name.
+        :param substring: part of the name to look for
+        :return: list of empty Data objects, i.e. without matrices
+        """
+        pass
 
 class LockedEntryException(Exception):
     """Another node is generating output data for this input data

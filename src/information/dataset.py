@@ -25,5 +25,5 @@ class Dataset:
         :return:
         """
         if self._uuid is None:
-            self._uuid = uuid(self.name)
+            self._uuid = uuid(self.name.encode())
         return self._uuid

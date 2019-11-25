@@ -3,15 +3,16 @@ from storage.persistence import Persistence, LockedEntryException, \
     FailedEntryException, DuplicateEntryException
 import _pickle as pickle
 from pathlib import Path
+from glob import glob
 
 
 class PickledFile(Persistence):
     def __init__(self, optimize='speed', db='/tmp/'):
         self.db = db
-        self.speed = optimize == 'speed' # vs 'space'
+        self.speed = optimize == 'speed'  # vs 'space'
 
     def store(self, data, fields):
-        file = data.uuid + '.dump'
+        file = self.db + data.dataset.name + '-' + data.uuid() + '.dump'
 
         # Already exists?
         if Path(file).exists():
@@ -21,7 +22,8 @@ class PickledFile(Persistence):
 
     def fetch(self, data, fields, transformation=None, lock=False):
         transformed_data_stub = data.updated(transformation)
-        file = transformed_data_stub.uuid + '.dump'
+        file = self.db + data.dataset.name + '-' + \
+               transformed_data_stub.uuid() + '.dump'
 
         # Not started yet?
         if not Path(file).exists():
@@ -44,13 +46,21 @@ class PickledFile(Persistence):
 
         return transformed_data
 
+    def list_by_name(self, substring):
+        datas = []
+        for file in glob(self.db + f'*{substring}*-*.dump'):
+            data = self._load(file)
+            self._erase(data)
+            datas.append(data)
+        return datas
+
     def _load(self, file):
         """
         Retrieve a Data object from disk.
         :param file: file dataset
         :return: Data
         """
-        f = open(self.db + file, 'rb')
+        f = open(file, 'rb')
         if self.speed:
             return pickle.load(f)
         else:
@@ -63,9 +73,39 @@ class PickledFile(Persistence):
         :param file: file dataset
         :return: None
         """
-        f = open(self.db + file, 'wb')
+        f = open(file, 'wb')
         if self.speed:
             pickle.dump(data, f)
         else:
             f.write(pack_object(data))
             f.close()
+
+    def _erase(self, data):
+        """
+        Remove matrices from Data.
+        Keep identity.
+        :param data:
+        :return:
+        """
+        matrices = []
+        for arg in data.__dict__:
+            if len(arg) == 1:
+                matrices.append(arg)
+        for mat in matrices:
+            del data.__dict__[mat]
+
+
+# Testes            ############################
+test = PickledFile()
+
+# Teste de gravação ############################
+# from information.dataset import Dataset
+# from information.data import Data
+# from information.history import History
+# from information.transformation import Transformation
+# dataset = Dataset('car', 'sahjhgfdsa ', X={'a': 'Z'}, Y={'b': 'R'})
+# data = Data(dataset, X=[1, 2, 3, 4, 5, 6, 7, 8], Y=[1, 2, 3, 4])
+# test.store(data, ['X', 'Y'])
+
+# Teste de leitura ############################
+print([d.dataset.name for d in test.list_by_name('i')])

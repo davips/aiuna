@@ -1,4 +1,5 @@
 from information.encoders import uuid
+from information.history import History
 
 
 class Data:
@@ -15,7 +16,7 @@ class Data:
         self.__dict__.update(matrices)
 
         if history is None:
-            history = []
+            history = History([])
         self.history = history
         self.dataset = dataset
         self.failure = failure
