@@ -20,6 +20,7 @@ class Data:
         self.history = history
         self.dataset = dataset
         self.failure = failure
+        self.matrices = matrices
 
         # Add lazy cache for uuid
         self._uuid = None
@@ -27,6 +28,19 @@ class Data:
         # # Shortcuts
         # self.y = ...
         # self.Xy = self.X, self.y
+
+    def updated(self, transformation, **kwargs):
+        """
+        Recreate Data object with updated matrices.
+        :param transformation: transformation (pipeline or transformation)
+        :param kwargs: changed/added matrices and updated values
+        :return: new Data object
+        """
+        new_matrices = self.matrices.copy()
+        new_matrices.update(kwargs)
+        return Data(dataset=self.dataset,
+                    history=self.history.transformations.append(transformation),
+                    failure=self.failure, **new_matrices)
 
     def uuid(self):
         """
