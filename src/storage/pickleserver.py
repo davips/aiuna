@@ -1,141 +1,96 @@
+from information.encoders import unpack_object, pack_object
+from storage.persistence import Persistence, LockedEntryException, \
+    FailedEntryException, DuplicateEntryException
 import _pickle as pickle
-import os
-import traceback
-from glob import glob
 from pathlib import Path
-from typing import Optional
-
-from pjdata.types import Data
-
-from cururu.disk import save, load
-from cururu.persistence import (
-    Persistence,
-    LockedEntryException,
-    FailedEntryException,
-    DuplicateEntryException,
-    UnlockedEntryException,
-)
+from glob import glob
 
 
 class PickleServer(Persistence):
-    def __init__(self, db="/tmp/cururu", compress=True):
+    def __init__(self, optimize='speed', db='/tmp/'):
         self.db = db
-        self.compress = compress
-        if not Path(db).exists():
-            os.mkdir(db)
+        self.speed = optimize == 'speed'  # vs 'space'
 
-    def _fetch_impl(self, data: Data, lock: bool = False) -> Optional[Data]:
-        # TODO: deal with fields and missing fields?
-        filename = self._filename("*", data)
+    def store(self, data, fields):
+        file = self.db + data.dataset.name + '-' + data.uuid() + '.dump'
+
+        # Already exists?
+        if Path(file).exists():
+            raise DuplicateEntryException
+
+        self._dump(data, file)
+
+    def fetch(self, data, fields, transformation=None, lock=False):
+        transformed_data_stub = data.updated(transformation)
+        file = self.db + data.dataset.name + '-' + \
+               transformed_data_stub.uuid() + '.dump'
 
         # Not started yet?
-        if not Path(filename).exists():
-            print('W: Not started.', filename)
+        if not Path(file).exists():
+            print('W: Not started.', file)
             if lock:
-                print("W: Locking...", filename)
-                Path(filename).touch()
+                print('W: Locking...', file)
+                Path(file).touch()
             return None
 
         # Locked?
-        if Path(filename).stat().st_size == 0:
-            print("W: Previously locked by other process.", filename)
-            raise LockedEntryException(filename)
+        if Path(file).stat().st_size == 0:
+            print('W: Previously locked by other process.', file)
+            raise LockedEntryException
 
-        transformed_data = self._load(filename)
+        transformed_data = self._load(file)
 
         # Failed?
         if transformed_data.failure is not None:
-            raise FailedEntryException(transformed_data.failure)
+            raise FailedEntryException
 
         return transformed_data
 
-    def store(self, data, check_dup=True):
-        """The dataset name of data_out will be the filename prefix for
-        convenience."""
-
-        # TODO: reput name on Data?
-        filename = self._filename("", data)
-        # filename = self._filename(data.name, data, training_data_uuid)
-
-        # sleep(0.020)  # Latency simulator.
-
-        # Already exists?
-        if check_dup and Path(filename).exists():
-            raise DuplicateEntryException("Already exists:", filename)
-
-        locked = self._filename("", data)
-        if Path(locked).exists():
-            os.remove(locked)
-
-        self._dump(data, filename)
-
-    def list_by_name(self, substring, only_original=True):  # TODO: take advantage of lazy data, instead of using hollow
+    def list_by_name(self, substring):
         datas = []
-        path = self.db + f"/*{substring}*-*.dump"
-        for file in sorted(glob(path), key=os.path.getmtime):
+        for file in glob(self.db + f'*{substring}*-*.dump'):
             data = self._load(file)
-            if only_original and data.history.size == 1:
-                datas.append(data.hollow(tuple()))
+            self._erase(data)
+            datas.append(data)
         return datas
 
-    def fetch_matrix(self, id):
-        raise NotImplementedError
-
-    def _filename(self, prefix, data):
-        zip = "compressed" if self.compress else ""
-        # Not very efficient.  TODO: memoize extraction of fields from JSON?
-        # uuids = [json.loads(tr)['uuid'][:6] for tr in data.history]
-        # rest = f"-".join(uuids) + f".{zip}.dump"
-        rest = f"{data.id}.{zip}.dump"
-        if prefix == "*":
-            query = self.db + "/*" + rest
-            lst = glob(query)
-            if len(lst) > 1:
-                raise Exception("Multiple files found:", query, lst)
-            if len(lst) == 1:
-                return lst[0]
-            else:
-                return self.db + "/" + rest
-        else:
-            return self.db + "/" + prefix + rest
-
-    def _load(self, filename):
+    def _load(self, file):
         """
         Retrieve a Data object from disk.
-        :param filename: file dataset
+        :param file: file dataset
         :return: Data
         """
-        try:
-            if self.compress:
-                return load(filename)
-            else:
-                f = open(filename, "rb")
-                res = pickle.load(f)
-                f.close()
-                return res
-        except Exception as e:
-            traceback.print_exc()
-            print("Problems loading", filename)
-            exit(0)
+        f = open(file, 'rb')
+        if self.speed:
+            return pickle.load(f)
+        else:
+            return unpack_object(f.read())
 
-    def _dump(self, data, filename):
+    def _dump(self, data, file):
         """
         Dump a Data object to disk.
         :param data: Data
-        :param filename: file dataset
+        :param file: file dataset
         :return: None
         """
-        print("W: Storing...", filename)
-        if self.compress:
-            save(filename, data)
-        else:
-            f = open(filename, "wb")
+        f = open(file, 'wb')
+        if self.speed:
             pickle.dump(data, f)
+        else:
+            f.write(pack_object(data))
             f.close()
 
-    def unlock(self, data, training_data_uuid=""):
-        filename = self._filename("*", data, training_data_uuid)
-        if not Path(filename).exists():
-            raise UnlockedEntryException("Cannot unlock something that is not " "locked!", filename)
-        print("W: Unlocking...", filename)
-        os.remove(filename)
+    def _erase(self, data):
+        """
+        Remove matrices from Data.
+        Keep identity.
+        :param data:
+        :return:
+        """
+        matrices = []
+        for arg in data.__dict__:
+            if len(arg) == 1:
+                matrices.append(arg)
+        for mat in matrices:
+            del data.__dict__[mat]
+
