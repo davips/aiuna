@@ -6,7 +6,7 @@ from pathlib import Path
 from glob import glob
 
 
-class PickledFile(Persistence):
+class PickleServer(Persistence):
     def __init__(self, optimize='speed', db='/tmp/'):
         self.db = db
         self.speed = optimize == 'speed'  # vs 'space'
@@ -94,18 +94,3 @@ class PickledFile(Persistence):
         for mat in matrices:
             del data.__dict__[mat]
 
-
-# Testes            ############################
-test = PickledFile()
-
-# Teste de gravação ############################
-# from information.dataset import Dataset
-# from information.data import Data
-# from information.history import History
-# from information.transformation import Transformation
-# dataset = Dataset('car', 'sahjhgfdsa ', X={'a': 'Z'}, Y={'b': 'R'})
-# data = Data(dataset, X=[1, 2, 3, 4, 5, 6, 7, 8], Y=[1, 2, 3, 4])
-# test.store(data, ['X', 'Y'])
-
-# Teste de leitura ############################
-print([d.dataset.name for d in test.list_by_name('i')])
