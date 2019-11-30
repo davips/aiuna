@@ -11,11 +11,11 @@ class PickleServer(Persistence):
         self.db = db
         self.speed = optimize == 'speed'  # vs 'space'
 
-    def store(self, data, fields):
+    def store(self, data, fields, check_dup=True):
         file = self.db + data.dataset.name + '-' + data.uuid() + '.dump'
 
         # Already exists?
-        if Path(file).exists():
+        if check_dup and Path(file).exists():
             raise DuplicateEntryException
 
         self._dump(data, file)

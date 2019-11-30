@@ -9,10 +9,11 @@ class Persistence(ABC):
     """
 
     @abstractmethod
-    def store(self, data, fields):
+    def store(self, data, fields, check_dup=True):
         """
         :param data: Data to store
         :param fields: list of names of the matrices to store
+        :param check_dup: whether to waste time checking duplicates
         :return: None
         :exception DuplicateEntryException
         """
