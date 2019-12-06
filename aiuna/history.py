@@ -1,4 +1,4 @@
-from information.encoders import uuid
+from encoders import uuid
 
 
 class History:

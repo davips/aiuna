@@ -1,11 +1,13 @@
+import math
+
 import arff
 import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
-
-from information.data import Data
-from information.dataset import Dataset
-from information.encoders import uuid, pack_object
+import _pickle as pickle
+from data import Data
+from dataset import Dataset
+from encoders import uuid
 
 
 def read_arff(file, target=None):
@@ -51,7 +53,7 @@ def read_data_frame(df, file, target=None):
     return Data(dataset, X=X, Y=Y)
 
 
-def random_classification(n_attributes, n_classes, n_instances):
+def random_classification_dataset(n_attributes, n_classes, n_instances):
     """
     ps. Assume X,y classification task.
     :param n_attributes:
@@ -63,8 +65,8 @@ def random_classification(n_attributes, n_classes, n_instances):
                                   n_features=n_attributes,
                                   n_classes=n_classes,
                                   n_informative=int(
-                                      np.sqrt(2 * n_classes)) + 1)
-    name = 'Random-' + uuid(pack_object((X, y)))
+                                      math.sqrt(2 * n_classes)) + 1)
+    name = 'Random-' + uuid(pickle.dumps((X, y)))
     dataset = Dataset(
         name, "rnd", X=enumerate(n_attributes * ['rnd']), Y=['class']
     )

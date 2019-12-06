@@ -1,9 +1,25 @@
 import hashlib
 from typing import Dict, List
 
+<<<<<<< HEAD:pjdata/information/encoders.py
 import pjdata.aux.alphabets as alph
+=======
+>>>>>>> c6fcb4a... cururu outsourced:pjdata/encoders.py
 
+def uuid(content, prefix='Ø'):
+    """
+    Generates a UUID (unique for any reasonably finite universe).
+    It is preferred to generate such hash on compressed data,
+    since MD5 is much slower for bigger data than the compression itself.
+    :param content: encoded content; it can be a packed object, a text, JSON,...
+    :param prefix: adds a (preferably single character) prefix to the output
+    :return: prefix + <19 characters>
+    """
+    if content is None:
+        return None
+    return prefix + tiny_md5(hashlib.md5(content).hexdigest())
 
+<<<<<<< HEAD:pjdata/information/encoders.py
 def md5_int(bytes_content: bytes):
     """Return MD5 hash as integer.
 
@@ -12,6 +28,17 @@ def md5_int(bytes_content: bytes):
 
     It is preferred to generate such hash on compressed data,
     since MD5 is much slower for large data than the compression itself.
+=======
+
+def tiny_md5(hexdigest):
+    """
+    Converts hex MD5 representation (32 digits in base-16) to a friendly
+    shorter one (19 digits in base-113).
+    :param hexdigest:
+    :return: string with 19 digits, padded with 'Ø' when needed
+    """
+    return enc(int(hexdigest, 16)).rjust(19, 'Ø')
+>>>>>>> c6fcb4a... cururu outsourced:pjdata/encoders.py
 
     Parameters
     ----------
@@ -25,6 +52,25 @@ def md5_int(bytes_content: bytes):
     """
     return int.from_bytes(hashlib.md5(bytes_content).digest(), "big")
 
+<<<<<<< HEAD:pjdata/information/encoders.py
+=======
+def dec(digest, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                         'abcdefghijklmnopqrstuvwxyz'
+                         'ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ'):
+    """
+    Decode digest from base-len(alphabet).
+    See enc() for more info.
+    :param digest:
+    :param alphabet:
+    :return:
+    """
+    res = 0
+    last = len(digest) - 1
+    base = len(alphabet)
+    for i, d in enumerate(digest):
+        res += alphabet.index(d) * pow(base, last - i)
+    return res
+>>>>>>> c6fcb4a... cururu outsourced:pjdata/encoders.py
 
 def enc(number: int, alphabet: str = alph.letters800, padding: int = 14) -> str:
     """Encode an integer to base-n. n = len(alphabet).
@@ -41,8 +87,9 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                       'abcdefghijklmnopqrstuvwxyz'
                       'ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ'):
     """
-    Encode an integer to base-X.
+    Encode an integer to base-n. n = len(alphabet).
     The default is base107 since it is enough to represent MD5 as 19 chars.
+<<<<<<< HEAD:pjdata/information/encoders.py
     The selected alphabet contains only numbers and letters. Similar letters
     were arbitrarily removed.
     This alphabet is intended to be printable and seen as part of a single
@@ -55,6 +102,20 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     The hexdigest already uses 32 digits, so we want less than that.
     According to the list below, good choices for the alphabet size would be in
     the range 85-185 to keep 1 byte for each (latin1 range).
+=======
+    The selected default alphabet contains only numbers and letters. Similar
+    letters were arbitrarily removed.
+    This alphabet is intended to be printable and to be free of
+    disruptive characters, i.e. any combination of adjacent characters will be
+    understood as a single word by most linux terminals and editors.
+    This can be seen as the subset of 'double-click-friendly chars'.
+
+    The following list shows how the alphabet size relates to the number of
+    necessary digits to represent the biggest MD5 number (2^128).
+    The hexdigest alredy uses 32 digits, so we want less than that.
+    According to the list below, good choices for the alphabet size would be in
+    the range 85-185, since values higher than 256 are outside latin1 range.
+>>>>>>> c6fcb4a... cururu outsourced:pjdata/encoders.py
 
     alphabet-size   number-of-digits   comments
     2 128 # crude md5 as binary string
@@ -91,6 +152,7 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz
 ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
 
+<<<<<<< HEAD:pjdata/information/encoders.py
 <<<<<<< HEAD
     gnome-terminal/terminator/intellij without _ and some twin chars (107)
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
@@ -144,6 +206,9 @@ Out[7]: 22.32449128323706
         if number == 0:
 =======
     gnome-terminal/terminator/intellij without _ and most similar chars (107)
+=======
+    gnome-terminal/terminator/intellij without _ and some twin chars (107)
+>>>>>>> c6fcb4a... cururu outsourced:pjdata/encoders.py
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 ÁÂÄÅÆÉÊËÍÎÏÐÑÓÔÖÚÛÜÝÞßáâäåæçéêëíîïðñóôöøúûüýþ
 
@@ -159,6 +224,7 @@ Out[7]: 22.32449128323706
         if big == 0:
 >>>>>>> 2f329f9... improved tinyMD5
             break
+<<<<<<< HEAD:pjdata/information/encoders.py
     return "".join(res)[::-1].rjust(padding, "0")
 
 
@@ -263,3 +329,6 @@ def uuid(content, prefix='Ø'):
         return None
     return prefix + tiny_md5(hashlib.md5(content).hexdigest())
 >>>>>>> 2f329f9... improved tinyMD5
+=======
+    return ''.join(res)[::-1]
+>>>>>>> c6fcb4a... cururu outsourced:pjdata/encoders.py

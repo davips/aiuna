@@ -1,5 +1,5 @@
-from information.encoders import uuid
-from information.history import History
+from encoders import uuid
+from history import History
 
 
 class Data:
