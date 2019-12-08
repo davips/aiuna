@@ -1,8 +1,9 @@
 from encoders import uuid
 from history import History
+from identifyable import Identifyable
 
 
-class Data:
+class Data(Identifyable):
     def __init__(self, dataset, history=None, failure=None, **matrices):
         """
         Immutable lazy data for all machine learning scenarios we could imagine.
@@ -22,9 +23,6 @@ class Data:
         self.failure = failure
         self.matrices = matrices
 
-        # Add lazy cache for uuid
-        self._uuid = None
-
         # # Shortcuts
         # self.y = ...
         # self.Xy = self.X, self.y
@@ -42,24 +40,12 @@ class Data:
                     history=self.history.transformations.append(transformation),
                     failure=self.failure, **new_matrices)
 
-    def uuid(self):
-        """
-        Lazily calculated unique identifier for this dataset.
-        :return: unique identifier
-        """
-        if self._uuid is None:
-            txt = (self.dataset.uuid() + self.history.uuid()).encode()
-            self._uuid = uuid(txt)
-        return self._uuid
-
-    def sid(self):
-        """
-        Short uuID
-        First 10 chars of uuid for printing purposes.
-        Max of 1 collision each 1048576 combinations.
-        :return:
-        """
-        return self.uuid()[:10]
-
     def check_against_dataset(self):
+        """
+        Check if dataset field descriptions are compatible with provided
+        matrices.
+        """
         raise NotImplementedError
+
+    def _uuid_impl(self):
+        return self.dataset.uuid() + self.history.uuid()

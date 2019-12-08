@@ -1,25 +1,16 @@
-from encoders import uuid
+from identifyable import Identifyable
 
 
-class History:
+class History(Identifyable):
     def __init__(self, transformations):
         """
         Immutable history of transformations.
         :param transformations: list of transformations
         """
-
-        # Add lazy cache for uuid
-        self._uuid = None
         self.transformations = transformations
 
-    def uuid(self):
-        """
-        Lazily calculated unique identifier for this history.
-        :return: unique identifier
-        """
-        if self._uuid is None:
-            uuids = ""
-            for transf in self.transformations:
-                uuids = uuids + transf.uuid()
-            self._uuid = uuid(uuids.encode())
-        return self._uuid
+    def _uuid_impl(self):
+        uuids = ""
+        for transf in self.transformations:
+            uuids = uuids + transf.uuid()
+        return uuids

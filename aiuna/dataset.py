@@ -1,7 +1,8 @@
 from encoders import uuid
+from identifyable import Identifyable
 
 
-class Dataset:
+class Dataset(Identifyable):
     def __init__(self, name, description, **fields):
         """
         Metadata of original datasets.
@@ -13,17 +14,8 @@ class Dataset:
          'X': {'weight':'float', 'heigth':'float'},
          'Y': ['gender']}
         """
-
-        # Add lazy cache for uuid
-        self._uuid = None
         self.name = name
         self.description = description
 
-    def uuid(self):
-        """
-        Lazily calculated unique identifier for this dataset.
-        :return:
-        """
-        if self._uuid is None:
-            self._uuid = uuid(self.name.encode())
-        return self._uuid
+    def _uuid_impl(self):
+        return self.name

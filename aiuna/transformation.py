@@ -1,17 +1,13 @@
-from encoders import uuid
+from identifyable import Identifyable
 
 
-class Transformation:
+class Transformation(Identifyable):
     def __init__(self, transformer, operation):
         """
         Immutable application or use of a Transformer.
         :param transformer: Transformer/Pipeline
         :param operation: 'a'pply or 'u'se
         """
-
-        # Add lazy cache for uuid
-        self._uuid = None
-
         self.transformer = transformer
         self.operation = operation
 
