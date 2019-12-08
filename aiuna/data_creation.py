@@ -1,10 +1,10 @@
+import _pickle as pickle
 import math
 
 import arff
-import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
-import _pickle as pickle
+
 from data import Data
 from dataset import Dataset
 from encoders import uuid
@@ -45,10 +45,9 @@ def read_data_frame(df, file, target=None):
     :param target:
     :return:
     """
-    name = file.split('/')[-1]
-    Y = target and as_column_vector(
-        df.pop(target).values.astype('float'))
+    Y = target and as_column_vector(df.pop(target).values.astype('float'))
     X = df.values.astype('float')  # Do not call this before setting Y!
+    name = file.split('/')[-1] + uuid(pickle.dumps((X, Y)))
     dataset = Dataset(name, "descrip stub", X=list(df.columns), Y=['class'])
     return Data(dataset, X=X, Y=Y)
 
@@ -61,11 +60,11 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
     :param n_instances:
     :return:
     """
+    n = int(math.sqrt(2 * n_classes))
     X, y = ds.make_classification(n_samples=n_instances,
                                   n_features=n_attributes,
                                   n_classes=n_classes,
-                                  n_informative=int(
-                                      math.sqrt(2 * n_classes)) + 1)
+                                  n_informative=n + 1)
     name = 'Random-' + uuid(pickle.dumps((X, y)))
     dataset = Dataset(
         name, "rnd", X=enumerate(n_attributes * ['rnd']), Y=['class']

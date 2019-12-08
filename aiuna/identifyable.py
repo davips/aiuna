@@ -4,8 +4,7 @@ from encoders import uuid
 
 
 class Identifyable(ABC):
-    # lazy cache for uuid
-    _uuid = None
+    _uuid = None  # lazy cache for uuid
 
     def uuid(self):
         """
