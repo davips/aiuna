@@ -12,5 +12,5 @@ class History(Identifyable):
     def _uuid_impl(self):
         uuids = ""
         for transf in self.transformations:
-            uuids = uuids + transf.uuid()
+            uuids = uuids + transf.uuid
         return uuids

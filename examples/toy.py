@@ -2,11 +2,12 @@ from cururu.persistence import DuplicateEntryException
 from cururu.pickleserver import PickleServer
 from pjdata.dataset import Dataset
 from pjdata.data import Data
+import numpy as np
 
 # Testes            ############################
 dataset = Dataset('iris', 'Beautiful description.',
                   X={'length': 'R', 'width': 'R'}, Y={'class': ['M', 'F']})
-data = Data(dataset, X=[1, 2, 3, 4, 5, 6, 7, 8], Y=[1, 2, 3, 4])
+data = Data(dataset, X=np.asarray([1, 2, 3, 4, 5, 6, 7, 8]), Y=np.asarray([1, 2, 3, 4]))
 
 # Teste de gravação ############################
 print('Storing Data object...')

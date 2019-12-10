@@ -99,7 +99,7 @@ class Data(Identifyable, LinAlgHelper):
         return self.__dict__['X'], self.__dict__['y']
 
     def _uuid_impl(self):
-        return self.dataset.uuid() + self.history.uuid()
+        return self.dataset.uuid + self.history.uuid
 
     def __str__(self):
         return self.dataset.__str__()
