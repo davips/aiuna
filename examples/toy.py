@@ -7,7 +7,8 @@ import numpy as np
 # Testes            ############################
 dataset = Dataset('iris', 'Beautiful description.',
                   X={'length': 'R', 'width': 'R'}, Y={'class': ['M', 'F']})
-data = Data(dataset, X=np.asarray([1, 2, 3, 4, 5, 6, 7, 8]), Y=np.asarray([1, 2, 3, 4]))
+data = Data(dataset, X=np.asarray([1, 2, 3, 4, 5, 6, 7, 8]),
+            Y=np.asarray([1, 2, 3, 4]))
 
 # Teste de gravação ############################
 print('Storing Data object...')
@@ -19,7 +20,6 @@ except DuplicateEntryException:
     print('Duplicate! Ignored.')
 
 test.fetch(data, ['X', 'Y'])
-
 
 # Teste de leitura ############################
 print('Getting Data information-only objects...')
