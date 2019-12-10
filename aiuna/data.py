@@ -1,9 +1,9 @@
 import numpy as np
 from functools import lru_cache
 
-from aux.identifyable import Identifyable
-from aux.linalghelper import LinAlgHelper
-from history import History
+from pjdata.aux.identifyable import Identifyable
+from pjdata.aux.linalghelper import LinAlgHelper
+from pjdata.history import History
 
 
 class Data(Identifyable, LinAlgHelper):

@@ -1,4 +1,4 @@
-from aux.identifyable import Identifyable
+from pjdata.aux.identifyable import Identifyable
 
 
 class History(Identifyable):

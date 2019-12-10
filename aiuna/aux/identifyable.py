@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from aux.encoders import uuid
+from pjdata.aux.encoders import uuid
 
 
 class Identifyable(ABC):

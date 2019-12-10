@@ -5,9 +5,9 @@ import arff
 import pandas as pd
 import sklearn.datasets as ds
 
-from data import Data
-from dataset import Dataset
-from aux.encoders import uuid
+from pjdata.aux.encoders import uuid
+from pjdata.data import Data
+from pjdata.dataset import Dataset
 
 
 def read_arff(filename, target='class'):
