@@ -1,5 +1,4 @@
-from encoders import uuid
-from identifyable import Identifyable
+from aux.identifyable import Identifyable
 
 
 class Dataset(Identifyable):
@@ -19,3 +18,6 @@ class Dataset(Identifyable):
 
     def _uuid_impl(self):
         return self.name
+
+    def __str__(self):
+        return f'{self.name} "{self.description}"'

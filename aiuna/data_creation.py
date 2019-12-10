@@ -7,47 +7,48 @@ import sklearn.datasets as ds
 
 from data import Data
 from dataset import Dataset
-from encoders import uuid
+from aux.encoders import uuid
 
 
-def read_arff(file, target=None):
+def read_arff(filename, target='class'):
     """
     Create Data from ARFF file.
     See read_data_frame().
-    :param file:
+    :param filename:
     :param target:
     :return:
     """
-    data = arff.load(open(file, 'r'), encode_nominal=True)
+    data = arff.load(open(filename, 'r'), encode_nominal=True)
     df = pd.DataFrame(data['data'],
                       columns=[attr[0] for attr in data['attributes']])
-    return read_data_frame(df, file, target)
+    return read_data_frame(df, filename, target)
 
 
-def read_csv(file, target=None):
+def read_csv(filename, target='class'):
     """
     Create Data from CSV file.
     See read_data_frame().
-    :param file:
+    :param filename:
     :param target:
     :return:
     """
-    df = pd.read_csv(file)  # 1169_airlines explodes here with RAM < 6GiB
-    return read_data_frame(df, file, target)
+    df = pd.read_csv(filename)  # 1169_airlines explodes here with RAM < 6GiB
+    return read_data_frame(df, filename, target)
 
 
-def read_data_frame(df, file, target=None):
+def read_data_frame(df, filename, target='class'):
     """
     ps. Assume X,y classification task.
     Andd that there was no transformations (history) on this Data.
     :param df:
-    :param file: dataset of the dataset (if a path, dataset will be extracted)
+    :param filename: dataset of the dataset (if a path, dataset will be
+    extracted)
     :param target:
     :return:
     """
     Y = target and as_column_vector(df.pop(target).values.astype('float'))
     X = df.values.astype('float')  # Do not call this before setting Y!
-    name = file.split('/')[-1] + uuid(pickle.dumps((X, Y)))
+    name = filename.split('/')[-1] + '-' + uuid(pickle.dumps((X, Y)))
     dataset = Dataset(name, "descrip stub", X=list(df.columns), Y=['class'])
     return Data(dataset, X=X, Y=Y)
 
