@@ -101,10 +101,9 @@ class Data(Identifyable, LinAlgHelper):
     def _uuid_impl(self):
         return self.dataset.uuid + self.history.uuid
 
-    def __str__(self):
-        return self.dataset.__str__()
-
     def _translate(self, field, value):
+        """Given a field name, return its underlying matrix name and content.
+        """
         if field in self._vec2mat_map:
             # Vector.
             return field.upper(), self._as_column_vector(value)
@@ -114,3 +113,7 @@ class Data(Identifyable, LinAlgHelper):
         else:
             # Matrix given directly.
             return field, value
+
+    def __str__(self):
+        return self.dataset.__str__()
+
