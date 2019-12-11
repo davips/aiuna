@@ -84,7 +84,7 @@ class Data(Identifyable, LinAlgHelper):
             new_matrices[new_name] = new_value
 
         return Data(dataset=self.dataset,
-                    history=self.history.transformations.append(transformation),
+                    history=self.history.extended(transformation),
                     failure=failure, **new_matrices)
 
     def check_against_dataset(self):
