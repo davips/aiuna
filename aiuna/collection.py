@@ -1,3 +1,5 @@
+from typing import Iterator
+
 from pjdata.data import Data
 from itertools import repeat
 
@@ -24,14 +26,17 @@ class Collection:
         History object of transformations.
     failure
         The cause, when the provided history leads to a failure.
+    dataset
+        The user can set a dataset if convenient.
     """
     _almost_infinity = 10_000_000_000
 
-    def __init__(self, datas, history=None, failure=None):
+    def __init__(self, datas, history=None, failure=None, dataset=None):
         if history is None:
             history = History([])
         self.history = history
         self.failure = failure
+        self.dataset = dataset
 
         self.infinite = False
         if isinstance(datas, Data):
@@ -48,10 +53,13 @@ class Collection:
 
     def __next__(self):
         self.current_index += 1
-        if self.current_index > self.size:
+        if self.current_index >= self.size:
             self.current_index = 0
             raise StopIteration('No more Data objects left.')
-        return self.datas[self.current_index]
+        if isinstance(self.datas, Iterator):
+            return next(self.datas)
+        else:
+            return self.datas[self.current_index]
 
     def __str__(self):
         return '\n'.join(str(data) for data in self.datas)
@@ -79,4 +87,4 @@ class Collection:
 
         return Collection(datas=datas,
                           history=self.history.extended(transformation),
-                          failure=failure)
+                          failure=failure, dataset=self.dataset)
