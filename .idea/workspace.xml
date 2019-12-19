@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="67430135-7546-42f2-91bc-2c2e014d7885" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/storage/pickleserver.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/pickleserver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pjdata/aux/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/aux/encoders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pjdata/collection.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/collection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pjdata/history.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/history.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pjdata/transformation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/transformation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

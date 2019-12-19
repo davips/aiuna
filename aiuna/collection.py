@@ -43,25 +43,32 @@ class Collection:
             self.infinite = True
             self.datas = repeat(datas, times=self._almost_infinity)
             self.size = self._almost_infinity
+            self.has_nones = False
         else:
             self.datas = datas
             self.size = len(datas)
-        self.current_index = 0
+            self.has_nones = not all(datas)
+
+        self.next_index = 0
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        self.current_index += 1
-        if self.current_index >= self.size:
-            self.current_index = 0
-            raise StopIteration('No more Data objects left.')
-        if isinstance(self.datas, Iterator):
-            return next(self.datas)
-        else:
-            return self.datas[self.current_index]
+        if self.next_index == self.size:
+            self.next_index = 0
+            raise StopIteration('No more Data objects left. Restarted!')
+        nex = next(self.datas) if isinstance(self.datas, Iterator) else \
+            self.datas[self.next_index]
+        self.next_index += 1
+        return nex
 
     def __str__(self):
+        if self.infinite:
+            return 'Infinite collection!' + \
+                   str(self.history) + ' ' + \
+                   str(self.failure) + ' ' + \
+                   str(self.dataset)
         return '\n'.join(str(data) for data in self.datas)
 
     def updated(self, transformation, datas, failure='keep'):

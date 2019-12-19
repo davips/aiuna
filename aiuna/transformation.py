@@ -10,6 +10,9 @@ class Transformation(Identifyable):
         """
         self.transformer = transformer
         self.operation = operation
+        self.name = transformer.name
+        self.path = transformer.path
+        self.config = transformer.config
 
     def _uuid_impl(self):
         return self.transformer.uuid, self.operation
