@@ -48,7 +48,7 @@ def read_data_frame(df, filename, target='class'):
     """
     Y = target and as_column_vector(df.pop(target).values.astype('float'))
     X = df.values.astype('float')  # Do not call this before setting Y!
-    name = filename.split('/')[-1] + '-' + uuid(pickle.dumps((X, Y)))
+    name = filename.split('/')[-1] + '_' + uuid(pickle.dumps((X, Y)))
     dataset = Dataset(name, "descrip stub", X=list(df.columns), Y=['class'])
     return Data(dataset, X=X, Y=Y)
 
