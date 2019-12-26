@@ -9,7 +9,7 @@ from pjdata.history import History
 class Collection:
     """An optimized list of Data objects (TODO: optimize).
 
-    To be used through concurrent components:
+    To be used through concurrent transformers:
         Expand, Map, Reduce
 
 
