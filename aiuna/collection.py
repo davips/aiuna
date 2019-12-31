@@ -42,7 +42,8 @@ class Collection:
         if isinstance(datas, Data):
             data = datas
             self.infinite = True
-            self._datas = repeat(data.copy, times=self._almost_infinity)
+            # Yes, all Data objects here are exactly the same (immutability):
+            self._datas = repeat(data, times=self._almost_infinity)
             self.size = self._almost_infinity
             self.has_nones = False
         else:
@@ -59,7 +60,7 @@ class Collection:
         if self.next_index == self.size:
             self.next_index = 0
             raise StopIteration('No more Data objects left. Restarted!')
-        nex = next(self._datas)() if isinstance(self._datas, Iterator) else \
+        nex = next(self._datas) if isinstance(self._datas, Iterator) else \
             self._datas[self.next_index]
         self.next_index += 1
         return nex
@@ -95,7 +96,7 @@ class Collection:
 
         if datas is None:
             if self.infinite:
-                datas = next(self._datas)()
+                datas = next(self._datas)
             else:
                 datas = self._datas
 
