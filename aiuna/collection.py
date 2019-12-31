@@ -72,7 +72,7 @@ class Collection:
                    str(self.dataset)
         return '\n'.join(str(data) for data in self._datas)
 
-    def updated(self, transformation, datas, failure='keep'):
+    def updated1(self, transformation=None, datas=None, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.
 
         Parameters
@@ -93,6 +93,15 @@ class Collection:
         if failure == 'keep':
             failure = self.failure
 
+        if datas is None:
+            if self.infinite:
+                datas = next(self._datas)()
+            else:
+                datas = self._datas
+
+        history = self.history if transformation is None \
+            else self.history.extended(transformation)
+
         return Collection(datas=datas,
-                          history=self.history.extended(transformation),
+                          history=history,
                           failure=failure, dataset=self.dataset)

@@ -15,7 +15,7 @@ class History(Identifyable):
             self.last = self.transformations[-1]
 
     def extended(self, transformation):
-        return History(self.transformations + [transformation])
+        return History(self.transformations + transformation)
 
     def _uuid_impl(self):
         uuids = ""

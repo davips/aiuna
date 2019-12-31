@@ -57,7 +57,7 @@ class Data(Identifyable, LinAlgHelper):
 
         self.__dict__.update(self.fields)
 
-    def updated(self, transformation, failure='keep', **matrices):
+    def updated1(self, transformation=None, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
@@ -84,8 +84,11 @@ class Data(Identifyable, LinAlgHelper):
             new_name, new_value = self._translate(name, value)
             new_matrices[new_name] = new_value
 
+        history = self.history if transformation is None \
+            else self.history.extended(transformation)
+
         return Data(dataset=self.dataset,
-                    history=self.history.extended(transformation),
+                    history=history,
                     failure=failure, **new_matrices)
 
     def copy(self):
@@ -126,3 +129,5 @@ class Data(Identifyable, LinAlgHelper):
 
     def __str__(self):
         return self.dataset.__str__()
+
+    __repr__ = __str__
