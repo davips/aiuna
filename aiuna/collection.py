@@ -40,12 +40,13 @@ class Collection:
 
         self.infinite = False
         if isinstance(datas, Data):
+            data = datas
             self.infinite = True
-            self.datas = repeat(datas, times=self._almost_infinity)
+            self._datas = repeat(data.copy, times=self._almost_infinity)
             self.size = self._almost_infinity
             self.has_nones = False
         else:
-            self.datas = datas
+            self._datas = datas
             self.size = len(datas)
             self.has_nones = not all(datas)
 
@@ -58,8 +59,8 @@ class Collection:
         if self.next_index == self.size:
             self.next_index = 0
             raise StopIteration('No more Data objects left. Restarted!')
-        nex = next(self.datas) if isinstance(self.datas, Iterator) else \
-            self.datas[self.next_index]
+        nex = next(self._datas)() if isinstance(self._datas, Iterator) else \
+            self._datas[self.next_index]
         self.next_index += 1
         return nex
 
@@ -69,7 +70,7 @@ class Collection:
                    str(self.history) + ' ' + \
                    str(self.failure) + ' ' + \
                    str(self.dataset)
-        return '\n'.join(str(data) for data in self.datas)
+        return '\n'.join(str(data) for data in self._datas)
 
     def updated(self, transformation, datas, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.

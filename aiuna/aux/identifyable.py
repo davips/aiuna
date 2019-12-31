@@ -18,8 +18,8 @@ class Identifyable(ABC):
         """
         txt = self._uuid_impl()
         if isinstance(txt, tuple):
-            txt, prefix = txt
-            return uuid(txt.encode(), prefix)
+            prefix, txt = txt
+            return uuid(txt.encode(), prefix=prefix)
         else:
             return uuid(txt.encode())
 

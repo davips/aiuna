@@ -8,7 +8,11 @@ class History(Identifyable):
         :param transformations: list of transformations
         """
         self.transformations = transformations
-        self.last = self.transformations and self.transformations[-1]
+        if len(self.transformations) == 0:
+            # print('Empty history!')
+            self.last = None
+        else:
+            self.last = self.transformations[-1]
 
     def extended(self, transformation):
         return History(self.transformations + [transformation])

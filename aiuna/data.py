@@ -1,5 +1,6 @@
-import numpy as np
 from functools import lru_cache
+
+import numpy as np
 
 from pjdata.aux.identifyable import Identifyable
 from pjdata.aux.linalghelper import LinAlgHelper
@@ -87,6 +88,10 @@ class Data(Identifyable, LinAlgHelper):
                     history=self.history.extended(transformation),
                     failure=failure, **new_matrices)
 
+    def copy(self):
+        return Data(dataset=self.dataset, history=self.history,
+                    failure=self.failure, **self.matrices)
+
     def check_against_dataset(self):
         """Check if dataset field descriptions are compatible with provided
         matrices.
@@ -99,7 +104,12 @@ class Data(Identifyable, LinAlgHelper):
         return self.__dict__['X'], self.__dict__['y']
 
     def _uuid_impl(self):
-        return self.dataset.uuid + self.history.uuid
+        """First character indicates the operation of the last transformation"""
+        if self.history.last is None:
+            return self.dataset.uuid + self.history.uuid
+        else:
+            return self.history.last.operation, \
+                   self.dataset.uuid + self.history.uuid
 
     def _translate(self, field, value):
         """Given a field name, return its underlying matrix name and content.

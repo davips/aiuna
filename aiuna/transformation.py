@@ -15,7 +15,7 @@ class Transformation(Identifyable):
         self.config = transformer.config
 
     def _uuid_impl(self):
-        return self.transformer.uuid, self.operation
+        return self.operation, self.transformer.uuid
 
     def __str__(self):
         return str(self.transformer) + '->' + self.operation
