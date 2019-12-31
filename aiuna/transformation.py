@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pjdata.aux.identifyable import Identifyable
 
 
@@ -8,6 +10,10 @@ class Transformation(Identifyable):
         :param transformer: Transformer/Pipeline
         :param operation: 'a'pply or 'u'se
         """
+        if operation is None:
+            raise Exception(
+                'Operation cannot be None! Hint: self._transformation() '
+                'should be called only during apply() or use() operations!')
         self.transformer = transformer
         self.operation = operation
         self.name = transformer.name
@@ -19,3 +25,5 @@ class Transformation(Identifyable):
 
     def __str__(self):
         return str(self.transformer) + '->' + self.operation
+
+    __repr__ = __str__
