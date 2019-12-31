@@ -124,6 +124,5 @@ class Data(Identifyable, LinAlgHelper):
             # Matrix given directly.
             return field, value
 
-    def __str__(self):
-        return self.dataset.__str__()
-
+    # def __str__(self):
+    #     return self.dataset.__str__()
