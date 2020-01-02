@@ -57,13 +57,13 @@ class Data(Identifyable, LinAlgHelper):
 
         self.__dict__.update(self.fields)
 
-    def updated1(self, transformation=None, failure='keep', **matrices):
+    def updated1(self, transformation, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
         ----------
         transformation
-            Transformation object.
+            Transformation object. None will generate a DirtyData object.
         failure
             The failure caused by the given transformation, if it failed.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
@@ -84,17 +84,19 @@ class Data(Identifyable, LinAlgHelper):
             new_name, new_value = self._translate(name, value)
             new_matrices[new_name] = new_value
 
-        history = self.history if transformation is None \
-            else self.history.extended(transformation)
-
         return Data(dataset=self.dataset,
-                    history=history,
+                    history=self.history.extended(transformation),
                     failure=failure, **new_matrices)
 
-    def copy(self):
-        return Data(dataset=self.dataset, history=self.history,
-                    failure=self.failure, **self.matrices)
+    @property
+    @lru_cache()
+    def phantom(self):
+        """A light PhantomData object, without matrices."""
+        return PhantomData(dataset=self.dataset, history=self.history,
+                           failure=self.failure)
 
+    @property
+    @lru_cache()
     def check_against_dataset(self):
         """Check if dataset field descriptions are compatible with provided
         matrices.
@@ -131,3 +133,13 @@ class Data(Identifyable, LinAlgHelper):
         return self.dataset.__str__()
 
     __repr__ = __str__
+
+    fixed = updated1  # Shortcut to avoid conditional Data vs DirtyContent
+
+
+class PhantomData(Data):
+    """Exactly like Data, but without the matrices."""
+
+    def __getattr__(self, item):
+        if len(item) == 1 or item == 'Xy':
+            raise Exception('This a phantom Data object. It has no matrices.')

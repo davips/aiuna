@@ -1,8 +1,7 @@
+from itertools import repeat
 from typing import Iterator
 
 from pjdata.data import Data
-from itertools import repeat
-
 from pjdata.history import History
 
 
@@ -73,13 +72,13 @@ class Collection:
                    str(self.dataset)
         return '\n'.join(str(data) for data in self._datas)
 
-    def updated1(self, transformation=None, datas=None, failure='keep'):
+    def updated1(self, transformation, datas=None, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.
 
         Parameters
         ----------
         transformation
-            Transformation object.
+            Transformation object. None will generate a DirtyCollection object.
         failure
             The failure caused by the given transformation, if it failed.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
@@ -100,9 +99,6 @@ class Collection:
             else:
                 datas = self._datas
 
-        history = self.history if transformation is None \
-            else self.history.extended(transformation)
-
         return Collection(datas=datas,
-                          history=history,
+                          history=self.history.extended(transformation),
                           failure=failure, dataset=self.dataset)
