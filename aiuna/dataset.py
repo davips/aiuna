@@ -26,8 +26,6 @@ class Dataset(Identifyable):
 class NoDataset(type):
     name = 'NoDataset'
     from pjdata.aux.encoders import int2tiny
-    uuid = 'N' + int2tiny(0)
-
     def __new__(cls, *args, **kwargs):
         raise Exception(
             'NoDataset is a singleton and shouldn\'t be instantiated')
