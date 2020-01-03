@@ -21,3 +21,13 @@ class Dataset(Identifyable):
 
     def __str__(self):
         return f'{self.name} "{self.description}"'
+
+
+class NoDataset(type):
+    name = 'NoDataset'
+    from pjdata.aux.encoders import int2tiny
+    uuid = 'D' + int2tiny(0)
+
+    def __new__(cls, *args, **kwargs):
+        raise Exception(
+            'NoDataset is a singleton and shouldn\'t be instantiated')

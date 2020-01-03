@@ -2,8 +2,10 @@ from functools import lru_cache
 
 import numpy as np
 
+from pjdata.aux.encoders import int2tiny
 from pjdata.aux.identifyable import Identifyable
 from pjdata.aux.linalghelper import LinAlgHelper
+from pjdata.dataset import NoDataset
 from pjdata.history import History
 
 
@@ -97,7 +99,7 @@ class Data(Identifyable, LinAlgHelper):
 
     @property
     @lru_cache()
-    def check_against_dataset(self):
+    def checked_against_dataset(self):
         """Check if dataset field descriptions are compatible with provided
         matrices.
         """
@@ -109,9 +111,10 @@ class Data(Identifyable, LinAlgHelper):
         return self.__dict__['X'], self.__dict__['y']
 
     def _uuid_impl(self):
-        """First character indicates the operation of the last transformation"""
+        """First character indicates the operation of the last transformation,
+        or 'd' if none."""
         if self.history.last is None:
-            return self.dataset.uuid + self.history.uuid
+            return 'd', self.dataset.uuid + self.history.uuid
         else:
             return self.history.last.operation, \
                    self.dataset.uuid + self.history.uuid
@@ -143,3 +146,11 @@ class PhantomData(Data):
     def __getattr__(self, item):
         if len(item) == 1 or item == 'Xy':
             raise Exception('This a phantom Data object. It has no matrices.')
+
+
+class NoData(type):
+    dataset = NoDataset
+    uuid = 'd' + int2tiny(0)
+
+    def __new__(cls, *args, **kwargs):
+        raise Exception('NoData is a singleton and shouldn\'t be instantiated')
