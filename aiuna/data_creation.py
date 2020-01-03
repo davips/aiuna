@@ -18,9 +18,11 @@ def read_arff(filename, target='class'):
     :param target:
     :return:
     """
-    data = arff.load(open(filename, 'r'), encode_nominal=True)
+    file = open(filename, 'r')
+    data = arff.load(file, encode_nominal=True)
     df = pd.DataFrame(data['data'],
                       columns=[attr[0] for attr in data['attributes']])
+    file.close()
     return read_data_frame(df, filename, target)
 
 
