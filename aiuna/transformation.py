@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from pjdata.aux.identifyable import Identifyable
 
 
@@ -27,3 +25,17 @@ class Transformation(Identifyable):
         return str(self.transformer) + '->' + self.operation
 
     __repr__ = __str__
+
+
+class NoTransformation(type):
+    transformer = None
+    operation = None
+    name = None
+    path = None
+    config = None
+    from pjdata.aux.encoders import int2tiny
+    uuid = 'T' + int2tiny(0)
+
+    def __new__(cls, *args, **kwargs):
+        raise Exception(
+            'NoTransformation is a singleton and shouldn\'t be instantiated')
