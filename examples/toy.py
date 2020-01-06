@@ -1,5 +1,6 @@
 from cururu.persistence import DuplicateEntryException
 from cururu.pickleserver import PickleServer
+from pjdata.data_creation import read_arff
 from pjdata.dataset import Dataset
 from pjdata.data import Data
 import numpy as np
@@ -29,3 +30,18 @@ print([d.dataset.name for d in lista])
 print('Getting a complete Data object...')
 data = test.fetch(lista[0], ['X', 'Y'])
 print(data.X)
+
+
+# Armazenar dataset, sem depender do pacote pjml.
+from cururu.pickleserver import PickleServer
+print('Storing iris...')
+try:
+    PickleServer().store(read_arff('iris.arff'))
+    print('ok!')
+except DuplicateEntryException:
+    print('Duplicate! Ignored.')
+
+lst = PickleServer().list_by_name('iris')
+for phantom in lst:
+    print(phantom)
+

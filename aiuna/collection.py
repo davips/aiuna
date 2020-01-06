@@ -72,7 +72,7 @@ class Collection:
                    str(self.dataset)
         return '\n'.join(str(data) for data in self._datas)
 
-    def updated1(self, transformation, datas=None, failure='keep'):
+    def updated(self, transformation, datas=None, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.
 
         Parameters

@@ -40,17 +40,32 @@ def read_csv(filename, target='class'):
 
 def read_data_frame(df, filename, target='class'):
     """
-    ps. Assume X,y classification task.
-    Andd that there was no transformations (history) on this Data.
-    :param df:
-    :param filename: dataset of the dataset (if a path, dataset will be
-    extracted)
-    :param target:
-    :return:
+    Assume X,y classification task.
+    And that there were no transformations (history) on this Data.
+
+    A short hash will be added to the name, to ensure unique names.
+    Actually, the first collision is expected after 12M different datasets
+    with the same name ( n = 2**(log(107**7, 2)/2) ).
+    Since we already expect unique names like 'iris', and any transformed
+    dataset is expected to enter the system through a transformer,
+    12M should be safe enough. Ideally, a single 'iris' be will stored.
+    In practice, no more than a dozen are expected.
+
+    Parameters
+    ----------
+    df
+    filename
+        dataset of the dataset (if a path, dataset will be extracted)
+    target
+
+    Returns
+    -------
+    Data object
     """
     Y = target and as_column_vector(df.pop(target).values.astype('float'))
     X = df.values.astype('float')  # Do not call this before setting Y!
-    name = filename.split('/')[-1] + '_' + uuid(pickle.dumps((X, Y)))
+    uuid_ = uuid(pickle.dumps((X, Y)))
+    name = filename.split('/')[-1] + '_' + uuid_[:7]
     dataset = Dataset(name, "descrip stub", X=list(df.columns), Y=['class'])
     return Data(dataset, X=X, Y=Y)
 
@@ -68,7 +83,7 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
                                   n_features=n_attributes,
                                   n_classes=n_classes,
                                   n_informative=n + 1)
-    name = 'Random-' + uuid(pickle.dumps((X, y)))
+    name = 'RndData-' + uuid(pickle.dumps((X, y)))
     dataset = Dataset(
         name, "rnd", X=enumerate(n_attributes * ['rnd']), Y=['class']
     )

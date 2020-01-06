@@ -43,6 +43,7 @@ class Data(Identifyable, LinAlgHelper):
             history = History([])
         self.history = history
         self.dataset = dataset
+        self.name = dataset.name
         self.failure = failure
         self.matrices = matrices
         self.fields = matrices.copy()
@@ -59,7 +60,7 @@ class Data(Identifyable, LinAlgHelper):
 
         self.__dict__.update(self.fields)
 
-    def updated1(self, transformation, failure='keep', **matrices):
+    def updated(self, transformation, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
@@ -105,6 +106,15 @@ class Data(Identifyable, LinAlgHelper):
         """
         raise NotImplementedError
 
+    def fields_safe(self, component, field):
+        if field not in self.fields:
+            raise MissingField(
+                f'After {self.history.last}\nData {self}\n coming from '
+                f'{self.history.last.name} does '
+                f'not provide field {field} needed by {component.name}\n'
+                f'Available fields: {list(self.fields.keys())}')
+        return self.fields[field]
+
     @property
     @lru_cache()
     def Xy(self):
@@ -137,7 +147,7 @@ class Data(Identifyable, LinAlgHelper):
 
     __repr__ = __str__
 
-    fixed = updated1  # Shortcut to avoid conditional Data vs DirtyContent
+    fixed = updated  # Shortcut to avoid conditional Data vs DirtyContent
 
 
 class PhantomData(Data):
@@ -151,6 +161,11 @@ class PhantomData(Data):
 class NoData(type):
     dataset = NoDataset
     failure = None
+
+    def updated(self, transformation, failure='keep'):
+        nodata = NoData
+        nodata.failure = failure
+        return nodata
 
     def __new__(cls, *args, **kwargs):
         raise Exception('NoData is a singleton and shouldn\'t be instantiated')
