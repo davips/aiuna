@@ -1,4 +1,4 @@
-from pjdata.operation.apply import Transformation
+from pjdata.step.apply import Transformation
 
 
 class Use(Transformation):
@@ -13,4 +13,4 @@ class Use(Transformation):
         self.training_data = training_data
 
     def _uuid_impl(self):
-        return self.operation, self.transformer.uuid + self.training_data.uuid
+        return self.step, self.transformer.uuid + self.training_data.uuid

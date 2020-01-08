@@ -2,34 +2,34 @@ from pjdata.aux.identifyable import Identifyable
 
 
 class Transformation(Identifyable):
-    def __init__(self, transformer, operation):
+    def __init__(self, transformer, step):
         """
         Immutable application or use of a Transformer.
         :param transformer: Transformer/Pipeline
-        :param operation: 'a'pply or 'u'se
+        :param step: 'a'pply or 'u'se
         """
-        if operation is None:
+        if step is None:
             raise Exception(
                 'Operation cannot be None! Hint: self._transformation() '
-                'should be called only during apply() or use() operations!')
+                'should be called only during apply() or use() steps!')
         self.transformer = transformer
-        self.operation = operation
+        self.step = step
         self.name = transformer.name
         self.path = transformer.path
         self.config = transformer.config
 
     def _uuid_impl(self):
-        return self.operation, self.transformer.uuid
+        return self.step, self.transformer.uuid
 
     def __str__(self):
-        return str(self.transformer) + '->' + self.operation
+        return str(self.transformer) + '->' + self.step
 
     __repr__ = __str__
 
 
 class NoTransformation(type):
     transformer = None
-    operation = None
+    step = None
     name = None
     path = None
     config = None

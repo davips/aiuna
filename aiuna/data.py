@@ -121,12 +121,12 @@ class Data(Identifyable, LinAlgHelper):
         return self.__dict__['X'], self.__dict__['y']
 
     def _uuid_impl(self):
-        """First character indicates the operation of the last transformation,
+        """First character indicates the step of the last transformation,
         or 'd' if none."""
         if self.history.last is None:
             return 'd', self.dataset.uuid + self.history.uuid
         else:
-            return self.history.last.operation, \
+            return self.history.last.step, \
                    self.dataset.uuid + self.history.uuid
 
     def _translate(self, field, value):

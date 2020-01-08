@@ -1,4 +1,4 @@
-from pjdata.operation.transformation import Transformation
+from pjdata.step.transformation import Transformation
 
 
 class Apply(Transformation):

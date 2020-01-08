@@ -1,6 +1,6 @@
 from pjdata.data import Data as SlowData
 from pjdata.history import History
-from pjdata.operation.transformation import NoTransformation
+from pjdata.step.transformation import NoTransformation
 
 
 class FastData(SlowData):
