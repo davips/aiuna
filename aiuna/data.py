@@ -109,8 +109,10 @@ class Data(Identifyable, LinAlgHelper):
     def fields_safe(self, component, field):
         if field not in self.fields:
             raise MissingField(
-                f'After {self.history.last}\nData {self}\n coming from '
-                f'{self.history.last.name} does '
+                f'\n=================================================\n'
+                f'Last transformation:\n{self.history.last} ... \n'
+                f' Data object <{self}>\n'
+                f' last transformed by {self.history.last.name} does '
                 f'not provide field {field} needed by {component.name}\n'
                 f'Available fields: {list(self.fields.keys())}')
         return self.fields[field]
@@ -118,6 +120,15 @@ class Data(Identifyable, LinAlgHelper):
     @property
     @lru_cache()
     def Xy(self):
+        for field in ['X', 'Y']:
+            if field not in self.fields:
+                raise MissingField(
+                    f'\n=================================================\n'
+                    f'Last transformation:\n{self.history.last} ... \n'
+                    f' Data object <{self}>\n'
+                    f' last transformed by {self.history.last.name} does '
+                    f'not provide field {field}\n'
+                    f'Available fields: {list(self.fields.keys())}')
         return self.__dict__['X'], self.__dict__['y']
 
     def _uuid_impl(self):

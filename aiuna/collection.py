@@ -107,9 +107,12 @@ class Collection(Identifyable):
                           failure=failure, dataset=self.dataset)
 
     def _uuid_impl(self):
-        uuids = ""
-        for data in self._datas:
-            uuids = uuids + data.uuid
+        if self.infinite:
+            uuids = next(self._datas).uuid
+        else:
+            uuids = ""
+            for data in self._datas:
+                uuids = uuids + data.uuid
         if self.history.last is None:
             return 'c', self.dataset.uuid + self.history.uuid + uuids
         else:
