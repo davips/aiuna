@@ -8,7 +8,8 @@ class History(Identifyable):
         :param transformations: list of transformations
         """
         self.transformations = transformations
-        if len(self.transformations) == 0:
+        self.size = len(self.transformations)
+        if self.size == 0:
             # print('Empty history!')
             self.last = None
         else:

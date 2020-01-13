@@ -75,13 +75,13 @@ class Collection(Identifyable):
                    str(self.dataset)
         return '\n'.join(str(data) for data in self._datas)
 
-    def updated(self, transformation, datas=None, failure='keep'):
+    def updated(self, transformations, datas=None, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.
 
         Parameters
         ----------
-        transformation
-            Transformation object. None will generate a DirtyCollection object.
+        transformations
+            List of Transformation objects.
         failure
             The failure caused by the given transformation, if it failed.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
@@ -103,7 +103,7 @@ class Collection(Identifyable):
                 datas = self._datas
 
         return Collection(datas=datas,
-                          history=self.history.extended(transformation),
+                          history=self.history.extended(transformations),
                           failure=failure, dataset=self.dataset)
 
     def _uuid_impl(self):

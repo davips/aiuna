@@ -8,3 +8,10 @@ class Apply(Transformation):
         :param transformer: Transformer/Pipeline
         """
         super().__init__(transformer, 'a')
+
+    def __str__(self):
+        return str(
+            self.transformer
+        ) + '->' + self.step
+
+    __repr__ = __str__

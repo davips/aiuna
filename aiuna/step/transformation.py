@@ -21,11 +21,6 @@ class Transformation(Identifyable):
     def _uuid_impl(self):
         return self.step, self.transformer.uuid
 
-    def __str__(self):
-        return str(self.transformer) + '->' + self.step
-
-    __repr__ = __str__
-
 
 class NoTransformation(type):
     transformer = None

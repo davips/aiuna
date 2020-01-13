@@ -60,13 +60,13 @@ class Data(Identifyable, LinAlgHelper):
 
         self.__dict__.update(self.fields)
 
-    def updated(self, transformation, failure='keep', **matrices):
+    def updated(self, transformations, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
         ----------
-        transformation
-            Transformation object. None will generate a DirtyData object.
+        transformations
+            List of Transformation objects.
         failure
             The failure caused by the given transformation, if it failed.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
@@ -88,7 +88,7 @@ class Data(Identifyable, LinAlgHelper):
             new_matrices[new_name] = new_value
 
         return Data(dataset=self.dataset,
-                    history=self.history.extended(transformation),
+                    history=self.history.extended(transformations),
                     failure=failure, **new_matrices)
 
     @property
@@ -173,7 +173,7 @@ class NoData(type):
     dataset = NoDataset
     failure = None
 
-    def updated(self, transformation, failure='keep'):
+    def updated(self, transformations, failure='keep'):
         nodata = NoData
         nodata.failure = failure
         return nodata
