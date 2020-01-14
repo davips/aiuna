@@ -98,6 +98,12 @@ class Data(Identifyable, LinAlgHelper):
         return PhantomData(dataset=self.dataset, history=self.history,
                            failure=self.failure)
 
+    @classmethod
+    @lru_cache()
+    def phantom_by_uuid(cls, uuid):
+        """A light PhantomData object, without matrices."""
+        return UUIDData(uuid)
+
     @property
     @lru_cache()
     def consistent_with_dataset(self):
@@ -154,7 +160,8 @@ class Data(Identifyable, LinAlgHelper):
             return field, value
 
     def __str__(self):
-        return self.dataset.__str__()
+        return self.dataset.__str__() + ' ' + str(list(self.fields.keys())) + \
+               ' failure=' + str(self.failure)
 
     __repr__ = __str__
 
@@ -186,3 +193,17 @@ class NoData(type):
 
     def __new__(cls, *args, **kwargs):
         raise Exception('NoData is a singleton and shouldn\'t be instantiated')
+
+    def __bool__(self):
+        return False
+
+
+class MissingField(Exception):
+    pass
+
+
+class UUIDData:
+    """Exactly like Data, but only with UUID."""
+
+    def __init__(self, uuid):
+        self.uuid = uuid
