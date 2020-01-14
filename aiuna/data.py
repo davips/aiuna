@@ -100,7 +100,7 @@ class Data(Identifyable, LinAlgHelper):
 
     @property
     @lru_cache()
-    def checked_against_dataset(self):
+    def consistent_with_dataset(self):
         """Check if dataset field descriptions are compatible with provided
         matrices.
         """
@@ -164,9 +164,15 @@ class Data(Identifyable, LinAlgHelper):
 class PhantomData(Data):
     """Exactly like Data, but without the matrices."""
 
+    @property
+    def consistent_with_dataset(self):
+        return True
+
     def __getattr__(self, item):
         if len(item) == 1 or item == 'Xy':
             raise Exception('This a phantom Data object. It has no matrices.')
+        else:
+            return self.__getattribute__(item)
 
 
 class NoData(type):
