@@ -19,6 +19,8 @@ class Identifyable(ABC):
         txt = self._uuid_impl()
         if isinstance(txt, tuple):
             prefix, txt = txt
+            if prefix == 'uuid':
+                return txt
             return uuid(txt.encode(), prefix=prefix)
         else:
             return uuid(txt.encode())
