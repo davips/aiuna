@@ -31,17 +31,3 @@ print('Getting a complete Data object...')
 data = test.fetch(lista[0], ['X', 'Y'])
 print(data.X)
 
-
-# Armazenar dataset, sem depender do pacote pjml.
-from cururu.pickleserver import PickleServer
-print('Storing iris...')
-try:
-    PickleServer().store(read_arff('iris.arff'))
-    print('ok!')
-except DuplicateEntryException:
-    print('Duplicate! Ignored.')
-
-lst = PickleServer().list_by_name('iris')
-for phantom in lst:
-    print(phantom)
-

@@ -37,7 +37,6 @@ class Data(Identifyable, LinAlgHelper):
     # Some mappings from vector/scalar to the matrix where it is stored.
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
-    isphantom = False
 
     def __init__(self, dataset, history=None, failure=None, **matrices):
         if history is None:
@@ -172,8 +171,6 @@ class Data(Identifyable, LinAlgHelper):
 class PhantomData(Data):
     """Exactly like Data, but without the matrices."""
 
-    isphantom = True
-
     @property
     def consistent_with_dataset(self):
         return True
@@ -199,7 +196,6 @@ class UUIDData(PhantomData):
 class NoData(type):
     dataset = NoDataset
     failure = None
-    isphantom = False
 
     def updated(self, transformations, failure='keep'):
         nodata = NoData
