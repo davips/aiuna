@@ -10,16 +10,18 @@ class Use(Transformation):
             data provided to transformer.apply(data)
         """
         if training_data is None:
-            raise Exception('training_data is None!')
+            self.training_data_uuid = 'DØØØØØØØØØØØØØØØØØØ0'
+        else:
+            self.training_data_uuid = training_data.uuid
+
         super().__init__(transformer, 'u')
-        self.training_data = training_data
 
     def _uuid_impl(self):
-        return self.step, self.transformer.uuid + self.training_data.uuid
+        return self.step, self.transformer.uuid + self.training_data_uuid
 
     def __str__(self):
         return str(
             self.transformer
-        ) + '+' + self.training_data.uuid + '->' + self.step
+        ) + '+' + self.training_data_uuid + '->' + self.step
 
     __repr__ = __str__

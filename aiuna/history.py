@@ -1,12 +1,13 @@
 from pjdata.aux.identifyable import Identifyable
 
 
-class History(Identifyable):
+class History(Identifyable, tuple):
     def __init__(self, transformations):
         """
         Immutable history of transformations.
         :param transformations: list of transformations
         """
+        super().__init__(transformations)
         self.transformations = transformations
         self.size = len(self.transformations)
         if self.size == 0:
@@ -26,7 +27,7 @@ class History(Identifyable):
             uuids = uuids + transf.uuid
         return uuids
 
-    def __str__(self):
-        return '[h[\n' + '\n---\n'.join(
-            list(map(str, self.transformations))
-        ) + '\n]h]\n'
+    # def __str__(self):
+    #     return '[h[\n' + '\n---\n'.join(
+    #         list(map(str, self.transformations))
+    #     ) + '\n]h]\n'
