@@ -93,7 +93,7 @@ class Data(Identifyable, LinAlgHelper):
 
     @property
     @lru_cache()
-    def phantom(self, transformations):
+    def phantom(self):
         """A light PhantomData object, without matrices."""
         return PhantomData(dataset=self.dataset, history=self.history,
                            failure=self.failure)
@@ -103,6 +103,12 @@ class Data(Identifyable, LinAlgHelper):
     def phantom_by_uuid(cls, uuid):
         """A light PhantomData object, without matrices."""
         return UUIDData(uuid)
+
+    @lru_cache()
+    def phantom_extended(self, transformations):
+        """A light PhantomData object, without matrices."""
+        return PhantomData(dataset=self.dataset, history=self.history.extended(transformations),
+                           failure=self.failure)
 
     @property
     @lru_cache()

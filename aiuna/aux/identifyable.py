@@ -30,11 +30,11 @@ class Identifyable(ABC):
     def sid(self):
         """
         Short uuID
-        First 10 chars of uuid for printing purposes.
-        Max of 1 collision each 1048576 combinations.
+        First 8 chars of uuid, usually for printing purposes.
+        First collision expect after 12671943 combinations.
         :return:
         """
-        return self.uuid[:10]
+        return self.uuid[:8]
 
     @abstractmethod
     def _uuid_impl(self):
