@@ -2,17 +2,17 @@ from pjdata.step.apply import Transformation
 
 
 class Use(Transformation):
-    def __init__(self, transformer, training_data):
+    def __init__(self, transformer, apply_transformations):
         """
         Immutable use of a Transformer.
         :param transformer: Transformer/Pipeline
-        training_data
-            data provided to transformer.apply(data)
+        apply_transformations
+            apply_transformations thatdata provided to transformer.apply(data)
         """
-        if training_data is None:
+        if apply_transformations is None:
             self.training_data_uuid = 'DØØØØØØØØØØØØØØØØØØ0'
         else:
-            self.training_data_uuid = training_data.uuid
+            self.training_data_uuid = apply_transformations.uuid
 
         super().__init__(transformer, 'u')
 
