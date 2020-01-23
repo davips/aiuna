@@ -32,6 +32,7 @@ class Data(Identifyable, LinAlgHelper):
     matrices
         A dictionary like {X: <numpy array>, Y: <numpy array>}.
         Matrix names should have a single character!
+        A matrix name followed by a 'd' indicates its description.
     """
 
     # Some mappings from vector/scalar to the matrix where it is stored.
@@ -118,30 +119,22 @@ class Data(Identifyable, LinAlgHelper):
         """
         raise NotImplementedError
 
-    def fields_safe(self, component, field):
+    def fields_safe(self, field, component=None):
         if field not in self.fields:
+            name = 'unknown' if component is None else component.name
             raise MissingField(
                 f'\n=================================================\n'
                 f'Last transformation:\n{self.history.last} ... \n'
                 f' Data object <{self}>\n'
                 f' last transformed by {self.history.last.name} does '
-                f'not provide field {field} needed by {component.name}\n'
+                f'not provide field {field} needed by {name}\n'
                 f'Available fields: {list(self.fields.keys())}')
         return self.fields[field]
 
     @property
     @lru_cache()
     def Xy(self):
-        for field in ['X', 'Y']:
-            if field not in self.fields:
-                raise MissingField(
-                    f'\n=================================================\n'
-                    f'Last transformation:\n{self.history.last} ... \n'
-                    f' Data object <{self}>\n'
-                    f' last transformed by {self.history.last.name} does '
-                    f'not provide field {field}\n'
-                    f'Available fields: {list(self.fields.keys())}')
-        return self.__dict__['X'], self.__dict__['y']
+        return self.fields_safe('X'), self.fields_safe('y')
 
     def _uuid_impl(self):
         """First character indicates the step of the last transformation,

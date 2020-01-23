@@ -7,6 +7,8 @@ class FastData(SlowData):
     def __init__(self, dataset, history=None, failure=None, **matrices):
         super().__init__(dataset, history, failure, **matrices)
         self.history.last = None
+        # TODO: FastData seria um Data com zero history, para uma suposta
+        #  melhora de desempenho.
 
     def updated(self, transformation, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
