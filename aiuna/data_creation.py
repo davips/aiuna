@@ -66,8 +66,8 @@ def read_data_frame(df, filename, target='class'):
     X = df.values.astype('float')  # Do not call this before setting Y!
     uuid_ = uuid(pickle.dumps((X, Y)))
     name = filename.split('/')[-1] + '_' + uuid_[:7]
-    dataset = Dataset(name, "descrip stub", X=list(df.columns), Y=['class'])
-    return Data(dataset, X=X, Y=Y)
+    dataset = Dataset(name, "descrip stub")
+    return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=['class'])
 
 
 def random_classification_dataset(n_attributes, n_classes, n_instances):
