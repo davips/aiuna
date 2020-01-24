@@ -31,8 +31,24 @@ class Data(Identifyable, LinAlgHelper):
         The cause, when the provided history leads to a failure.
     matrices
         A dictionary like {X: <numpy array>, Y: <numpy array>}.
-        Matrix names should have a single character!
-        A matrix name followed by a 'd' indicates its description.
+        Matrix names should have a single uppercase character, e.g.:
+        X=[
+           [23.2, 35.3, 'white'],
+           [87.0, 52.7, 'brown']
+        ]
+        Y=[
+           'rabbit',
+           'mouse'
+        ]
+        They can be, ideally, numpy arrays (e.g. storing is optimized).
+        A matrix name followed by a 'd' indicates its description, e.g.:
+        Xd=['weight', 'height', 'color']
+        Yd=['class']
+        A matrix name followed by a 't' indicates its types ('ord', 'int',
+        'real', 'cat'*).
+        * -> A cathegorical/nominal type is given as a list of nominal values:
+        Xt=['real', 'real', ['white', 'brown']]
+        Yt=[['rabbit', 'mouse']]
     """
 
     # Some mappings from vector/scalar to the matrix where it is stored.
@@ -108,7 +124,8 @@ class Data(Identifyable, LinAlgHelper):
     @lru_cache()
     def phantom_extended(self, transformations):
         """A light PhantomData object, without matrices."""
-        return PhantomData(dataset=self.dataset, history=self.history.extended(transformations),
+        return PhantomData(dataset=self.dataset,
+                           history=self.history.extended(transformations),
                            failure=self.failure)
 
     @property
@@ -175,7 +192,7 @@ class PhantomData(Data):
         return True
 
     def __getattr__(self, item):
-        if len(item) == 1 or item == 'Xy':
+        if 0 < len(item) < 3:
             raise Exception('This a phantom Data object. It has no matrices.')
         else:
             return self.__getattribute__(item)
