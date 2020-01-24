@@ -2,28 +2,74 @@ import _pickle as pickle
 import math
 
 import arff
+import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
 
+from pjdata.aux.compression import pack_data
 from pjdata.aux.encoders import uuid
 from pjdata.data import Data
 from pjdata.dataset import Dataset
 
 
-def read_arff(filename, target='class'):
+def read_arff(filename, description='No description.'):
     """
     Create Data from ARFF file.
-    See read_data_frame().
-    :param filename:
-    :param target:
-    :return:
+
+    Assume X,y classification task and last attribute as target.
+    And that there were no transformations (history) on this Data.
+
+    A short hash will be added to the name, to ensure unique names.
+    Actually, the first collision is expected after 12M different datasets
+    with the same name ( n = 2**(log(107**7, 2)/2) ).
+    Since we already expect unique names like 'iris', and any transformed
+    dataset is expected to enter the system through a transformer,
+    12M should be safe enough. Ideally, a single 'iris' be will stored.
+    In practice, no more than a dozen are expected.
+
+    Parameters
+    ----------
+    filename
+        path of the dataset
+    description
+        dataset description
+
+    Returns
+    -------
+    Data object
     """
     file = open(filename, 'r')
     data = arff.load(file, encode_nominal=True)
-    df = pd.DataFrame(data['data'],
-                      columns=[attr[0] for attr in data['attributes']])
     file.close()
-    return read_data_frame(df, filename, target)
+
+    Arr = np.array(data['data'])
+    Att = data['attributes'][0:-1]
+    TgtAtt = data['attributes'][-1]
+
+    X = Arr[:, 0:-1]
+    Xd = [tup[0] for tup in Att]
+    Xt = [translate_type(tup[1]) for tup in Att]
+
+    Y = np.ascontiguousarray(Arr[:, -1].reshape((Arr.shape[0], 1)))
+    Yd = [TgtAtt[0]]
+    Yt = [translate_type(TgtAtt[1])]
+
+    uuid_ = uuid(pack_data(X) + pack_data(Y))
+    name = filename.split('/')[-1] + '_' + uuid_[:7]
+    dataset = Dataset(name, description)
+    return Data(dataset, X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
+
+
+def translate_type(name):
+    if isinstance(name, list):
+        return name
+    name = name.lower()
+    if name in ['numeric', 'real', 'float']:
+        return 'real'
+    elif name in ['integer', 'int']:
+        return 'int'
+    else:
+        raise Exception('Unknown type:', name)
 
 
 def read_csv(filename, target='class'):
