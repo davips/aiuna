@@ -47,17 +47,17 @@ def read_arff(filename, description='No description.'):
     TgtAtt = data['attributes'][-1]
 
     X = Arr[:, 0:-1]
-    if len(nominal_idxs(X)) == 0:
-        X = X.astype(float)
     Xd = [tup[0] for tup in Att]
     Xt = [translate_type(tup[1]) for tup in Att]
+    if len(nominal_idxs(Xt)) == 0:
+        X = X.astype(float)
 
     Y = np.ascontiguousarray(Arr[:, -1].reshape((Arr.shape[0], 1)))
     Yd = [TgtAtt[0]]
     Yt = [translate_type(TgtAtt[1])]
 
-    uuid_ = uuid(pack_data(X) + pack_data(Y))
-    name = filename.split('/')[-1] + '_' + uuid_[:7]
+    uuid_ = uuid(pack_data(X) + pack_data(Y))[:7]
+    name = filename.split('/')[-1] + '_' + uuid_
     dataset = Dataset(name, description)
     return Data(dataset, X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
 

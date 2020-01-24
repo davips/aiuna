@@ -64,6 +64,8 @@ class Data(Identifyable, LinAlgHelper):
         self.failure = failure
         self.matrices = matrices
         self.fields = matrices.copy()
+        # self.content_matrices =
+        # [v for k, v in matrices.items() if len(k) == 1]
 
         # Add vector shortcuts.
         for k, v in self._vec2mat_map.items():
