@@ -1,8 +1,13 @@
 class LinAlgHelper:
     @staticmethod
     def _as_vector(mat):
-        s = mat.shape[0]
-        return mat.reshape(s)
+        size = max(mat.shape[0], mat.shape[1])
+        try:
+            return mat.reshape(size)
+        except Exception as e:
+            print(e)
+            raise Exception(
+                f'Expecting matrix {mat} as a column or row vector...')
 
     @staticmethod
     def _as_column_vector(vec):
