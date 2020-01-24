@@ -47,6 +47,8 @@ def read_arff(filename, description='No description.'):
     TgtAtt = data['attributes'][-1]
 
     X = Arr[:, 0:-1]
+    if len(nominal_idxs(X)) == 0:
+        X = X.astype(float)
     Xd = [tup[0] for tup in Att]
     Xt = [translate_type(tup[1]) for tup in Att]
 
@@ -182,3 +184,7 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
 
 def as_column_vector(vec):
     return vec.reshape(len(vec), 1)
+
+
+def nominal_idxs(M):
+    return [idx for idx, val in list(enumerate(M)) if isinstance(val, list)]
