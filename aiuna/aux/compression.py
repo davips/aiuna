@@ -33,22 +33,22 @@ def unpack_data(dump, w=None, h=None):
         return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
 
 
-def pack_object(obj):
-    """
-    Nondeterministic (fast) parallel compression!
-    Due to multithreading, blosc is nondeterministic and useless for UUIDs.
-    :param obj:
-    :return:
-    """
-    import blosc
-    pickled = pickle.dumps(obj)
-    fast_reduced = lz.compress(pickled, compression_level=1)
-    return blosc.compress(fast_reduced,
-                          shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
+# def pack_object(obj):  #blosc is buggy
+#     """
+#     Nondeterministic (fast) parallel compression!
+#     Due to multithreading, blosc is nondeterministic and useless for UUIDs.
+#     :param obj:
+#     :return:
+#     """
+#     import blosc
+#     pickled = pickle.dumps(obj)
+#     fast_reduced = lz.compress(pickled, compression_level=1)
+#     return blosc.compress(fast_reduced,
+#                           shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
 
 
-def unpack_object(dump):
-    import blosc
-    decompressed = blosc.decompress(dump)
-    fast_decompressed = lz.decompress(decompressed)
-    return pickle.loads(fast_decompressed)
+# def unpack_object(dump):  #blosc is buggy
+#     import blosc
+#     decompressed = blosc.decompress(dump)
+#     fast_decompressed = lz.decompress(decompressed)
+#     return pickle.loads(fast_decompressed)
