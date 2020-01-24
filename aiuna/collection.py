@@ -101,7 +101,7 @@ class Collection(Identifyable):
                 datas = next(self._datas)
             else:
                 datas = self._datas
-
+        # TODO: to require changes on Xt and Xd when X is changed.
         return Collection(datas=datas,
                           history=self.history.extended(transformations),
                           failure=failure, dataset=self.dataset)

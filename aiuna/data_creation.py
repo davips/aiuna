@@ -39,7 +39,7 @@ def read_arff(filename, description='No description.'):
     Data object
     """
     file = open(filename, 'r')
-    data = arff.load(file, encode_nominal=True)
+    data = arff.load(file, encode_nominal=False)
     file.close()
 
     Arr = np.array(data['data'])
