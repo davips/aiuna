@@ -56,7 +56,7 @@ def read_arff(filename, description='No description.'):
     Yd = [TgtAtt[0]]
     Yt = [translate_type(TgtAtt[1])]
 
-    uuid_ = uuid(pack_data(X) + pack_data(Y))[:7]
+    uuid_ = uuid(pack_data(X) + pack_data(Y), prefix='')[:7]
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     name = clean.split('/')[-1] + '_' + uuid_
     dataset = Dataset(name, description)
