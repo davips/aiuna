@@ -20,11 +20,11 @@ def read_arff(filename, description='No description.'):
     And that there were no transformations (history) on this Data.
 
     A short hash will be added to the name, to ensure unique names.
-    Actually, the first collision is expected after 12M different datasets
-    with the same name ( n = 2**(log(107**7, 2)/2) ).
+    Actually, the first collision is expected after 1M different datasets
+    with the same name ( n = 2**(log(107**6, 2)/2) ).
     Since we already expect unique names like 'iris', and any transformed
     dataset is expected to enter the system through a transformer,
-    12M should be safe enough. Ideally, a single 'iris' be will stored.
+    1M should be safe enough. Ideally, a single 'iris' be will stored.
     In practice, no more than a dozen are expected.
 
     Parameters
