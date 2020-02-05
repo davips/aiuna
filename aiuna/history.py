@@ -26,7 +26,7 @@ class History(Identifyable):
             uuids = uuids + transf.uuid
         return uuids
 
-    # def __str__(self):
-    #     return '[h[\n' + '\n---\n'.join(
-    #         list(map(str, self.transformations))
-    #     ) + '\n]h]\n'
+    def __str__(self):
+        return '[h[\n' + '\n---\n'.join(
+            list(map(str, self.transformations))
+        ) + '\n]h]\n'

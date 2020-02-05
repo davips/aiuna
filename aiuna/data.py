@@ -216,6 +216,7 @@ class UUIDData(PhantomData):
 class NoData(type):
     dataset = NoDataset
     failure = None
+    phantom = PhantomData(dataset=dataset, history=history, failure=failure)
 
     def updated(self, transformations, failure='keep'):
         nodata = NoData

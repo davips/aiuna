@@ -7,11 +7,15 @@ class Apply(Transformation):
         Immutable application of a Transformer.
         :param transformer: Transformer/Pipeline
         """
+        self._uuid = transformer.uuid
         super().__init__(transformer, 'a')
+
+    def _uuid_impl(self):
+        return self.step, self._uuid
 
     def __str__(self):
         return str(
-            self.transformer
+            self.serialized
         ) + '->' + self.step
 
     __repr__ = __str__

@@ -14,14 +14,15 @@ class Use(Transformation):
         else:
             self.training_data_uuid = apply_transformations.uuid
 
+        self._uuid = transformer.uuid
         super().__init__(transformer, 'u')
 
     def _uuid_impl(self):
-        return self.step, self.transformer.uuid + self.training_data_uuid
+        return self.step, self._uuid + self.training_data_uuid
 
     def __str__(self):
         return str(
-            self.transformer
+            self.serialized
         ) + '+' + self.training_data_uuid + '->' + self.step
 
     __repr__ = __str__
