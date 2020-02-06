@@ -2,7 +2,7 @@ from abc import ABC
 from functools import lru_cache
 
 from pjdata.aux.identifyable import Identifyable
-from pjdata.aux.serialization import deserialize, serialize
+from pjdata.aux.serialization import serialize, deserialize
 
 
 class Transformation(Identifyable, ABC):
