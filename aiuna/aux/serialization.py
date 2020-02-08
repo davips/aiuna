@@ -26,7 +26,8 @@ def materialize(name, path, config):
         return class_(**config)
     except Exception as e:
         print(e)
-        raise Exception(f'Problems materializing {name}@{path} with\n{config}')
+        raise Exception(
+            f'Problems materializing {name}@{path} with config\n{config}')
 
 
 def _dict_to_transformer(dic):

@@ -63,7 +63,7 @@ class Data(Identifyable, LinAlgHelper):
         self.name = dataset.name
         self.failure = failure
         self.matrices = matrices
-        self.fields = matrices.copy()
+        self._fields = matrices.copy()
         # self.content_matrices =
         # [v for k, v in matrices.items() if len(k) == 1]
 
@@ -71,14 +71,14 @@ class Data(Identifyable, LinAlgHelper):
         for k, v in self._vec2mat_map.items():
             if v in matrices and (
                     matrices[v].shape[0] == 1 or matrices[v].shape[1] == 1):
-                self.fields[k] = self._matrix_to_vector(matrices[v])
+                self._fields[k] = self._matrix_to_vector(matrices[v])
 
         # Add scalar shortcuts.
         for k, v in self._sca2mat_map.items():
             if v in matrices and matrices[v].shape == (1, 1):
-                self.fields[k] = self._matrix_to_scalar(matrices[v])
+                self._fields[k] = self._matrix_to_scalar(matrices[v])
 
-        self.__dict__.update(self.fields)
+        self.__dict__.update(self._fields)
 
     def updated(self, transformations, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
@@ -139,8 +139,8 @@ class Data(Identifyable, LinAlgHelper):
         """
         raise NotImplementedError
 
-    def fields_safe(self, field, component=None):
-        if field not in self.fields:
+    def field(self, field, component=None):
+        if field not in self._fields:
             name = 'unknown' if component is None else component.name
             raise MissingField(
                 f'\n=================================================\n'
@@ -149,13 +149,13 @@ class Data(Identifyable, LinAlgHelper):
                 f' last transformed by '
                 f'{self.history.last and self.history.last.name} does '
                 f'not provide field {field} needed by {name}\n'
-                f'Available fields: {list(self.fields.keys())}')
-        return self.fields[field]
+                f'Available fields: {list(self._fields.keys())}')
+        return self._fields[field]
 
     @property
     @lru_cache()
     def Xy(self):
-        return self.fields_safe('X'), self.fields_safe('y')
+        return self.field('X'), self.field('y')
 
     def _uuid_impl(self):
         """First character indicates the step of the last transformation,
@@ -180,7 +180,7 @@ class Data(Identifyable, LinAlgHelper):
             return field, value
 
     def __str__(self):
-        return self.dataset.__str__() + ' ' + str(list(self.fields.keys())) + \
+        return self.dataset.__str__() + ' ' + str(list(self._fields.keys())) + \
                ' failure=' + str(self.failure)
 
     __repr__ = __str__
