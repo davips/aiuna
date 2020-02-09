@@ -148,7 +148,7 @@ class Data(Identifyable, LinAlgHelper):
                 f' Data object <{self}>\n'
                 f' last transformed by '
                 f'{self.history.last and self.history.last.name} does '
-                f'not provide field {field} needed by {name}\n'
+                f'not provide field\n {field} needed by {name} .\n'
                 f'Available fields: {list(self._fields.keys())}')
         return self._fields[field]
 
