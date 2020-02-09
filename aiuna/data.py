@@ -141,7 +141,7 @@ class Data(Identifyable, LinAlgHelper):
 
     def field(self, field, component=None):
         if field not in self._fields:
-            name = 'unknown' if component is None else component.name
+            name = component.name if 'name' in dir(component) else component
             raise MissingField(
                 f'\n=================================================\n'
                 f'Last transformation:\n{self.history.last} ... \n'
