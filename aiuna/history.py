@@ -1,12 +1,14 @@
 from pjdata.aux.identifyable import Identifyable
+from pjdata.mixin.printable import Printable
 
 
-class History(Identifyable):
+class History(Identifyable, Printable):
     def __init__(self, transformations):
         """
         Immutable history of transformations.
         :param transformations: list of transformations
         """
+        super().__init__(jsonable=transformations)
         self.transformations = transformations
         self.size = len(self.transformations)
         if self.size == 0:

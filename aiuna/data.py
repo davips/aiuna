@@ -7,9 +7,10 @@ from pjdata.aux.identifyable import Identifyable
 from pjdata.aux.linalghelper import LinAlgHelper
 from pjdata.dataset import NoDataset
 from pjdata.history import History
+from pjdata.mixin.printable import Printable
 
 
-class Data(Identifyable, LinAlgHelper):
+class Data(Identifyable, LinAlgHelper, Printable):
     """Immutable lazy data for all machine learning scenarios we could
     imagine.
 
@@ -56,6 +57,10 @@ class Data(Identifyable, LinAlgHelper):
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
     def __init__(self, dataset, history=None, failure=None, **matrices):
+        jsonable = {'dataset': dataset, 'histo': history, 'failure': failure}
+        jsonable.update(**matrices)
+        super().__init__(jsonable=jsonable)
+
         if history is None:
             history = History([])
         self.history = history
@@ -178,14 +183,6 @@ class Data(Identifyable, LinAlgHelper):
         else:
             # Matrix given directly.
             return field, value
-
-    def __str__(self):
-        return self.dataset.__str__() + ' ' + str(list(self._fields.keys())) + \
-               ' failure=' + str(self.failure)
-
-    __repr__ = __str__
-
-    fixed = updated  # Shortcut to avoid conditional Data vs DirtyContent
 
 
 class PhantomData(Data):

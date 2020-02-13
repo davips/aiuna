@@ -1,8 +1,10 @@
 import json
 
+from pjdata.aux.encoders import CustomJSONEncoder
+
 
 def serialize(obj):
-    return json.dumps(obj, sort_keys=True)
+    return json.dumps(obj, cls=CustomJSONEncoder, sort_keys=True)
 
 
 def deserialize(txt):

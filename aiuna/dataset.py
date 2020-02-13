@@ -1,8 +1,9 @@
 from pjdata.aux.identifyable import Identifyable
+from pjdata.mixin.printable import Printable
 
 
-class Dataset(Identifyable):
-    def __init__(self, name, description, **fields):
+class Dataset(Identifyable, Printable):
+    def __init__(self, name, description):
         """
         Metadata of original datasets.
         :param name: name of the dataset (preferably concatenated with the
@@ -13,14 +14,12 @@ class Dataset(Identifyable):
          'X': {'weight':'float', 'heigth':'float'},
          'Y': ['gender']}
         """
+        super().__init__(jsonable={'name': name, 'description': description})
         self.name = name
         self.description = description
 
     def _uuid_impl(self):
         return self.name
-
-    def __str__(self):
-        return f'{self.name} "{self.description}"'
 
 
 class NoDataset(type):
