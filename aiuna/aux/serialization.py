@@ -4,7 +4,7 @@ from pjdata.aux.encoders import CustomJSONEncoder
 
 
 def serialize(obj):
-    return json.dumps(obj, cls=CustomJSONEncoder, sort_keys=True)
+    return json.dumps(obj, cls=CustomJSONEncoder, sort_keys=True, ensure_ascii=False)
 
 
 def deserialize(txt):

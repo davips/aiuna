@@ -106,6 +106,16 @@ class Collection(Identifyable):
                           history=self.history.extended(transformations),
                           failure=failure, dataset=self.dataset)
 
+    def last_transformation_replaced(self, transformation):
+        """Replace last transformation in history for convenience.
+
+        Provided transformation should be equivalent to the replaced one for
+        consistency.
+        """
+        return Collection(datas=self._datas,
+                          history=History(self.history[:-1] + [transformation]),
+                          failure=self.failure, dataset=self.dataset)
+
     def _uuid_impl(self):
         if self.infinite:
             uuids = next(self._datas).uuid

@@ -1,3 +1,6 @@
+from functools import lru_cache
+
+from pjdata.aux.encoders import uuid
 from pjdata.aux.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 
@@ -28,7 +31,20 @@ class History(Identifyable, Printable):
             uuids = uuids + transf.uuid
         return uuids
 
-    def __str__(self):
-        return '\n---\n'.join(
-            list(map(str, self.transformations))
-        )
+    @property
+    @lru_cache()
+    def id(self):
+        """Non unique identifier.
+
+        Similar to as uuid except that it does not consider which training
+        data was used in apply step.
+
+        Useful for checking consistency between expected and actual
+        transformations."""
+        ids = ""
+        for transf in self.transformations:
+            ids = ids + transf.transformer_uuid
+        return uuid(ids.encode())
+
+    def __getitem__(self, item):
+        return self.transformations[item]
