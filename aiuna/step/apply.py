@@ -9,6 +9,7 @@ class Apply(Transformation, Printable):
         :param transformer: Transformer/Pipeline
         """
         self.transformer_uuid = transformer.uuid
+        # TODO: extrair transformation de dentro de conteiners NoOp
         Transformation.__init__(self, transformer, 'a')
         Printable.__init__(self, [transformer, 'a'])
 
