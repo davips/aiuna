@@ -9,10 +9,6 @@ class Dataset(Identifyable, Printable):
         :param name: name of the dataset (preferably concatenated with the
         hash of its data to avoid conflicting names)
         :param description: purpose of the dataset
-        :param fields: a dictionary explaining the attributes of each field:
-        {'I': 'image',
-         'X': {'weight':'float', 'heigth':'float'},
-         'Y': ['gender']}
         """
         super().__init__(jsonable={'name': name, 'description': description})
         self.name = name
