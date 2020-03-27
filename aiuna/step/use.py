@@ -13,7 +13,7 @@ class Use(Transformation, Printable):
         if training_data is None:
             self.training_data_uuid = 'DØØØØØØØØØØØØØØØØØØ0'
         else:
-            self.training_data_uuid = training_data.uuid
+            self.training_data_uuid = '234532' #training_data.uuid
         Printable.__init__(self, [transformer, 'u', self.training_data_uuid])
 
         self.transformer_uuid = transformer.uuid
