@@ -127,4 +127,10 @@ class Collection(Identifyable):
             return 'c', self.dataset.uuid + self.history.uuid + uuids
         else:
             return self.history.last.step.upper(), \
-                   self.dataset.uuid + self.history.uuid + uuids
+                   self.dataset.uuid + self.history.uuid + self._uuids
+
+    @property
+    def all_nones(self):
+        if self._all_nones is None:
+            self._all_nones = not any(self._datas)
+        return self._all_nones
