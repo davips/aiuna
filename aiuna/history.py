@@ -19,6 +19,7 @@ class History(Identifyable, Printable):
             self.last = None
         else:
             self.last = self.transformations[-1]
+        self.disable_pretty_printing()  # TODO: remove disable?
 
     def extended(self, transformation):
         if not isinstance(transformation, list):
