@@ -2,15 +2,16 @@ from functools import lru_cache
 
 import numpy as np
 
+from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.encoders import int2tiny
-from pjdata.aux.identifyable import Identifyable
-from pjdata.aux.linalghelper import LinAlgHelper
+from pjdata.mixin.identifyable import Identifyable
+from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.dataset import NoDataset
 from pjdata.history import History
 from pjdata.mixin.printable import Printable
 
 
-class Data(Identifyable, LinAlgHelper, Printable):
+class Data(AbstractData, LinAlgHelper, Printable):
     """Immutable lazy data for all machine learning scenarios we could
     imagine.
 
@@ -212,6 +213,10 @@ class UUIDData(PhantomData):
 
 class NoData(type):
     dataset = NoDataset
+    history = History([])
+    name = dataset.name
+    uuid = Identifyable.nothing
+    sid = uuid[:10]
     failure = None
     phantom = PhantomData(dataset=dataset, history=history, failure=failure)
 

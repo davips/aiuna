@@ -1,13 +1,12 @@
 from itertools import repeat
 from typing import Iterator
 
-from pjdata.aux.identifyable import Identifyable
-from pjdata.data import Data
+from pjdata.abc.abstractdata import AbstractData
 from pjdata.dataset import NoDataset
 from pjdata.history import History
 
 
-class Collection(Identifyable):
+class Collection(AbstractData):
     """An optimized list of Data objects (TODO: optimize).
 
     To be used through concurrent transformers:
@@ -31,9 +30,8 @@ class Collection(Identifyable):
         The user can set a dataset if convenient.
     """
 
-    _almost_infinity = 10_000_000_000
-
-    def __init__(self, datas, history=None, failure=None, dataset=None):
+    def __init__(self, history, failure, dataset, original_data):
+        # TODO: is collection printable?
         if history is None:
             history = History([])
         self.history = history

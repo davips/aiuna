@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from pjdata.aux.encoders import uuid
-from pjdata.aux.identifyable import Identifyable
+from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 
 

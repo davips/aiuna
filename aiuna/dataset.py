@@ -1,4 +1,4 @@
-from pjdata.aux.identifyable import Identifyable
+from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 
 
