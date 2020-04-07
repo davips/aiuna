@@ -46,7 +46,7 @@ class History(Identifyable, Printable):
         transformations."""
         ids = ""
         for transf in self.transformations:
-            ids = ids + transf.transformer_uuid
+            ids = ids + transf.uuid
         return uuid(ids.encode())
 
     def __getitem__(self, item):
