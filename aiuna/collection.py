@@ -2,7 +2,6 @@ from itertools import repeat
 from typing import Iterator
 
 from pjdata.abc.abstractdata import AbstractData
-from pjdata.dataset import NoDataset
 from pjdata.history import History
 
 
@@ -36,6 +35,7 @@ class Collection(AbstractData):
             history = History([])
         self.history = history
         self.failure = failure
+        from pjdata.dataset import NoDataset
         self.dataset = NoDataset if dataset is None else dataset
 
         self.infinite = False

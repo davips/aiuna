@@ -1,19 +1,30 @@
 import json
 
 from pjdata.aux.encoders import CustomJSONEncoder
+from pjdata import PRETTY_PRINTING
+
+
+def enable_global_pretty_printing():
+    global PRETTY_PRINTING
+    PRETTY_PRINTING = True
+
+
+def disable_global_pretty_printing():
+    global PRETTY_PRINTING
+    PRETTY_PRINTING = False
 
 
 class Printable:
-    _pretty_printing = True
 
     def __init__(self, jsonable):
         self.jsonable = jsonable
+        self.pretty_printing = PRETTY_PRINTING
 
     def enable_pretty_printing(self):
-        self._pretty_printing = True
+        self.pretty_printing = True
 
     def disable_pretty_printing(self):
-        self._pretty_printing = False
+        self.pretty_printing = False
 
     def __str__(self, depth=''):
         from pjdata.step.transformation import Transformation
@@ -21,7 +32,7 @@ class Printable:
         if isinstance(self, Transformation):
             jsonable = self
 
-        if not self._pretty_printing:
+        if not self.pretty_printing:
             js = json.dumps(jsonable, cls=CustomJSONEncoder,
                             sort_keys=False, indent=0, ensure_ascii=False)
             return js.replace('\n', '')

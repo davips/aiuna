@@ -6,7 +6,6 @@ from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.encoders import int2tiny
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.linalghelper import LinAlgHelper
-from pjdata.dataset import NoDataset
 from pjdata.history import History
 from pjdata.mixin.printable import Printable
 
@@ -204,6 +203,7 @@ class UUIDData(PhantomData):
     """Exactly like Data, but only with UUID."""
 
     def __init__(self, uuid):
+        from pjdata.dataset import NoDataset
         super().__init__(NoDataset)
         self._uuid = uuid
 
@@ -212,6 +212,7 @@ class UUIDData(PhantomData):
 
 
 class NoData(type):
+    from pjdata.dataset import NoDataset
     dataset = NoDataset
     history = History([])
     name = dataset.name
