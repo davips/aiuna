@@ -12,6 +12,7 @@ def enable_global_pretty_printing():
 def disable_global_pretty_printing():
     global PRETTY_PRINTING
     PRETTY_PRINTING = False
+    print('Pretty printing disabled!')
 
 
 class Printable:
