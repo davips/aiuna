@@ -19,12 +19,14 @@ class History(Identifyable, Printable):
             self.last = None
         else:
             self.last = self.transformations[-1]
-        self.disable_pretty_printing()  # TODO: remove disable?
+        # self.disable_pretty_printing()  # TODO: remove disable?
 
-    def extended(self, transformation):
-        if not isinstance(transformation, list):
-            transformation = [transformation]
-        return History(self.transformations + transformation)
+    def extended(self, transformations):
+        if not isinstance(transformations, list):
+            raise Exception(
+                'History.extended expects a list of transformations!'
+            )
+        return History(self.transformations + transformations)
 
     def _uuid_impl(self):
         uuids = ""

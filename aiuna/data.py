@@ -58,7 +58,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
     def __init__(self, dataset, history=None, failure=None, **matrices):
-        jsonable = {'dataset': dataset, 'histo': history, 'failure': failure}
+        jsonable = {'dataset': dataset, 'history': history, 'failure': failure}
         jsonable.update(**matrices)
         super().__init__(jsonable=jsonable)
 

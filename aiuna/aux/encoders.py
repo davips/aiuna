@@ -9,7 +9,14 @@ import numpy as np
 class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
         if obj is not None:
-            if isinstance(obj, np.ndarray):
+            from pjdata.step.transformation import Transformation
+            if isinstance(obj, Transformation):
+                # This eval is here instead of at transformation.py, to defer
+                # such heavy calculation to the printing time, i.e. when needed.
+                jsonable = eval(obj.jsonable)
+                jsonable['step'] = obj.step
+                return jsonable
+            elif isinstance(obj, np.ndarray):
                 return str(obj)
             elif not isinstance(
                     obj, (list, set, str, int, float, bytearray, bool)):

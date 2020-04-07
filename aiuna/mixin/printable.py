@@ -16,12 +16,17 @@ class Printable:
         self._pretty_printing = False
 
     def __str__(self, depth=''):
+        from pjdata.step.transformation import Transformation
+        jsonable = self.jsonable
+        if isinstance(self, Transformation):
+            jsonable = self
+
         if not self._pretty_printing:
-            js = json.dumps(self.jsonable, cls=CustomJSONEncoder,
+            js = json.dumps(jsonable, cls=CustomJSONEncoder,
                             sort_keys=False, indent=0, ensure_ascii=False)
             return js.replace('\n', '')
 
-        js = json.dumps(self.jsonable, cls=CustomJSONEncoder,
+        js = json.dumps(jsonable, cls=CustomJSONEncoder,
                         sort_keys=False, indent=4, ensure_ascii=False)
         return js.replace('\n', '\n' + depth)
 

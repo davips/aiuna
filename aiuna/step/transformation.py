@@ -1,11 +1,11 @@
-from abc import ABC
 from functools import lru_cache
 
+from pjdata.aux.serialization import deserialize
 from pjdata.mixin.identifyable import Identifyable
-from pjdata.aux.serialization import serialize, deserialize
+from pjdata.mixin.printable import Printable
 
 
-class Transformation(Identifyable, ABC):
+class Transformation(Identifyable, Printable):
     def __init__(self, transformer, step):
         """
         Immutable application or use of a Transformer.
@@ -22,16 +22,19 @@ class Transformation(Identifyable, ABC):
             raise Exception(
                 'Operation cannot be None! Hint: self._transformation() '
                 'should be called only during apply() or use() steps!')
-        self.serialized = transformer.serialized
+        self.name, self.path = transformer.name, transformer.path
+        self._uuid = transformer.uuid
+        self._serialized_transformer = transformer.serialized
+        super().__init__(self._serialized_transformer)
         self.step = step
-        self.name = transformer.name
-        self.path = transformer.path
-        self._config = serialize(transformer)
 
     @property
     @lru_cache()
     def config(self):
-        return deserialize(self._config)
+        return deserialize(self._serialized_transformer)
+
+    def _uuid_impl(self):
+        return self.step, self._uuid
 
 
 class NoTransformation(type):
