@@ -3,11 +3,14 @@ from functools import lru_cache
 import numpy as np
 
 from pjdata.abc.abstractdata import AbstractData
-from pjdata.aux.encoders import int2tiny
+from pjdata.aux.compression import pack_data
+from pjdata.aux.encoders import uuid
+from pjdata.aux.serialization import serialize
+from pjdata.history import History
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.linalghelper import LinAlgHelper
-from pjdata.history import History
 from pjdata.mixin.printable import Printable
+from pjdata.step.transformation import Transformation
 
 
 class Data(AbstractData, LinAlgHelper, Printable):
@@ -56,13 +59,36 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, history, failure=None, **matrices):
+    def __init__(self, history=None, failure=None, **matrices):
         jsonable = {'history': history, 'failure': failure}
         jsonable.update(**matrices)
         super().__init__(jsonable=jsonable)
 
         if history is None:
-            history = History([])
+            # Calculate unique hash for the matrices.
+            packs = ''.encode()
+            for mat in matrices:
+                packs += pack_data(mat)
+            matrices_hash = uuid(packs, prefix='')
+
+            if 'name' in matrices:
+                matrices['name'] += '_' + matrices_hash[:6]
+
+            class New:
+                """Fake New transformer."""
+                name = 'New'
+                path = 'pjml.tool.data.flow.new'
+                uuid = 'f' + matrices_hash
+                config = matrices
+                jsonable = {'_id': f'{name}@{path}', 'config': config}
+                serialized = serialize(jsonable)
+
+            transformer = New()
+            # New transformations are always represented as 'u', no matter
+            # which step.
+            transformation = Transformation(transformer, 'u')
+            history = History([transformation])
+
         self.history = history
         self.failure = failure
         self.matrices = matrices
@@ -118,9 +144,12 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
     @property
     @lru_cache()
-    def phantom(self):
+    def hollow(self):
         """A light PhantomData object, without matrices."""
-        return HollowData(history=self.history, failure=self.failure)
+        return HollowData(history=self.history,
+                          failure=self.failure,
+                          name=self.name,
+                          desc=self.desc)
 
     # @classmethod
     # @lru_cache()
@@ -128,13 +157,13 @@ class Data(AbstractData, LinAlgHelper, Printable):
     #     """A light PhantomData object, without matrices."""
     #     return UUIDData(uuid)
 
-    @lru_cache()
-    def phantom_extended(self, transformations):
-        """A light PhantomData object, without matrices."""
-        return HollowData(
-            history=self.history.extended(transformations),
-            failure=self.failure
-        )
+    # @lru_cache()
+    # def phantom_extended(self, transformations):
+    #     """A light PhantomData object, without matrices."""
+    #     return HollowData(
+    #         history=self.history.extended(transformations),
+    #         failure=self.failure
+    #     )
 
     @property
     @lru_cache()

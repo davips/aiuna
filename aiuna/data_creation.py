@@ -88,7 +88,7 @@ def read_arff(filename, description='No description.'):
     transformation = Transformation(transformer, 'u')
     return Data(
         History([transformation]),
-        X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd
+        X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd, name=_name, desc=description
     )
 
 
