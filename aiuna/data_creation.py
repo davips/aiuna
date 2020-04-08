@@ -8,8 +8,10 @@ import sklearn.datasets as ds
 
 from pjdata.aux.compression import pack_data
 from pjdata.aux.encoders import uuid
+from pjdata.aux.serialization import serialize
 from pjdata.data import Data
-from pjdata.dataset import Dataset
+from pjdata.history import History
+from pjdata.step.transformation import Transformation
 
 
 def read_arff(filename, description='No description.'):
@@ -38,29 +40,56 @@ def read_arff(filename, description='No description.'):
     -------
     Data object
     """
+    # Load file.
     file = open(filename, 'r')
     data = arff.load(file, encode_nominal=False)
     file.close()
 
+    # Extract attributes and targets.
     Arr = np.array(data['data'])
     Att = data['attributes'][0:-1]
     TgtAtt = data['attributes'][-1]
 
+    # Extract X values (numeric when possible), descriptions and types.
     X = Arr[:, 0:-1]
     Xd = [tup[0] for tup in Att]
     Xt = [translate_type(tup[1]) for tup in Att]
     if len(nominal_idxs(Xt)) == 0:
         X = X.astype(float)
 
+    # Extract Y values (assumes categorical), descriptions and types.
     Y = np.ascontiguousarray(Arr[:, -1].reshape((Arr.shape[0], 1)))
     Yd = [TgtAtt[0]]
     Yt = [translate_type(TgtAtt[1])]
 
-    uuid_ = uuid(pack_data(X) + pack_data(Y), prefix='')[:6]
+    # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
+    matrices_hash = uuid(pack_data(X) + pack_data(Y), prefix='')
     clean = filename.replace('.ARFF', '').replace('.arff', '')
-    name = clean.split('/')[-1] + '_' + uuid_
-    dataset = Dataset(name, description)
-    return Data(dataset, X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
+    splitted = clean.split('/')
+    _name = splitted[-1] + '_' + matrices_hash[:6]
+
+    # Generate the first transformation of this Data object: being born.
+    class File:
+        """Fake File transformer."""
+        name = 'File'
+        path = 'pjml.tool.data.flow.file'
+        uuid = 'f' + matrices_hash
+        config = {
+            'name': filename.split('/')[-1],
+            'matrices_hash': matrices_hash,
+            'path': '/'.join(splitted[:-1])+'/',
+            'description': description
+        }
+        jsonable = {'_id': f'{name}@{path}', 'config': config}
+        serialized = serialize(jsonable)
+
+    transformer = File()
+    # File transformations are always represented as 'u', no matter which step.
+    transformation = Transformation(transformer, 'u')
+    return Data(
+        History([transformation]),
+        X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd
+    )
 
 
 def translate_type(name):
@@ -161,7 +190,6 @@ def read_data_frame(df, filename, target='class'):
 #     name = filename.split('/')[-1] + '_' + uuid_[:7]
 #     dataset = Dataset(name, "descrip stub")
 #     return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=['class'])
-
 
 def random_classification_dataset(n_attributes, n_classes, n_instances):
     """

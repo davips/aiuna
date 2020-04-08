@@ -29,28 +29,12 @@ class Collection(AbstractData):
         The user can set a dataset if convenient.
     """
 
-    def __init__(self, history, failure, dataset, original_data):
+    def __init__(self, history, failure, original_data):
         # TODO: is collection printable?
         if history is None:
             history = History([])
         self.history = history
         self.failure = failure
-        from pjdata.dataset import NoDataset
-        self.dataset = NoDataset if dataset is None else dataset
-
-        self.infinite = False
-        if isinstance(datas, Data):
-            data = datas
-            self.infinite = True
-            # Yes, all Data objects here are exactly the same (immutability):
-            self._datas = repeat(data, times=self._almost_infinity)
-            self.size = self._almost_infinity
-            self.has_nones = False
-        else:
-            self._datas = datas
-            self.size = len(datas)
-            self.has_nones = not all(datas)
-
         self.next_index = 0
 
     def __iter__(self):
@@ -122,10 +106,10 @@ class Collection(AbstractData):
             for data in self._datas:
                 uuids = uuids + data.uuid
         if self.history.last is None:
-            return 'c', self.dataset.uuid + self.history.uuid + uuids
+            return 'c', self.history.uuid + self._uuids
         else:
             return self.history.last.step.upper(), \
-                   self.dataset.uuid + self.history.uuid + self._uuids
+                   self.history.uuid + self._uuids
 
     @property
     def all_nones(self):

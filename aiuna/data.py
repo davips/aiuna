@@ -56,16 +56,14 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, dataset, history=None, failure=None, **matrices):
-        jsonable = {'dataset': dataset, 'history': history, 'failure': failure}
+    def __init__(self, history, failure=None, **matrices):
+        jsonable = {'history': history, 'failure': failure}
         jsonable.update(**matrices)
         super().__init__(jsonable=jsonable)
 
         if history is None:
             history = History([])
         self.history = history
-        self.dataset = dataset
-        self.name = dataset.name
         self.failure = failure
         self.matrices = matrices
         self._fields = matrices.copy()
@@ -112,29 +110,31 @@ class Data(AbstractData, LinAlgHelper, Printable):
             new_name, new_value = self._translate(name, value)
             new_matrices[new_name] = new_value
 
-        return self.__class__(dataset=self.dataset,
-                              history=self.history.extended(transformations),
-                              failure=failure, **new_matrices)
+        return self.__class__(
+            history=self.history.extended(transformations),
+            failure=failure,
+            **new_matrices
+        )
 
     @property
     @lru_cache()
     def phantom(self):
         """A light PhantomData object, without matrices."""
-        return PhantomData(dataset=self.dataset, history=self.history,
-                           failure=self.failure)
+        return HollowData(history=self.history, failure=self.failure)
 
-    @classmethod
-    @lru_cache()
-    def phantom_by_uuid(cls, uuid):
-        """A light PhantomData object, without matrices."""
-        return UUIDData(uuid)
+    # @classmethod
+    # @lru_cache()
+    # def phantom_by_uuid(cls, uuid):
+    #     """A light PhantomData object, without matrices."""
+    #     return UUIDData(uuid)
 
     @lru_cache()
     def phantom_extended(self, transformations):
         """A light PhantomData object, without matrices."""
-        return PhantomData(dataset=self.dataset,
-                           history=self.history.extended(transformations),
-                           failure=self.failure)
+        return HollowData(
+            history=self.history.extended(transformations),
+            failure=self.failure
+        )
 
     @property
     @lru_cache()
@@ -163,13 +163,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
         return self.field('X'), self.field('y')
 
     def _uuid_impl(self):
-        """First character indicates the step of the last transformation,
-        or 'd' if none."""
-        if self.history.last is None:
-            return 'd', self.dataset.uuid + self.history.uuid
-        else:
-            return self.history.last.step, \
-                   self.dataset.uuid + self.history.uuid
+        """First character indicates the step of the last transformation."""
+        return self.history.last.step, self.history.uuid
 
     def _translate(self, field, value):
         """Given a field name, return its underlying matrix name and content.
@@ -185,7 +180,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
             return field, value
 
 
-class PhantomData(Data):
+class HollowData(Data):
     """Exactly like Data, but without the matrices."""
 
     @property
@@ -199,12 +194,11 @@ class PhantomData(Data):
             return self.__getattribute__(item)
 
 
-class UUIDData(PhantomData):
-    """Exactly like Data, but only with UUID."""
+class UUIDData(HollowData):
+    """Like HollowData, but the only available information is the UUID."""
 
     def __init__(self, uuid):
-        from pjdata.dataset import NoDataset
-        super().__init__(NoDataset)
+        super().__init__([])
         self._uuid = uuid
 
     def _uuid_impl(self):
@@ -212,16 +206,15 @@ class UUIDData(PhantomData):
 
 
 class NoData(type):
-    from pjdata.dataset import NoDataset
-    dataset = NoDataset
     history = History([])
-    name = dataset.name
+    name = "No data"
     uuid = Identifyable.nothing
     sid = uuid[:10]
     failure = None
-    phantom = PhantomData(dataset=dataset, history=history, failure=failure)
+    phantom = HollowData(history=history, failure=failure)
 
-    def updated(self, transformations, failure='keep'):
+    @staticmethod
+    def updated(transformations, failure='keep'):
         nodata = NoData
         nodata.failure = failure
         return nodata

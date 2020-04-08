@@ -23,7 +23,7 @@ class Transformation(Identifyable, Printable):
                 'Operation cannot be None! Hint: self._transformation() '
                 'should be called only during apply() or use() steps!')
         self.name, self.path = transformer.name, transformer.path
-        self._uuid = transformer.uuid
+        self.transformer_uuid = transformer.uuid
         self._serialized_transformer = transformer.serialized
         super().__init__(self._serialized_transformer)
         self.step = step
@@ -34,7 +34,7 @@ class Transformation(Identifyable, Printable):
         return deserialize(self._serialized_transformer)
 
     def _uuid_impl(self):
-        return self.step, self._uuid
+        return 'uuid', self.step + self.transformer_uuid[1:]
 
 
 class NoTransformation(type):
