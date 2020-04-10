@@ -31,18 +31,34 @@ class UUIDData(HollowData):
 class NoData(type):
     history = History([])
     name = "No data"
+    desc = ''
     uuid = Identifyable.nothing
     sid = uuid[:10]
     failure = None
-    phantom = HollowData(history=history, failure=failure)
+    hollow = HollowData(history=history, failure=failure)
 
     @staticmethod
-    def updated(transformations, failure='keep'):
+    def hollow_extended(transformations):
+        """A light Data object, i.e. without matrices."""
+        return HollowData(history=NoData.history.extended(transformations),
+                          failure=NoData.failure,
+                          name=NoData.name, desc=NoData.desc)
+
+    @staticmethod
+    def updated(transformations=None, failure=None):
+        if transformations:
+            raise Exception(
+                'It makes no sense to update transformations for NoData!'
+            )
+        if failure is None:
+            raise Exception(
+                'It makes no sense to update NoData without providing failure!'
+            )
         nodata = NoData
         nodata.failure = failure
         return nodata
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(mcs, *args, **kwargs):
         raise Exception('NoData is a singleton and shouldn\'t be instantiated')
 
     def __bool__(self):
