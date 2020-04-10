@@ -143,6 +143,11 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
     @property
     @lru_cache()
+    def fields(self):
+        return list(self._fields.keys())
+
+    @property
+    @lru_cache()
     def hollow(self):
         return self.hollow_extended([])
 

@@ -3,8 +3,16 @@ from pjdata.history import History
 from pjdata.mixin.identifyable import Identifyable
 
 
+class FrozenData(Data):
+    """Result of early ended pipelines."""
+
+    @property
+    def consistent_with_dataset(self):
+        raise NotImplementedError
+
+
 class HollowData(Data):
-    """Exactly like Data, but without the matrices."""
+    """Exactly like Data, but without matrices."""
 
     @property
     def consistent_with_dataset(self):
@@ -29,6 +37,7 @@ class UUIDData(HollowData):
 
 
 class NoData(type):
+    """Singleton to feed Data generators."""
     history = History([])
     name = "No data"
     desc = ''
