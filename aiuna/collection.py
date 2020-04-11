@@ -37,6 +37,47 @@ class Collection(AbstractData):
         self.failure = failure
         self.next_index = 0
 
+        self.original_data = original_data
+        self._isfrozen = None
+
+    def updated(self, transformations, datas=None, failure='keep'):
+        """Recreate Collection object with updated history, failure and datas.
+
+        Parameters
+        ----------
+        transformations
+            List of Transformation objects.
+        failure
+            The failure caused by the given transformation, if it failed.
+            'keep' (recommended, default) = 'keep this attribute unchanged'.
+            None (unusual) = 'no failure', possibly overriding previous failures
+        datas
+            New list of Data object.
+
+        Returns
+        -------
+        New Collection object (it may keep some references for performance).
+        """
+        if failure == 'keep':
+            failure = self.failure
+
+        if not datas:
+            if not self.isfinite:
+                raise Exception(
+                    'Infinite collection cannot be updated without datas!'
+                )
+            datas = self._datas
+
+        # TODO: to require changes on Xt and Xd when X is changed.
+
+        from pjdata.finitecollection import FiniteCollection
+        return FiniteCollection(
+            datas=datas,
+            history=self.history.extended(transformations),
+            failure=failure,
+            original_data=self.original_data
+        )
+
     def __iter__(self):
         return self
 
@@ -111,11 +152,13 @@ class Collection(AbstractData):
             return self.history.last.step.upper(), \
                    self.history.uuid + self._uuids
 
-    @property
-    def all_nones(self):
-        if self._all_nones is None:
-            self._all_nones = not any(self._datas)
-        return self._all_nones
+    @property  # Collection not hashable! We memoize it by hand here.
+    def isfrozen(self):
+        if self._isfrozen is None:
+            self._isfrozen = all(data.isfrozen for data in self._datas)
+        return self._isfrozen
+
+    # TODO: collection precisa implementwar property frozen?
 
     @property
     @lru_cache()

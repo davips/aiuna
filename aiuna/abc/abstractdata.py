@@ -10,9 +10,3 @@ class AbstractData(Identifyable, ABC):
     def iscollection(self):
         from pjdata.collection import Collection
         return isinstance(self, Collection)
-
-    @property
-    @lru_cache()
-    def isfrozen(self):
-        from pjdata.specialdata import FrozenData
-        return isinstance(self, FrozenData)

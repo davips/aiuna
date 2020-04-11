@@ -58,7 +58,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, history=None, failure=None, **matrices):
+    def __init__(self, history=None, failure=None, frozen=False, **matrices):
         jsonable = {'history': history, 'failure': failure}
         jsonable.update(**matrices)
         super().__init__(jsonable=jsonable)
@@ -90,6 +90,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         self.history = history
         self.failure = failure
+        self.isfrozen = frozen
         self.matrices = matrices
         self._fields = matrices.copy()
         # self.content_matrices =
@@ -108,11 +109,21 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         self.__dict__.update(self._fields)
 
-    def updated(self, transformations, failure='keep', **matrices):
+    @property
+    @lru_cache()
+    def frozen(self):
+        return self.__class__(
+            history=self.history.extended([]),
+            failure=self.failure, frozen=True,
+            **self.matrices
+        )
+
+    def updated(self, transformations, failure='keep', frozen=None, **matrices):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
         ----------
+        frozen
         transformations
             List of Transformation objects.
         failure
@@ -129,6 +140,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
         new_matrices = self.matrices.copy()
         if failure == 'keep':
             failure = self.failure
+        if frozen is None:
+            frozen = self.isfrozen
 
         # Translate shortcuts.
         for name, value in matrices.items():
@@ -137,7 +150,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         return self.__class__(
             history=self.history.extended(transformations),
-            failure=failure,
+            failure=failure, frozen=frozen,
             **new_matrices
         )
 
