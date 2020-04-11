@@ -45,6 +45,8 @@ class NoData(type):
     sid = uuid[:10]
     failure = None
     hollow = HollowData(history=history, failure=failure)
+    isfrozen = False
+    iscollection = False
 
     @staticmethod
     def hollow_extended(transformations):
@@ -64,7 +66,7 @@ class NoData(type):
                 'It makes no sense to update NoData without providing failure!'
             )
         nodata = NoData
-        nodata.failure = failure
+        nodata.failure = failure  # TODO: WARN: changing state of singleton!
         return nodata
 
     def __new__(mcs, *args, **kwargs):

@@ -116,3 +116,9 @@ class Collection(AbstractData):
         if self._all_nones is None:
             self._all_nones = not any(self._datas)
         return self._all_nones
+
+    @property
+    @lru_cache()
+    def isfinite(self):
+        from pjdata.finitecollection import FiniteCollection
+        return isinstance(self, FiniteCollection)
