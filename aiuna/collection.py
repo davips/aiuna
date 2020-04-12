@@ -1,8 +1,8 @@
-from itertools import repeat
 from typing import Iterator
 
 from pjdata.abc.abstractdata import AbstractData
 from pjdata.history import History
+from pjdata.mixin.identifyable import Identifyable
 
 
 class Collection(AbstractData):
@@ -38,7 +38,7 @@ class Collection(AbstractData):
         self.next_index = 0
 
         self.original_data = original_data
-        self._isfrozen = None
+        self._allfrozen = None
 
     def updated(self, transformations, datas=None, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.
@@ -153,15 +153,33 @@ class Collection(AbstractData):
                    self.history.uuid + self._uuids
 
     @property  # Collection not hashable! We memoize it by hand here.
-    def isfrozen(self):
-        if self._isfrozen is None:
-            self._isfrozen = all(data.isfrozen for data in self._datas)
-        return self._isfrozen
+    def allfrozen(self):
+        if self._allfrozen is None:
+            self._allfrozen = all(data.isfrozen for data in self._datas)
+        return self._allfrozen
 
-    # TODO: collection precisa implementwar property frozen?
+    @property
+    @lru_cache()
+    def frozen(self):
+        return FrozenCollection(self)
 
     @property
     @lru_cache()
     def isfinite(self):
         from pjdata.finitecollection import FiniteCollection
         return isinstance(self, FiniteCollection)
+
+
+@dataclass
+class FrozenCollection:
+    collection: Collection
+    isfrozen = True
+
+    def __post_init__(self):
+        self.failure = self.collection.failure
+
+    def field(self, field, component=None):
+        raise Exception('This is a result from an early ended pipeline!\n'
+                        'Access field() through FrozenCollection.collection\n'
+                        'HINT: probably an ApplyUsing is missing around a '
+                        'Predictor')

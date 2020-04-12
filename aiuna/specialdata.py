@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from pjdata.data import Data
 from pjdata.history import History
 from pjdata.mixin.identifyable import Identifyable
@@ -38,6 +40,7 @@ class NoData(type):
     failure = None
     hollow = HollowData(history=history, failure=failure)
     isfrozen = False
+    allfrozen = False
     iscollection = False
 
     @staticmethod
@@ -66,3 +69,19 @@ class NoData(type):
 
     def __bool__(self):
         return False
+
+
+@dataclass
+class FrozenData:
+    data: Data
+    isfrozen = True
+    uuid = Identifyable.nothing
+
+    def __post_init__(self):
+        self.failure = self.data.failure
+
+    def field(self, field, component=None):
+        raise Exception('This is a result from an early ended pipeline!\n'
+                        'Access field() through FrozenData.data\n'
+                        'HINT: probably an ApplyUsing is missing around a '
+                        'Predictor')
