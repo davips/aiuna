@@ -108,16 +108,6 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         self.__dict__.update(self._fields)
 
-    @property
-    @lru_cache()
-    def frozen(self):
-        from pjdata.specialdata import FrozenData
-        return FrozenData(self)
-
-    @property
-    def allfrozen(self):
-        return False
-
     def updated(self, transformations, failure='keep', **matrices):
         """Recreate Data object with updated matrices, history and failure.
 
@@ -151,49 +141,6 @@ class Data(AbstractData, LinAlgHelper, Printable):
             failure=failure, **new_matrices
         )
 
-    @property
-    @lru_cache()
-    def fields(self):
-        return list(self._fields.keys())
-
-    @property
-    @lru_cache()
-    def hollow(self):
-        return self.hollow_extended([])
-
-    def hollow_extended(self, transformations):
-        """A light Data object, i.e. without matrices."""
-        from pjdata.specialdata import HollowData
-        kwargs = {}
-        if 'name' in self.matrices:
-            kwargs['name'] = self.name
-        if 'desc' in self.matrices:
-            kwargs['desc'] = self.desc
-        return HollowData(history=self.history.extended(transformations),
-                          failure=self.failure, **kwargs)
-
-    # @classmethod
-    # @lru_cache()
-    # def phantom_by_uuid(cls, uuid):
-    #     """A light PhantomData object, without matrices."""
-    #     return UUIDData(uuid)
-
-    # @lru_cache()
-    # def phantom_extended(self, transformations):
-    #     """A light PhantomData object, without matrices."""
-    #     return HollowData(
-    #         history=self.history.extended(transformations),
-    #         failure=self.failure
-    #     )
-
-    @property
-    @lru_cache()
-    def consistent_with_dataset(self):
-        """Check if dataset field descriptions are compatible with provided
-        matrices.
-        """
-        raise NotImplementedError
-
     def field(self, field, component=None):
         if field not in self._fields:
             name = component.name if 'name' in dir(component) else component
@@ -211,6 +158,61 @@ class Data(AbstractData, LinAlgHelper, Printable):
     @lru_cache()
     def Xy(self):
         return self.field('X'), self.field('y')
+
+    @property
+    @lru_cache()
+    def field_names(self):
+        return list(self._fields.keys())
+
+    @lru_cache()
+    def field_uuid(self, field):
+        """Lazily calculated uuid for a given field.
+        Useful for optimized persistence backends for Cache."""
+        if len(field) > 1:
+            raise Exception(
+                f'A field name must be a single letter, not {field}!'
+            )
+        return uuid(self.field_dump(self.field(field)), prefix=field)
+
+    @lru_cache()
+    def field_dump(self, field):
+        """Lazily compressed matrix for a given field.
+        Useful for optimized persistence backends for Cache."""
+        return pack_data(self.field(field))
+
+    @property
+    @lru_cache()
+    def frozen(self):
+        from pjdata.specialdata import FrozenData
+        return FrozenData(self)
+
+    @property
+    def allfrozen(self):
+        return False
+
+    @property
+    @lru_cache()
+    def hollow(self):
+        return self.hollow_extended([])
+
+    def hollow_extended(self, transformations):
+        """A light Data object, i.e. without matrices."""
+        from pjdata.specialdata import HollowData
+        kwargs = {}
+        if 'name' in self.matrices:
+            kwargs['name'] = self.name
+        if 'desc' in self.matrices:
+            kwargs['desc'] = self.desc
+        return HollowData(history=self.history.extended(transformations),
+                          failure=self.failure, **kwargs)
+
+    @property
+    @lru_cache()
+    def consistent_with_dataset(self):
+        """Check if dataset field descriptions are compatible with provided
+        matrices.
+        """
+        raise NotImplementedError
 
     def _uuid_impl(self):
         """First character indicates the step of the last transformation."""
