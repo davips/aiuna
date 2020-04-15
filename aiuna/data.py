@@ -65,6 +65,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         if history is None:
             # Calculate unique hash for the matrices.
+            # Intended for user-provided matrices.
             packs = ''.encode()
             for mat in matrices:
                 packs += pack_data(mat)
