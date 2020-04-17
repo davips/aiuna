@@ -1,31 +1,22 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from pjdata.aux.encoders import uuid, int2tiny
+from pjdata.aux.encoders import uuid00
 
 
 class Identifyable(ABC):
-    nothing = 'N' + int2tiny(0)
-
     @property
     @lru_cache()
-    def uuid(self):
+    def uuid00(self):
         """Lazily calculated unique identifier for this dataset.
 
         Should be accessed direct as a class member: 'uuid'.
 
         Returns
         -------
-            A unique identifier.
+            A unique identifier UUID object.
         """
-        txt = self._uuid_impl()
-        if isinstance(txt, tuple):
-            prefix, txt = txt
-            if prefix == 'uuid':
-                return txt
-            return uuid(txt.encode(), prefix=prefix)
-        else:
-            return uuid(txt.encode())
+        return uuid00(self._uuid_impl00().encode())
 
     @property
     @lru_cache()
@@ -36,12 +27,11 @@ class Identifyable(ABC):
         First collision expect after 12671943 combinations.
         :return:
         """
-        return self.uuid[:8]
+        return self.uuid00[:8]
 
     @abstractmethod
-    def _uuid_impl(self):
-        """
-        Specific internal calculation by each child class.
-        return: (str-to-hash, prefix)
-        """
+    def _uuid_impl00(self):
+        """Specific internal calculation made by each child class.
+
+        Should return a string or a UUID object to be used directly."""
         pass
