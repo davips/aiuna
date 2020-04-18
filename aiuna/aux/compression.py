@@ -6,10 +6,7 @@ import zstandard as zs
 
 
 # TODO: make a permanent representative dictionary and check if it
-#  reduces compression time and size of textual info like transformations:
-#  dict_data = zs.train_dictionary(131072, samples)
-#  cctx = zs.ZstdCompressor(dict_data=dict_data)
-#  cctx.compress(fast_reduced)
+#  reduces compression time and size of textual info like transformations.
 
 
 def pack_data(obj):
@@ -31,7 +28,6 @@ def unpack_data(dump, w=None, h=None):
         return pickle.loads(fast_decompressed[3:])
     else:
         return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
-
 
 # def pack_object(obj):  #blosc is buggy
 #     """

@@ -1,8 +1,6 @@
 from typing import Iterator
 
 from pjdata.abc.abstractdata import AbstractData
-from pjdata.history import History
-from pjdata.mixin.identifyable import Identifyable
 
 
 class Collection(AbstractData):
@@ -30,7 +28,7 @@ class Collection(AbstractData):
     """
 
     def __init__(self, history, failure, original_data):
-        # TODO: is collection printable?
+        # TODO: is collection Printable?
         if history is None:
             history = History([])
         self.history = history
@@ -152,7 +150,8 @@ class Collection(AbstractData):
             return self.history.last.step.upper(), \
                    self.history.uuid + self._uuids
 
-    @property  # Collection not hashable! We memoize it by hand here.
+    # Collection not hashable! That's why we memoize it by hand here.
+    @property
     def allfrozen(self):
         if self._allfrozen is None:
             self._allfrozen = all(data.isfrozen for data in self._datas)

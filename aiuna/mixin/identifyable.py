@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from pjdata.aux.encoders import uuid00
-
 
 class Identifyable(ABC):
     @property
@@ -16,7 +14,12 @@ class Identifyable(ABC):
         -------
             A unique identifier UUID object.
         """
-        return uuid00(self._uuid_impl00().encode())
+        from pjdata.aux.encoders import uuid00, UUID
+        content = self._uuid_impl00().encode()
+        if isinstance(content, UUID):
+            return content
+        else:
+            return uuid00(content)
 
     @property
     @lru_cache()

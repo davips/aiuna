@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
+from pjdata.aux.encoders import UUID
 from pjdata.data import Data
-from pjdata.history import History
 from pjdata.mixin.identifyable import Identifyable
 
 
@@ -32,13 +32,15 @@ class UUIDData(HollowData):
 
 class NoData(type):
     """Singleton to feed Data generators."""
-    history = History([])
-    name = "No data"
-    desc = ''
-    uuid = Identifyable.nothing
-    sid = uuid[:10]
+    uuid = UUID()
+    uuids = {}
+
+    # history = []
+    # name = "No data"
+    # desc = ''
+    sid = uuid[:8]
     failure = None
-    hollow = HollowData(history=history, failure=failure)
+    # hollow = HollowData(history=[], failure=failure)
     isfrozen = False
     allfrozen = False
     iscollection = False
@@ -46,23 +48,11 @@ class NoData(type):
     @staticmethod
     def hollow_extended(transformations):
         """A light Data object, i.e. without matrices."""
-        return HollowData(history=NoData.history.extended(transformations),
-                          failure=NoData.failure,
-                          name=NoData.name, desc=NoData.desc)
+        return HollowData(history=transformations)
 
     @staticmethod
-    def updated(transformations=None, failure=None):
-        if transformations:
-            raise Exception(
-                'It makes no sense to update transformations for NoData!'
-            )
-        if failure is None:
-            raise Exception(
-                'It makes no sense to update NoData without providing failure!'
-            )
-        nodata = NoData
-        nodata.failure = failure  # TODO: WARN: changing state of singleton!
-        return nodata
+    def updated(transformations, failure='keep', **matrices):
+        return Data.updated(NoData, transformations, failure, **matrices)
 
     def __new__(mcs, *args, **kwargs):
         raise Exception('NoData is a singleton and shouldn\'t be instantiated')
@@ -75,7 +65,13 @@ class NoData(type):
 class FrozenData:
     data: Data
     isfrozen = True
-    uuid = Identifyable.nothing
+
+    @property
+    def uuid(self):
+        raise Exception('This is a result from an early ended pipeline!\n'
+                        'Access uuid through FrozenData.data\n'
+                        'HINT: probably an ApplyUsing is missing, around a '
+                        'Predictor')
 
     def __post_init__(self):
         self.failure = self.data.failure
@@ -83,5 +79,5 @@ class FrozenData:
     def field(self, field, component=None):
         raise Exception('This is a result from an early ended pipeline!\n'
                         'Access field() through FrozenData.data\n'
-                        'HINT: probably an ApplyUsing is missing around a '
+                        'HINT: probably an ApplyUsing is missing, around a '
                         'Predictor')

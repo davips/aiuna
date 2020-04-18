@@ -13,7 +13,8 @@ class AbstractData(Identifyable, ABC):
         from pjdata.collection import Collection
         return isinstance(self, Collection)
 
-    @property  # Collection not hashable! We memoize it by hand here.
+    # Collection not hashable! That's why we memoize it by hand there.
+    @property
     @abstractmethod
     def allfrozen(self):
         pass

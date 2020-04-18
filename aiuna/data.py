@@ -4,34 +4,28 @@ import numpy as np
 
 from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.compression import pack_data
-from pjdata.aux.encoders import uuid
+from pjdata.aux.encoders import UUID, uuid00
 from pjdata.aux.serialization import serialize
-from pjdata.history import History
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
 
 
 class Data(AbstractData, LinAlgHelper, Printable):
-    """Immutable lazy data for all machine learning scenarios we could
-    imagine.
+    """Immutable lazy data for all machine learning scenarios one imagine.
 
     Attributes
     ----------
     matrices
-        A dictionary like {X: <numpy array>, Y: <numpy array>}.
+        A dictionary, like {X: <numpy array>, Y: <numpy array>}.
+        Matrix names should start with an uppercase letter and
+        have at most two letters.
     fields
         Shorcuts 'matrices', but seeing each column-vector matrix as a vector
         and each single element matrix as a scalar.
 
     Parameters
     ----------
-    dataset
-        Original dataset where data was extract from.
-    history
-        History object of transformations.
-    failure
-        The cause, when the provided history leads to a failure.
     matrices
         A dictionary like {X: <numpy array>, Y: <numpy array>}.
         Matrix names should have a single uppercase character, e.g.:
@@ -58,43 +52,61 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, history=None, failure=None, **matrices):
-        jsonable = {'history': history, 'failure': failure}
-        jsonable.update(**matrices)
-        super().__init__(jsonable=jsonable)
+    def __init__(self, **matrices):
+        kwargs = matrices
+        super().__init__(jsonable=kwargs)
 
-        if history is None:
-            # Calculate unique hash for the matrices.
-            # Intended for user-provided matrices.
-            packs = ''.encode()
-            for mat in matrices:
-                packs += pack_data(mat)
-            matrices_hash = uuid(packs, prefix='')
+        # Divide kwargs.
+        matrices = {}
+        settings = {}
+        for k, v in kwargs.items():
+            if len(k) < 3:
+                matrices[k] = v
+            else:
+                settings[k] = v
 
-            if 'name' in matrices:
-                matrices['name'] += '_' + matrices_hash[:6]
+        # TODO: what to do with 'name' and 'desc'?
 
-            class New:
-                """Fake New transformer."""
-                name = 'New'
-                path = 'pjml.tool.data.flow.new'
-                uuid = 'f' + matrices_hash
-                config = matrices
-                jsonable = {'_id': f'{name}@{path}', 'config': config}
-                serialized = serialize(jsonable)
+        if 'uuid' not in settings:
+            # TODO: Implement the rare case where the user creates Data:
+            raise NotImplementedError
+            # Intended for Data and matrices created directly by the user.
+            # self.history = []
+            # self._uuid = UUID()
+            #
+            # # Calculate unique hash for the matrices.
+            # packs = ''.encode()
+            # for mat in matrices:
+            #     packs += pack_data(mat)  # TODO: store uuids for each matrix
+            # matrices_hexhash = hexuuid(packs)
+            # matrices_hash = tiny_md5(matrices_hexhash)
+            #
+            # if 'name' in matrices:
+            #     matrices['name'] += '_' + matrices_hash[:6]
+            #
+            # class New:
+            #     """Fake New transformer."""
+            #     name = 'New'
+            #     path = 'pjml.tool.data.flow.new'
+            #     uuid = matrices_hash
+            #     hexuuid = matrices_hexhash
+            #     config = matrices
+            #     jsonable = {'_id': f'{name}@{path}', 'config': config}
+            #     serialized = serialize(jsonable)
+            #
+            # transformer = New()
+            # # New transformations are always represented as 'u', no matter
+            # # which step.
+            # transformation = Transformation(transformer, 'u')
+            # history = [transformation]
 
-            transformer = New()
-            # New transformations are always represented as 'u', no matter
-            # which step.
-            transformation = Transformation(transformer, 'u')
-            history = History([transformation])
+        self.history = settings['history']
+        self._uuid = settings['uuid']
+        self._uuids = settings['uuids']
 
-        self.history = history
-        self.failure = failure
+        self.failure = settings.get('failure', None)
         self.matrices = matrices
         self._fields = matrices.copy()
-        # self.content_matrices =
-        # [v for k, v in matrices.items() if len(k) == 1]
 
         # Add vector shortcuts.
         for k, v in self._vec2mat_map.items():
@@ -124,6 +136,13 @@ class Data(AbstractData, LinAlgHelper, Printable):
         matrices
             Changed/added matrices and updated values.
 
+        dataset
+            Original dataset where data was extract from.
+        history
+            History object of transformations.
+        failure
+            The cause, when the provided history leads to a failure.
+
         Returns
         -------
         New Data object (it keeps references to the old one for performance).
@@ -137,9 +156,23 @@ class Data(AbstractData, LinAlgHelper, Printable):
             new_name, new_value = self._translate(name, value)
             new_matrices[new_name] = new_value
 
+        # Update UUID digests.
+        new_digests = {}
+        for field in new_matrices:
+            new_uuid = self.uuids(field)
+
+            # Transform new fields' UUID.
+            if field in matrices:
+                for transformation in transformations:
+                    new_uuid += transformation.uuid00
+
+            new_digests[field] = new_uuid
+
         return self.__class__(
-            history=self.history.extended(transformations),
-            failure=failure, **new_matrices
+            history=self.history + transformations,
+            failure=failure,
+            digests=new_digests,
+            **new_matrices
         )
 
     def field(self, field, component=None):
@@ -166,20 +199,27 @@ class Data(AbstractData, LinAlgHelper, Printable):
         return list(self._fields.keys())
 
     @lru_cache()
-    def field_uuid(self, field):
+    def uuids(self, field):
         """Lazily calculated uuid for a given field.
         Useful for optimized persistence backends for Cache."""
-        if len(field) > 1:
-            raise Exception(
-                f'A field name must be a single letter, not {field}!'
-            )
-        return uuid(self.field_dump(self.field(field)), prefix=field)
+        # if len(field) > 2:
+        #     raise Exception(
+        #         f'A field name must be a single letter, not {field}!'
+        #     )
+        if field not in self.field_names:
+            return UUID()
+        return self._uuids[self.field(field)]
 
     @lru_cache()
     def field_dump(self, field):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache."""
         return pack_data(self.field(field))
+
+    @property
+    @lru_cache()
+    def all_uuids(self):
+        return {f: self.uuids(f) for f in self.field_names}
 
     @property
     @lru_cache()
@@ -200,7 +240,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         """A light Data object, i.e. without matrices."""
         from pjdata.specialdata import HollowData
         kwargs = {}
-        if 'name' in self.matrices:
+        if 'name' in self.matrices:  # TODO: see TODO in init
             kwargs['name'] = self.name
         if 'desc' in self.matrices:
             kwargs['desc'] = self.desc
@@ -216,8 +256,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         raise NotImplementedError
 
     def _uuid_impl(self):
-        """First character indicates the step of the last transformation."""
-        return self.history.last.step, self.history.uuid
+        return self._uuid
 
     def _translate(self, field, value):
         """Given a field name, return its underlying matrix name and content.

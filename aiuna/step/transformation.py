@@ -33,8 +33,13 @@ class Transformation(Identifyable, Printable):
     def config(self):
         return deserialize(self._serialized_transformer)
 
-    def _uuid_impl(self):
-        return 'uuid', self.step + self.transformer_uuid[1:]
+    def _rawuuid_impl(self):
+        pass
+
+    @property
+    @lru_cache()
+    def rawuuid(self):
+        return self.step.encode() + self.transformer_rawuuid[1:]
 
 
 class NoTransformation(type):
@@ -43,8 +48,8 @@ class NoTransformation(type):
     name = None
     path = None
     config = None
-    from pjdata.aux.encoders import int2tiny
-    uuid = 'T' + int2tiny(0)
+    from pjdata.aux.encoders import int2pretty
+    uuid = 'T' + int2pretty(0)
 
     def __new__(cls, *args, **kwargs):
         raise Exception(

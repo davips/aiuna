@@ -7,10 +7,10 @@ import pandas as pd
 import sklearn.datasets as ds
 
 from pjdata.aux.compression import pack_data
-from pjdata.aux.encoders import uuid
+from pjdata.aux.encoders import md5digest, digest2pretty, UUID, prettydigest
 from pjdata.aux.serialization import serialize
 from pjdata.data import Data
-from pjdata.history import History
+from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
 
 
@@ -63,22 +63,25 @@ def read_arff(filename, description='No description.'):
     Yt = [translate_type(TgtAtt[1])]
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
-    matrices_hash = uuid(pack_data(X) + pack_data(Y), prefix='')
+    uuids = {'X': UUID(md5digest(pack_data(X))),
+             'Y': UUID(md5digest(pack_data(Y)))}
+    hashes = {k: v.pretty for k, v in uuids}
+    transformer_digest = md5digest(serialize(hashes).encode())
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
-    _name = splitted[-1] + '_' + matrices_hash[:6]
+    name_ = splitted[-1] + '_' + digest2pretty(transformer_digest)[:6]
 
-    # Generate the first transformation of this Data object: being born.
+    # Generate the first transformation of a Data object: being born.
     class File:
         """Fake File transformer."""
         name = 'File'
         path = 'pjml.tool.data.flow.file'
-        uuid = 'f' + matrices_hash
+        uuid = UUID(transformer_digest)
         config = {
             'name': filename.split('/')[-1],
-            'matrices_hash': matrices_hash,
-            'path': '/'.join(splitted[:-1])+'/',
-            'description': description
+            'path': '/'.join(splitted[:-1]) + '/',
+            'description': description,
+            'hashes': hashes
         }
         jsonable = {'_id': f'{name}@{path}', 'config': config}
         serialized = serialize(jsonable)
@@ -86,10 +89,11 @@ def read_arff(filename, description='No description.'):
     transformer = File()
     # File transformations are always represented as 'u', no matter which step.
     transformation = Transformation(transformer, 'u')
-    return Data(
-        History([transformation]),
-        X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd, name=_name, desc=description
-    )
+    return Data(X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
+                name=name_, desc=description,
+                history=[transformation],
+                uuid=UUID() + UUID(transformer_digest),
+                uuids=uuids)
 
 
 def translate_type(name):
