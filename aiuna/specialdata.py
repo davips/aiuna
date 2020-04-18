@@ -38,7 +38,7 @@ class NoData(type):
     # history = []
     # name = "No data"
     # desc = ''
-    sid = uuid[:8]
+    sid = uuid.pretty[:8]
     failure = None
     # hollow = HollowData(history=[], failure=failure)
     isfrozen = False

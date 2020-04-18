@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pjdata.aux.encoders import UUID
 from pjdata.aux.serialization import deserialize
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
@@ -23,7 +24,7 @@ class Transformation(Identifyable, Printable):
                 'Operation cannot be None! Hint: self._transformation() '
                 'should be called only during apply() or use() steps!')
         self.name, self.path = transformer.name, transformer.path
-        self.transformer_uuid = transformer.uuid
+        self.transformer_uuid00 = transformer.uuid00
         self._serialized_transformer = transformer.serialized
         super().__init__(self._serialized_transformer)
         self.step = step

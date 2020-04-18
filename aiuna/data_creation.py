@@ -65,7 +65,7 @@ def read_arff(filename, description='No description.'):
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     uuids = {'X': UUID(md5digest(pack_data(X))),
              'Y': UUID(md5digest(pack_data(Y)))}
-    hashes = {k: v.pretty for k, v in uuids}
+    hashes = {k: v.pretty for k, v in uuids.items()}
     transformer_digest = md5digest(serialize(hashes).encode())
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
@@ -76,7 +76,7 @@ def read_arff(filename, description='No description.'):
         """Fake File transformer."""
         name = 'File'
         path = 'pjml.tool.data.flow.file'
-        uuid = UUID(transformer_digest)
+        uuid00 = UUID(transformer_digest)
         config = {
             'name': filename.split('/')[-1],
             'path': '/'.join(splitted[:-1]) + '/',

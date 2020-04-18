@@ -27,16 +27,18 @@ class Collection(AbstractData):
         The user can set a dataset if convenient.
     """
 
-    def __init__(self, history, failure, original_data):
+    def __init__(self, history, failure, original_data, uuid):
+        if uuid is None:
+            raise Exception('Collection child classes should be instantiated'
+                            ' by experts only!')
         # TODO: is collection Printable?
-        if history is None:
-            history = History([])
         self.history = history
         self.failure = failure
         self.next_index = 0
 
         self.original_data = original_data
         self._allfrozen = None
+        self._uuid = uuid
 
     def updated(self, transformations, datas=None, failure='keep'):
         """Recreate Collection object with updated history, failure and datas.
@@ -68,12 +70,18 @@ class Collection(AbstractData):
 
         # TODO: to require changes on Xt and Xd when X is changed.
 
+        # Update UUID.
+        new_uuid = self.uuid00
+        for transformation in transformations:
+            new_uuid += transformation.uuid00
+
         from pjdata.finitecollection import FiniteCollection
         return FiniteCollection(
             datas=datas,
-            history=self.history.extended(transformations),
+            history=self.history + transformations,
             failure=failure,
-            original_data=self.original_data
+            original_data=self.original_data,
+            uuid=new_uuid
         )
 
     def __iter__(self):
@@ -83,11 +91,14 @@ class Collection(AbstractData):
         if self.next_index == self.size:
             self.next_index = 0
             raise StopIteration('No more Data objects left. Restarted!')
-        nex = next(self._datas) if isinstance(self._datas, Iterator) else \
-            self._datas[self.next_index]
+        if isinstance(self._datas, Iterator):
+            nex = next(self._datas)
+        else:
+            nex = self._datas[self.next_index]
         self.next_index += 1
         return nex
 
+<<<<<<< HEAD
     def __str__(self):
         if self.infinite:
             return 'Infinite collection!' + \
@@ -149,6 +160,10 @@ class Collection(AbstractData):
         else:
             return self.history.last.step.upper(), \
                    self.history.uuid + self._uuids
+=======
+    def _uuid_impl00(self):
+        return self._uuid
+>>>>>>> UUID completed, probably needing some fix
 
     # Collection not hashable! That's why we memoize it by hand here.
     @property

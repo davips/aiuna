@@ -4,11 +4,9 @@ import numpy as np
 
 from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.compression import pack_data
-from pjdata.aux.encoders import UUID, uuid00
-from pjdata.aux.serialization import serialize
+from pjdata.aux.encoders import UUID
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
-from pjdata.step.transformation import Transformation
 
 
 class Data(AbstractData, LinAlgHelper, Printable):
@@ -102,7 +100,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         self.history = settings['history']
         self._uuid = settings['uuid']
-        self._uuids = settings['uuids']
+        self.uuids = settings['uuids']
 
         self.failure = settings.get('failure', None)
         self.matrices = matrices
@@ -159,7 +157,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         # Update UUID digests.
         new_digests = {}
         for field in new_matrices:
-            new_uuid = self.uuids(field)
+            new_uuid = self.uuids.get(field, UUID())
 
             # Transform new fields' UUID.
             if field in matrices:
@@ -168,10 +166,16 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
             new_digests[field] = new_uuid
 
+        # Update UUID.
+        new_uuid = self.uuid00
+        for transformation in transformations:
+            new_uuid += transformation.uuid00
+
         return self.__class__(
             history=self.history + transformations,
             failure=failure,
             digests=new_digests,
+            uuid=new_uuid,
             **new_matrices
         )
 
@@ -199,27 +203,10 @@ class Data(AbstractData, LinAlgHelper, Printable):
         return list(self._fields.keys())
 
     @lru_cache()
-    def uuids(self, field):
-        """Lazily calculated uuid for a given field.
-        Useful for optimized persistence backends for Cache."""
-        # if len(field) > 2:
-        #     raise Exception(
-        #         f'A field name must be a single letter, not {field}!'
-        #     )
-        if field not in self.field_names:
-            return UUID()
-        return self._uuids[self.field(field)]
-
-    @lru_cache()
     def field_dump(self, field):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache."""
         return pack_data(self.field(field))
-
-    @property
-    @lru_cache()
-    def all_uuids(self):
-        return {f: self.uuids(f) for f in self.field_names}
 
     @property
     @lru_cache()
@@ -255,7 +242,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         """
         raise NotImplementedError
 
-    def _uuid_impl(self):
+    def _uuid_impl00(self):
         return self._uuid
 
     def _translate(self, field, value):

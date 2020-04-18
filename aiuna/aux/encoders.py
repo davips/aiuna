@@ -7,73 +7,11 @@ import pjdata.aux.alphabets as alph
 def md5_int(bytes_content: bytes):
     """Return MD5 hash as integer.
 
-<<<<<<< HEAD
-=======
-    # TIP: Dataclass checks for equality on this field!
-    digest: bytes = null_digest
-
-    isnull = digest == null_digest
-
-    @property
-    @lru_cache()
-    def pretty(self):
-        return digest2pretty(self.digest)
-
-    def __add__(self, other):
-        """Merge with another UUIDs.
-
-         Non commutative: a + b != b + a
-         Reversible: (a + b) - b = a
-         """
-        return UUID(push(new=other.digest, stack=self.digest))
-
-    def __sub__(self, other):
-        """Unmerge from last merged UUID."""
-        if other.digest == self.null_digest:
-            raise Exception(f'Cannot subtract from UUID={self.null_pretty}!')
-        return UUID(pop(last=other.digest, stack=self.digest))
-
-    def __str__(self):
-        return self.pretty
-
-    __repr__ = __str__  # TODO: is this needed?
-
-
-def uuid00(bytes_content):
-    return UUID(md5digest(bytes_content))
-
-
-def md5digest(bytes_content):
-    """
->>>>>>> 19eb120... provisional commit to create a proper branch
     Generates a hash intended for unique identification of content
      (unique for any reasonably finite universe).
 
     It is preferred to generate such hash on compressed data,
     since MD5 is much slower for large data than the compression itself.
-<<<<<<< HEAD
-=======
-    :param bytes_content:
-        encoded content; it can be a packed object, a text, JSON,...
-    :return: str <32 characters>
-    """
-    return hashlib.md5(bytes_content).digest()
-
-
-def digest2pretty(bytes_digest):
-    """
-    Convert MD5 representation (16 bytes) to a friendly still short one
-     (19 digits in base-107).
-    :param bytes_digest:
-    :return: string with 19 digits, padded with 'Ø' when needed
-    """
-    return int2pretty(bytes2int(bytes_digest))
-
-
-def int2pretty(number):
-    """Convert number to a tiny human-friendly string (19 chars)."""
-    return enc(number).rjust(19, '0')
->>>>>>> 19eb120... provisional commit to create a proper branch
 
     Parameters
     ----------
@@ -256,7 +194,6 @@ def pmatrix2pretty(m: List[int], alphabet: str) -> str:  # =alphabet1224
     In a 1MiB/s network, this would lead to extra 18us,
     still far from ~40us savings.
     """
-<<<<<<< HEAD
     # TODO: Create an alphabet for 58x58 (3363 letters).
     side = len(m)
     lst = [alphabet[m[i + 1] + side * m[i]] for i in range(0, side - 1, 2)]
@@ -271,47 +208,3 @@ def pretty2pmatrix(text: str, side: int, alphabet_dict: Dict[str, int]) -> List[
     if side % 2 == 1:
         m.append(alphabet_dict[text[-1]])
     return m
-=======
-    return encrypt(msg_bytes=stack, key_bytes=new)
-
-
-def pop(last, stack):
-    """Undo noncommutative combination of two sequences of bytes."""
-    return decrypt(encrypted_msg=stack, key_bytes=last)
-
-
-# def hex2int(hexdigest):
-#     """
-#     Convert hex MD5 representation (32 digits in base-16) to int.
-#     :param hexdigest:
-#     :return: int
-#     """
-#     return int(hexdigest, 16)
-
-def pretty2bytes(digest):
-    """Convert tiny string (19 chars) to bytes."""
-    return dec(digest).to_bytes(19, 'big')
-
-
-def prettydigest(bytes_content):
-    return digest2pretty(md5digest(bytes_content))
-
-
-class CustomJSONEncoder(JSONEncoder):
-    def default(self, obj):
-        if obj is not None:
-            from pjdata.step.transformation import Transformation
-            if isinstance(obj, Transformation):
-                # This eval is here instead of at transformation.py, to defer
-                # such heavy calculation to the printing time, i.e. when needed.
-                jsonable = json.loads(obj.jsonable)
-                jsonable['step'] = obj.step
-                return jsonable
-            elif isinstance(obj, np.ndarray):
-                return str(obj)
-            elif not isinstance(
-                    obj, (list, set, str, int, float, bytearray, bool)):
-                return obj.jsonable
-
-        return JSONEncoder.default(self, obj)
->>>>>>> 19eb120... provisional commit to create a proper branch
