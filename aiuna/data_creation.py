@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
 
+from pjdata.aux import encoders
 from pjdata.aux.compression import pack_data
 from pjdata.aux.encoders import md5digest, digest2pretty, UUID, prettydigest
 from pjdata.aux.serialization import serialize
@@ -66,17 +67,16 @@ def read_arff(filename, description='No description.'):
     uuids = {'X': UUID(md5digest(pack_data(X))),
              'Y': UUID(md5digest(pack_data(Y)))}
     hashes = {k: v.pretty for k, v in uuids.items()}
-    transformer_digest = md5digest(serialize(hashes).encode())
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
-    name_ = splitted[-1] + '_' + digest2pretty(transformer_digest)[:6]
+    digest = md5digest(serialize(hashes).encode())
+    name_ = splitted[-1] + '_' + digest2pretty(digest)[:6]
 
     # Generate the first transformation of a Data object: being born.
     class File:
         """Fake File transformer."""
         name = 'File'
         path = 'pjml.tool.data.flow.file'
-        uuid00 = UUID(transformer_digest)
         config = {
             'name': filename.split('/')[-1],
             'path': '/'.join(splitted[:-1]) + '/',
@@ -85,6 +85,7 @@ def read_arff(filename, description='No description.'):
         }
         jsonable = {'_id': f'{name}@{path}', 'config': config}
         serialized = serialize(jsonable)
+        uuid00 = encoders.uuid00(serialized.encode())
 
     transformer = File()
     # File transformations are always represented as 'u', no matter which step.
