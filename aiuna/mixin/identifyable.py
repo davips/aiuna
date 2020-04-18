@@ -15,11 +15,11 @@ class Identifyable(ABC):
             A unique identifier UUID object.
         """
         from pjdata.aux.encoders import uuid00, UUID
-        content = self._uuid_impl00().encode()
+        content = self._uuid_impl00()
         if isinstance(content, UUID):
             return content
         else:
-            return uuid00(content)
+            return uuid00(content.encode())
 
     @property
     @lru_cache()
@@ -30,7 +30,7 @@ class Identifyable(ABC):
         First collision expect after 12671943 combinations.
         :return:
         """
-        return self.uuid00[:8]
+        return self.uuid00.pretty[:8]
 
     @abstractmethod
     def _uuid_impl00(self):

@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-
 from pjdata.aux.encoders import UUID
+
 from pjdata.data import Data
-from pjdata.mixin.identifyable import Identifyable
 
 
 class HollowData(Data):
@@ -23,7 +22,7 @@ class UUIDData(HollowData):
     """Like HollowData, but the only available information is the UUID."""
 
     def __init__(self, uuid):
-        super().__init__([])
+        super().__init__()
         self._uuid = uuid
 
     def _uuid_impl(self):
@@ -32,13 +31,14 @@ class UUIDData(HollowData):
 
 class NoData(type):
     """Singleton to feed Data generators."""
-    uuid = UUID()
+    uuid00 = UUID()
     uuids = {}
+    history = []
+    matrices = {}
 
-    # history = []
     # name = "No data"
     # desc = ''
-    sid = uuid.pretty[:8]
+    sid = uuid00.pretty[:8]
     failure = None
     # hollow = HollowData(history=[], failure=failure)
     isfrozen = False

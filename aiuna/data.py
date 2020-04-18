@@ -145,17 +145,19 @@ class Data(AbstractData, LinAlgHelper, Printable):
         -------
         New Data object (it keeps references to the old one for performance).
         """
+        from pjdata.specialdata import NoData
+
         new_matrices = self.matrices.copy()
         if failure == 'keep':
             failure = self.failure
 
         # Translate shortcuts.
         for name, value in matrices.items():
-            new_name, new_value = self._translate(name, value)
+            new_name, new_value = Data._translate(name, value)
             new_matrices[new_name] = new_value
 
         # Update UUID digests.
-        new_digests = {}
+        uuids = {}
         for field in new_matrices:
             new_uuid = self.uuids.get(field, UUID())
 
@@ -164,18 +166,19 @@ class Data(AbstractData, LinAlgHelper, Printable):
                 for transformation in transformations:
                     new_uuid += transformation.uuid00
 
-            new_digests[field] = new_uuid
+            uuids[field] = new_uuid
 
         # Update UUID.
         new_uuid = self.uuid00
         for transformation in transformations:
             new_uuid += transformation.uuid00
 
-        return self.__class__(
+        klass = Data if self is NoData else self.__class__
+        return klass(
             history=self.history + transformations,
             failure=failure,
-            digests=new_digests,
             uuid=new_uuid,
+            uuids=uuids,
             **new_matrices
         )
 
@@ -231,8 +234,29 @@ class Data(AbstractData, LinAlgHelper, Printable):
             kwargs['name'] = self.name
         if 'desc' in self.matrices:
             kwargs['desc'] = self.desc
-        return HollowData(history=self.history.extended(transformations),
-                          failure=self.failure, **kwargs)
+
+        # TODO: refactor duplicated code.
+        # Update UUID digests.
+        new_uuids = {}
+        for field in self.matrices:
+            new_uuid = self.uuids.get(field, UUID())
+
+            # Transform new fields' UUID.
+            if field in self.matrices:
+                for transformation in transformations:
+                    new_uuid += transformation.uuid00
+
+            new_uuids[field] = new_uuid
+
+        # Update UUID.
+        new_uuid = self.uuid00
+        for transformation in transformations:
+            new_uuid += transformation.uuid00
+
+        return HollowData(history=self.history + transformations,
+                          failure=self.failure,
+                          uuid=new_uuid, uuids=new_uuids,
+                          **kwargs)
 
     @property
     @lru_cache()
@@ -245,13 +269,14 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def _uuid_impl00(self):
         return self._uuid
 
-    def _translate(self, field, value):
+    @classmethod
+    def _translate(cls, field, value):
         """Given a field name, return its underlying matrix name and content.
         """
-        if field in self._vec2mat_map:
+        if field in cls._vec2mat_map:
             # Vector.
-            return field.upper(), self._as_column_vector(value)
-        elif field in self._sca2mat_map:
+            return field.upper(), cls._as_column_vector(value)
+        elif field in cls._sca2mat_map:
             # Scalar.
             return field.upper(), np.array(value, ndmin=2)
         else:

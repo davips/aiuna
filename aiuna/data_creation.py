@@ -92,7 +92,7 @@ def read_arff(filename, description='No description.'):
     return Data(X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
                 name=name_, desc=description,
                 history=[transformation],
-                uuid=UUID() + UUID(transformer_digest),
+                uuid=UUID() + transformation.uuid00,
                 uuids=uuids)
 
 

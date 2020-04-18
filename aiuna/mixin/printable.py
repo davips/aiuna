@@ -1,7 +1,6 @@
 import json
 
-from pjdata.aux.encoders import CustomJSONEncoder
-from pjdata import PRETTY_PRINTING
+from pjdata import PRETTY_PRINTING  # Needed despite IDE warnings!
 
 
 def enable_global_pretty_printing():
@@ -29,9 +28,15 @@ class Printable:
 
     def __str__(self, depth=''):
         from pjdata.step.transformation import Transformation
-        jsonable = self.jsonable
+        from pjdata.aux.encoders import CustomJSONEncoder
+
+        # Transformation has a heavy printing because of its serialized
+        # Transformer. So we take its serialization directly and put the
+        # transformation step during CustomJSONEncoder run.
         if isinstance(self, Transformation):
             jsonable = self
+        else:
+            jsonable = self.jsonable
 
         if not self.pretty_printing:
             js = json.dumps(jsonable, cls=CustomJSONEncoder,
