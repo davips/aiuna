@@ -92,9 +92,9 @@ def read_arff(filename, description='No description.'):
     transformation = Transformation(transformer, 'u')
     return Data(X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
                 name=name_, desc=description,
-                history=[transformation],
-                uuid=UUID() + transformation.uuid00,
-                uuids=uuids)
+                _history=[transformation],
+                _uuid=UUID() + transformation.uuid00,
+                _uuids=uuids)
 
 
 def translate_type(name):

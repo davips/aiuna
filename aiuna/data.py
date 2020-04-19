@@ -10,7 +10,7 @@ from pjdata.mixin.printable import Printable
 
 
 class Data(AbstractData, LinAlgHelper, Printable):
-    """Immutable lazy data for all machine learning scenarios one imagine.
+    """Immutable data for all machine learning scenarios one imagine.
 
     Attributes
     ----------
@@ -50,22 +50,23 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, **matrices):
+    def __init__(self, _uuid=None, _uuids=None, _history=None, _failure=None,
+                 **matrices):
         kwargs = matrices
         super().__init__(jsonable=kwargs)
 
         # Divide kwargs.
         matrices = {}
-        settings = {}
+        info = {}
         for k, v in kwargs.items():
             if len(k) < 3:
                 matrices[k] = v
             else:
-                settings[k] = v
+                info[k] = v
 
-        # TODO: what to do with 'name' and 'desc'?
+        # TODO: what to do with info? 'name' and 'desc'?
 
-        if 'uuid' not in settings:
+        if _uuid is None:
             # TODO: Implement the rare case where the user creates Data:
             raise NotImplementedError
             # Intended for Data and matrices created directly by the user.
@@ -98,11 +99,11 @@ class Data(AbstractData, LinAlgHelper, Printable):
             # transformation = Transformation(transformer, 'u')
             # history = [transformation]
 
-        self.history = settings['history']
-        self._uuid = settings['uuid']
-        self.uuids = settings['uuids']
+        self.history = _history
+        self._uuid = _uuid
+        self.uuids = _uuids
 
-        self.failure = settings.get('failure', None)
+        self.failure = _failure
         self.matrices = matrices
         self._fields = matrices.copy()
 
@@ -174,13 +175,9 @@ class Data(AbstractData, LinAlgHelper, Printable):
             new_uuid += transformation.uuid00
 
         klass = Data if self is NoData else self.__class__
-        return klass(
-            history=self.history + transformations,
-            failure=failure,
-            uuid=new_uuid,
-            uuids=uuids,
-            **new_matrices
-        )
+        return klass(_uuid=new_uuid, _uuids=uuids,
+                     _history=self.history + transformations, _failure=failure,
+                     **new_matrices)
 
     def field(self, name, component=None):
         if name not in self._fields:
@@ -223,7 +220,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
     @property
     @lru_cache()
     def uuids_str(self):
-        return ','.join(self.uuids.keys())
+        return ','.join(u.pretty for u in self.uuids.values())
 
     @property
     @lru_cache()
@@ -278,10 +275,9 @@ class Data(AbstractData, LinAlgHelper, Printable):
         for transformation in transformations:
             new_uuid += transformation.uuid00
 
-        return HollowData(history=self.history + transformations,
-                          failure=self.failure,
-                          uuid=new_uuid, uuids=new_uuids,
-                          **kwargs)
+        return HollowData(_uuid=new_uuid, _uuids=new_uuids,
+                          _history=self.history + transformations,
+                          _failure=self.failure, **kwargs)
 
     @property
     @lru_cache()

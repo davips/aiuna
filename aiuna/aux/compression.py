@@ -4,29 +4,32 @@ import lz4.frame as lz
 import numpy as np
 import zstandard as zs
 
-
 # TODO: make a permanent representative dictionary and check if it
 #  reduces compression time and size of textual info like transformations.
+from pjdata.aux.encoders import intlist2bytes, bytes2intlist
 
 
 def pack_data(obj):
     if isinstance(obj, np.ndarray) and str(obj.dtype) == 'float64':
         h, w = obj.shape
-        fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
+        b = intlist2bytes(obj.shape)
+        fast_reduced = b + lz.compress(obj.reshape(w * h), compression_level=1)
     else:
         pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
-        fast_reduced = lz.compress(b'Obj' + pickled, compression_level=1)
+        fast_reduced = b'ObjeobjE' + lz.compress(pickled, compression_level=1)
     cctx = zs.ZstdCompressor(threads=-1)
     return cctx.compress(fast_reduced)
 
 
-def unpack_data(dump, w=None, h=None):
+def unpack_data(dump):
     cctx = zs.ZstdDecompressor()
     decompressed = cctx.decompress(dump)
-    fast_decompressed = lz.decompress(decompressed)
-    if fast_decompressed[:3] == b'Obj':
-        return pickle.loads(fast_decompressed[3:])
+    if decompressed[:8] == b'ObjeobjE':
+        fast_decompressed = lz.decompress(decompressed[8:])
+        return pickle.loads(fast_decompressed)
     else:
+        fast_decompressed = lz.decompress(decompressed[8:])
+        [h, w] = bytes2intlist(decompressed[:8])
         return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
 
 # def pack_object(obj):  #blosc is buggy
