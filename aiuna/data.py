@@ -119,7 +119,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
         self.__dict__.update(self._fields)
 
-    def updated(self, transformations, failure='keep', **matrices):
+    def updated(self, transformations, failure='keep', **fields):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
@@ -131,7 +131,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
             The failure caused by the given transformation, if it failed.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
             None (unusual) = 'no failure', possibly overriding previous failures
-        matrices
+        fields
             Changed/added matrices and updated values.
 
         dataset
@@ -152,21 +152,21 @@ class Data(AbstractData, LinAlgHelper, Printable):
             failure = self.failure
 
         # Translate shortcuts.
-        for name, value in matrices.items():
+        for name, value in fields.items():
             new_name, new_value = Data._translate(name, value)
             new_matrices[new_name] = new_value
 
         # Update UUID digests.
         uuids = {}
-        for field in new_matrices:
-            new_uuid = self.uuids.get(field, UUID())
+        for matrix_name in new_matrices:
+            new_uuid = self.uuids.get(matrix_name, UUID())
 
             # Transform new fields' UUID.
-            if field in matrices:
+            if matrix_name in fields:
                 for transformation in transformations:
                     new_uuid += transformation.uuid00
 
-            uuids[field] = new_uuid
+            uuids[matrix_name] = new_uuid
 
         # Update UUID.
         new_uuid = self.uuid00
@@ -182,8 +182,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
             **new_matrices
         )
 
-    def field(self, field, component=None):
-        if field not in self._fields:
+    def field(self, name, component=None):
+        if name not in self._fields:
             name = component.name if 'name' in dir(component) else component
             raise MissingField(
                 f'\n=================================================\n'
@@ -191,9 +191,9 @@ class Data(AbstractData, LinAlgHelper, Printable):
                 f' Data object <{self}>\n'
                 f' last transformed by '
                 f'{self.history.last and self.history.last.name} does '
-                f'not provide field\n {field} needed by {name} .\n'
+                f'not provide field\n {name} needed by {name} .\n'
                 f'Available fields: {list(self._fields.keys())}')
-        return self._fields[field]
+        return self._fields[name]
 
     @property
     @lru_cache()
@@ -205,11 +205,36 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def field_names(self):
         return list(self._fields.keys())
 
+    @property
     @lru_cache()
-    def field_dump(self, field):
+    def matrix_names(self):
+        return list(self.matrices.keys())
+
+    @property
+    @lru_cache()
+    def matrix_names_str(self):
+        return ','.join(self.matrix_names)
+
+    @property
+    @lru_cache()
+    def field_names_str(self):
+        return ','.join(self.field_names)
+
+    @property
+    @lru_cache()
+    def uuids_str(self):
+        return ','.join(self.uuids.keys())
+
+    @property
+    @lru_cache()
+    def history_str(self):
+        return ','.join(t.uuid00.pretty for t in self.history)
+
+    @lru_cache()
+    def field_dump(self, name):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache."""
-        return pack_data(self.field(field))
+        return pack_data(self.field(name))
 
     @property
     @lru_cache()
@@ -238,15 +263,15 @@ class Data(AbstractData, LinAlgHelper, Printable):
         # TODO: refactor duplicated code.
         # Update UUID digests.
         new_uuids = {}
-        for field in self.matrices:
-            new_uuid = self.uuids.get(field, UUID())
+        for matrix_name in self.matrices:
+            new_uuid = self.uuids.get(matrix_name, UUID())
 
             # Transform new fields' UUID.
-            if field in self.matrices:
+            if matrix_name in self.matrices:
                 for transformation in transformations:
                     new_uuid += transformation.uuid00
 
-            new_uuids[field] = new_uuid
+            new_uuids[matrix_name] = new_uuid
 
         # Update UUID.
         new_uuid = self.uuid00
@@ -270,18 +295,18 @@ class Data(AbstractData, LinAlgHelper, Printable):
         return self._uuid
 
     @classmethod
-    def _translate(cls, field, value):
+    def _translate(cls, field_name, value):
         """Given a field name, return its underlying matrix name and content.
         """
-        if field in cls._vec2mat_map:
+        if field_name in cls._vec2mat_map:
             # Vector.
-            return field.upper(), cls._as_column_vector(value)
-        elif field in cls._sca2mat_map:
+            return field_name.upper(), cls._as_column_vector(value)
+        elif field_name in cls._sca2mat_map:
             # Scalar.
-            return field.upper(), np.array(value, ndmin=2)
+            return field_name.upper(), np.array(value, ndmin=2)
         else:
             # Matrix given directly.
-            return field, value
+            return field_name, value
 
 
 class MissingField(Exception):
