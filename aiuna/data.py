@@ -10,7 +10,7 @@ from pjdata.mixin.printable import Printable
 
 
 class Data(AbstractData, LinAlgHelper, Printable):
-    """Immutable data for all machine learning scenarios one imagine.
+    """Immutable data for all machine learning scenarios one can imagine.
 
     Attributes
     ----------
@@ -249,7 +249,9 @@ class Data(AbstractData, LinAlgHelper, Printable):
         return self.hollow_extended([])
 
     def hollow_extended(self, transformations):
-        """A light Data object, i.e. without matrices."""
+        """A light Data object, i.e. without matrices.
+        Usefull to antecipate the outcome (uuid/uuids) of a Pipeline
+         (e.g. to allow Cache fetching)."""
         from pjdata.specialdata import HollowData
         kwargs = {}
         if 'name' in self.matrices:  # TODO: see TODO in init
