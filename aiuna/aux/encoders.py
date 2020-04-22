@@ -7,6 +7,82 @@ import pjdata.aux.alphabets as alph
 def md5_int(bytes_content: bytes):
     """Return MD5 hash as integer.
 
+<<<<<<< HEAD
+=======
+    # TIP: Dataclass checks for equality on this field!
+    digest: bytes = null_digest
+
+    isnull = digest == null_digest
+
+    @property
+    @lru_cache()
+    def pretty(self):
+        return digest2pretty(self.digest)
+
+    @staticmethod
+    def from_pretty(txt):
+        return UUID(pretty2bytes(txt))
+
+    def __add__(self, other):
+        """Merge with another UUIDs.
+
+         Non commutative: a + b != b + a
+         Reversible: (a + b) - b = a
+         """
+        return UUID(encrypt(msg_bytes=self.digest, key_bytes=other.digest))
+
+    def __sub__(self, other):
+        """Unmerge from last merged UUID."""
+        if self.digest == self.null_digest:
+            raise Exception(f'Cannot subtract from UUID={self.null_pretty}!')
+        return UUID(decrypt(encrypted_msg=self.digest, key_bytes=other.digest))
+
+    def __str__(self):
+        return self.pretty
+
+    __repr__ = __str__  # TODO: is this needed?
+
+# @dataclass(frozen=True)
+# class UUID:
+#     # TIP: Dataclass checks for equality on this field!
+#     bignumber: int = 0
+#     isnull = bignumber == 0
+#
+#     @property
+#     @lru_cache()
+#     def pretty(self):
+#         return int2pretty(self.bignumber)
+#
+#     @staticmethod
+#     def from_pretty(txt):
+#         return UUID(pretty2int(txt))
+#
+#     def __add__(self, other):
+#         """Merge with another UUIDs.
+#
+#          Non commutative: a + b != b + a
+#          Reversible: (a + b) - b = a
+#          """
+#         return UUID(rev_hash(msg_int=other.bignumber, key_int=self.bignumber))
+#
+#     def __sub__(self, other):
+#         """Unmerge from last merged UUID."""
+#         if self.bignumber == 0:
+#             raise Exception(f'Cannot subtract from UUID={self.pretty}!')
+#         return UUID(rev_unhash(=other.bignumber, key_int=self.bignumber))
+#
+#     def __str__(self):
+#         return self.pretty
+#
+#     __repr__ = __str__  # TODO: is this needed?
+
+def uuid00(bytes_content):
+    return UUID(md5digest(bytes_content))
+
+
+def md5digest(bytes_content):
+    """
+>>>>>>> 15e9f9a... fixed order os UUID ops
     Generates a hash intended for unique identification of content
      (unique for any reasonably finite universe).
 
