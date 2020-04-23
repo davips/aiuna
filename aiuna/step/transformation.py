@@ -1,44 +1,60 @@
+import json
 from functools import lru_cache
 
-from pjdata.aux.serialization import deserialize
+from pjdata.aux.serialization import deserialize, serialize
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 
 
 class Transformation(Identifyable, Printable):
     def __init__(self, transformer, step):
-        """
-        Immutable application or use of a Transformer.
-        :param transformer: Transformer/Pipeline
-        :param step: 'a'pply or 'u'se
-        """
-        # Precisei retirar referência ao transformer, para que pickle parasse
-        # de dar problema ao carregar um objeto Data do PickleServer. Esse
-        # problema começar após a unificação ML com CS, sobrescrenvendo
-        # __new__ nos containeres. O erro acontecia quando o pickle tentava
-        # recriar Containeres do histórico de Data, mas, por algum motivo
-        # tentava fazê-lo sem transformers. Serializei config pelo mesmo motivo.
-        if step is None:
+        if None in [transformer, step]:
             raise Exception(
-                'Operation cannot be None! Hint: self._transformation() '
+                'Transformation needs non Nones! Hint: self._transformation() '
                 'should be called only during apply() or use() steps!')
         self.name, self.path = transformer.name, transformer.path
         self.transformer_uuid00 = transformer.uuid00
         self._serialized_transformer = transformer.serialized
-
-        # TIP: Step is being added to jsonable by Printable.
-        super().__init__(jsonable=self._serialized_transformer)
         self.step = step
+        jsonable = {
+            'uuid': self.uuid00,
+            'step': step,
+            'name': self.name,
+            'path': self.path,
+            'transformer_uuid00': self.transformer_uuid00,
+            'transformer': self._serialized_transformer
+        }
+        super().__init__(jsonable=jsonable)
+
+    @property
+    @lru_cache()
+    def serialized(self):
+        return serialize(self)
 
     @property
     @lru_cache()
     def config(self):
         return deserialize(self._serialized_transformer)
 
+    @staticmethod
+    def materialize(serialized):
+        deserialized = json.loads(serialized)
+        step = deserialized['step']
+
+        class FakeTransformer:
+            name = deserialized['name']
+            path = deserialized['path']
+            uuid00 = deserialized['transformer_uuid00']
+            serialized = deserialized['serialized']
+
+        transformer = FakeTransformer()
+        return Transformation(transformer, step)
+
     def _uuid_impl00(self):
         from pjdata.aux.encoders import uuid00
         # Mark step to differentiate 'apply' from 'use'. And also to avoid
-        # having the same uuid as its transformer.
+        # having the same uuid as its transformer (for general dump purposes).
+        # TODO: customize crypto, allow header for 'a', 'u' and others.
         mark = uuid00(self.step.encode())
         return self.transformer_uuid00 + mark
 
