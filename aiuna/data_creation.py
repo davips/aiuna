@@ -7,7 +7,7 @@ import pandas as pd
 import sklearn.datasets as ds
 
 from pjdata.aux import encoders
-from pjdata.aux.compression import pack_data
+from pjdata.aux.compression import pack
 from pjdata.aux.encoders import md5digest, digest2pretty, UUID, prettydigest
 from pjdata.aux.serialization import serialize
 from pjdata.data import Data
@@ -64,8 +64,11 @@ def read_arff(filename, description='No description.'):
     Yt = [translate_type(TgtAtt[1])]
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
-    uuids = {'X': UUID(md5digest(pack_data(X))),
-             'Y': UUID(md5digest(pack_data(Y)))}
+    uuids = {
+        'X': UUID(md5digest(pack(X))), 'Y': UUID(md5digest(pack(Y))),
+        'Xd': UUID(md5digest(pack(Xd))), 'Yd': UUID(md5digest(pack(Yd))),
+        'Xt': UUID(md5digest(pack(Xt))), 'Yt': UUID(md5digest(pack(Yt)))
+    }
     hashes = {k: v.pretty for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')

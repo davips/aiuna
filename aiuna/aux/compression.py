@@ -679,7 +679,7 @@ cctxdec = zs.ZstdDecompressor()
 cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 
 
-def pack_data(obj):
+def pack(obj):
     # Added char header leads to a number higher than 1 billion.
     if isinstance(obj, np.ndarray) and str(obj.dtype) == 'float64':
         h, w = obj.shape
@@ -696,7 +696,7 @@ def pack_data(obj):
         return b'P' + cctx.compress(fast_reduced)  # b'P'+0s==1342177280
 
 
-def unpack_data(dump_with_header):
+def unpack(dump_with_header):
     header = dump_with_header[:1]
     dump = dump_with_header[1:]
     if header == b'P':

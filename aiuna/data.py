@@ -3,7 +3,7 @@ from functools import lru_cache
 import numpy as np
 
 from pjdata.abc.abstractdata import AbstractData
-from pjdata.aux.compression import pack_data
+from pjdata.aux.compression import pack
 from pjdata.aux.encoders import UUID
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
@@ -225,13 +225,13 @@ class Data(AbstractData, LinAlgHelper, Printable):
     @property
     @lru_cache()
     def history_str(self):
-        return ','.join(t.uuid00.pretty for t in self.history)
+        return ','.join(transf.uuid00.pretty for transf in self.history)
 
     @lru_cache()
     def field_dump(self, name):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache."""
-        return pack_data(self.field(name))
+        return pack(self.field(name))
 
     @property
     @lru_cache()
