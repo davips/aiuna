@@ -680,27 +680,29 @@ cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 
 
 def pack_data(obj):
+    # Added char header leads to a number higher than 1 billion.
     if isinstance(obj, np.ndarray) and str(obj.dtype) == 'float64':
         h, w = obj.shape
-        b = intlist2bytes(obj.shape)
         fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
-        return b + cctx.compress(fast_reduced)
+        header = intlist2bytes(obj.shape)
+        print((obj.shape), header)
+        return header + cctx.compress(fast_reduced)
     elif isinstance(obj, str):
         fast_reduced = obj
-        return b'Txt' + cctx.compress(fast_reduced)
+        return b'T' + cctx.compress(fast_reduced)  # b'T'+0s==1409286144
     else:
         pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
         fast_reduced = lz.compress(pickled, compression_level=1)
-        return b'Pic' + cctx.compress(fast_reduced)
+        return b'P' + cctx.compress(fast_reduced)  # b'P'+0s==1342177280
 
 
 def unpack_data(dump_with_header):
-    header = dump_with_header[:3]
-    dump = dump_with_header[3:]
-    if header == b'Pic':
+    header = dump_with_header[:1]
+    dump = dump_with_header[1:]
+    if header == b'P':
         decompressed = lz.decompress(cctxdec.decompress(dump))
         return pickle.loads(decompressed)
-    elif header == b'Txt':
+    elif header == b'T':
         return cctxdicdec.decompress(dump)
     else:
         header = dump_with_header[:8]
