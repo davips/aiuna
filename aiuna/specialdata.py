@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from functools import partial
+
 from pjdata.aux.encoders import UUID
 
 from pjdata.data import Data
@@ -6,10 +8,6 @@ from pjdata.data import Data
 
 class HollowData(Data):
     """Exactly like Data, but without matrices."""
-
-    @property
-    def consistent_with_dataset(self):
-        return True
 
     def __getattr__(self, item):
         if 0 < len(item) < 3:
@@ -35,30 +33,36 @@ class NoData(type):
     uuids = {}
     history = []
     matrices = {}
-
-    # name = "No data"
-    # desc = ''
-    sid = uuid00.pretty[:8]
     failure = None
-    # hollow = HollowData(history=[], failure=failure)
     isfrozen = False
     allfrozen = False
-    iscollection = False
 
     @staticmethod
-    def hollow_extended(transformations):
+    def mockup(transformations):
         """A light Data object, i.e. without matrices."""
-        return Data.hollow_extended(NoData, transformations)
+        return Data.mockup(NoData, transformations)
 
-    @staticmethod
-    def updated(transformations, failure='keep', **matrices):
-        return Data.updated(NoData, transformations, failure, **matrices)
-
-    def __new__(mcs, *args, **kwargs):
-        raise Exception('NoData is a singleton and shouldn\'t be instantiated')
-
-    def __bool__(self):
-        return False
+    #
+    # # name = "No data"
+    # # desc = ''
+    # sid = uuid00.pretty[:8]
+    # # hollow = HollowData(history=[], failure=failure)
+    # iscollection = False
+    #
+    # @staticmethod
+    # def mockup(transformations):
+    #     """A light Data object, i.e. without matrices."""
+    #     return Data.mockup(NoData, transformations)
+    #
+    # @staticmethod
+    # def updated(transformations, failure='keep', **matrices):
+    #     return Data.updated(NoData, transformations, failure, **matrices)
+    #
+    # def __new__(mcs, *args, **kwargs):
+    #     raise Exception('NoData is a singleton and shouldn\'t be instantiated')
+    #
+    # def __bool__(self):
+    #     return False
 
 
 @dataclass

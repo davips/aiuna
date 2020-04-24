@@ -30,11 +30,10 @@ class Printable:
         from pjdata.step.transformation import Transformation
         from pjdata.aux.encoders import CustomJSONEncoder
 
-        # Transformation has a heavy printing because of its serialized
-        # Transformer. So we take its serialization directly and put the
-        # transformation step during CustomJSONEncoder run.
         if isinstance(self, Transformation):
-            jsonable = self
+            # Taking transformer out of string for a better printing.
+            jsonable = self.jsonable.copy()
+            jsonable['transformer'] = json.loads(jsonable['transformer'])
         else:
             jsonable = self.jsonable
 

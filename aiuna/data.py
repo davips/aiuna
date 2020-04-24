@@ -160,6 +160,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         # Update UUID digests.
         uuids = {}
         for matrix_name in new_matrices:
+            # If it is a new matrix, assign '0000000000000000000'.
             new_uuid = self.uuids.get(matrix_name, UUID())
 
             # Transform new fields' UUID.
@@ -243,12 +244,12 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def allfrozen(self):
         return False
 
-    @property
-    @lru_cache()
-    def hollow(self):
-        return self.hollow_extended([])
+    # @property
+    # @lru_cache()
+    # def hollow(self):
+    #     return self.mockup([])
 
-    def hollow_extended(self, transformations):
+    def mockup(self, transformations):
         """A light Data object, i.e. without matrices.
         Usefull to antecipate the outcome (uuid/uuids) of a Pipeline
          (e.g. to allow Cache fetching)."""
@@ -281,13 +282,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
                           _history=self.history + transformations,
                           _failure=self.failure, **kwargs)
 
-    @property
-    @lru_cache()
-    def consistent_with_dataset(self):
-        """Check if dataset field descriptions are compatible with provided
-        matrices.
-        """
-        raise NotImplementedError
+    # Check if dataset Mt is compatible with M.
 
     def _uuid_impl00(self):
         return self._uuid

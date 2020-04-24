@@ -1,6 +1,7 @@
 import json
 from functools import lru_cache
 
+from pjdata.aux.encoders import UUID
 from pjdata.aux.serialization import deserialize, serialize
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
@@ -38,14 +39,14 @@ class Transformation(Identifyable, Printable):
 
     @staticmethod
     def materialize(serialized):
-        deserialized = json.loads(serialized)
-        step = deserialized['step']
+        jsonable = json.loads(serialized)
+        step = jsonable['step']
 
         class FakeTransformer:
-            name = deserialized['name']
-            path = deserialized['path']
-            uuid00 = deserialized['transformer_uuid00']
-            serialized = deserialized['serialized']
+            name = jsonable['name']
+            path = jsonable['path']
+            uuid00 = UUID.from_pretty(jsonable['transformer_uuid00'])
+            serialized = jsonable['transformer']
 
         transformer = FakeTransformer()
         return Transformation(transformer, step)
