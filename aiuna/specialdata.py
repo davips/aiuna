@@ -48,7 +48,7 @@ class NoData(type):
     @staticmethod
     def hollow_extended(transformations):
         """A light Data object, i.e. without matrices."""
-        return HollowData(history=transformations)
+        return Data.hollow_extended(NoData, transformations)
 
     @staticmethod
     def updated(transformations, failure='keep', **matrices):
