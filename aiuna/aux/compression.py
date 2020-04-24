@@ -688,8 +688,7 @@ def pack(obj):
         print((obj.shape), header)
         return header + cctx.compress(fast_reduced)
     elif isinstance(obj, str):
-        fast_reduced = obj
-        return b'T' + cctx.compress(fast_reduced)  # b'T'+0s==1409286144
+        return b'T' + cctx.compress(obj.encode())  # b'T'+0s==1409286144
     else:
         pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
         fast_reduced = lz.compress(pickled, compression_level=1)
@@ -703,7 +702,7 @@ def unpack(dump_with_header):
         decompressed = lz.decompress(cctxdec.decompress(dump))
         return pickle.loads(decompressed)
     elif header == b'T':
-        return cctxdicdec.decompress(dump)
+        return cctxdicdec.decompress(dump).decode()
     else:
         header = dump_with_header[:8]
         dump = dump_with_header[8:]
