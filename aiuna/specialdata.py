@@ -6,7 +6,7 @@ from pjdata.aux.encoders import UUID
 from pjdata.data import Data
 
 
-class HollowData(Data):
+class MockupData(Data):
     """Exactly like Data, but without matrices."""
 
     def __getattr__(self, item):
@@ -16,7 +16,7 @@ class HollowData(Data):
             return self.__getattribute__(item)
 
 
-class UUIDData(HollowData):
+class UUIDData(MockupData):
     """Like HollowData, but the only available information is the UUID."""
 
     def __init__(self, uuid):
@@ -54,9 +54,9 @@ class NoData(type):
     #     """A light Data object, i.e. without matrices."""
     #     return Data.mockup(NoData, transformations)
     #
-    # @staticmethod
-    # def updated(transformations, failure='keep', **matrices):
-    #     return Data.updated(NoData, transformations, failure, **matrices)
+    @staticmethod
+    def updated(transformations, failure='keep', **matrices):
+        return Data.updated(NoData, transformations, failure, **matrices)
     #
     # def __new__(mcs, *args, **kwargs):
     #     raise Exception('NoData is a singleton and shouldn\'t be instantiated')

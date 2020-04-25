@@ -30,7 +30,7 @@ class Identifyable(ABC):
         First collision expect after 12671943 combinations.
         :return:
         """
-        return self.uuid00.pretty[:8]
+        return self.uuid00.id[:8]
 
     @abstractmethod
     def _uuid_impl00(self):

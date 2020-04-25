@@ -8,10 +8,9 @@ import sklearn.datasets as ds
 
 from pjdata.aux import encoders
 from pjdata.aux.compression import pack
-from pjdata.aux.encoders import md5digest, digest2pretty, UUID, prettydigest
+from pjdata.aux.encoders import md5digest, digest2pretty, UUID
 from pjdata.aux.serialization import serialize
 from pjdata.data import Data
-from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
 
 
@@ -69,15 +68,14 @@ def read_arff(filename, description='No description.'):
         'Xd': UUID(md5digest(pack(Xd))), 'Yd': UUID(md5digest(pack(Yd))),
         'Xt': UUID(md5digest(pack(Xt))), 'Yt': UUID(md5digest(pack(Yt)))
     }
-    hashes = {k: v.pretty for k, v in uuids.items()}
+    hashes = {k: v.id for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
     digest = md5digest(serialize(hashes).encode())
     name_ = splitted[-1] + '_' + digest2pretty(digest)[:6]
 
     # Generate the first transformation of a Data object: being born.
-    class File:
-        """Fake File transformer."""
+    class FakeFile:
         name = 'File'
         path = 'pjml.tool.data.flow.file'
         config = {
@@ -90,14 +88,13 @@ def read_arff(filename, description='No description.'):
         serialized = serialize(jsonable)
         uuid00 = encoders.uuid00(serialized.encode())
 
-    transformer = File()
+    transformer = FakeFile()
     # File transformations are always represented as 'u', no matter which step.
     transformation = Transformation(transformer, 'u')
-    return Data(X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
-                name=name_, desc=description,
-                _history=[transformation],
-                _uuid=UUID() + transformation.uuid00,
-                _uuids=uuids)
+    return Data(uuid=UUID() + transformation.uuid00, uuids=uuids,
+                history=[transformation], failure=None,
+                X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
+                name=name_, desc=description)
 
 
 def translate_type(name):

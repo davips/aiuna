@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from functools import lru_cache
 
 import numpy as np
@@ -7,6 +8,49 @@ from pjdata.aux.compression import pack
 from pjdata.aux.encoders import UUID
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
+
+
+def evolve(uuid, transformations):
+    for transformation in transformations:
+        print(uuid, 'evolving through', transformation.name, transformation.uuid00)
+        uuid += transformation.uuid00
+        print('results in ', uuid)
+    return uuid
+
+
+def data(**matrices):  # new()?
+    # Intended for Data and matrices created directly by the user.
+    # self.history = []
+    # self._uuid = UUID()
+    #
+    # # Calculate unique hash for the matrices.
+    # packs = ''.encode()
+    # for mat in matrices:
+    #     packs += pack_data(mat)  # TODO: store uuids for each matrix
+    # matrices_hexhash = hexuuid(packs)
+    # matrices_hash = tiny_md5(matrices_hexhash)
+    #
+    # if 'nam-e' in matrices:
+    #     matrices['name'] += '_' + matrices_hash[:6]
+    #
+    # class New:
+    #     """Fake New transformer."""
+    #     name = 'New'
+    #     path = 'pjml.tool.data.flow.new'
+    #     uuid = matrices_hash
+    #     hexuuid = matrices_hexhash
+    #     config = matrices
+    #     jsonable = {'_id': f'{name}@{path}', 'config': config}
+    #     serialized = serialize(jsonable)
+    #
+    # transformer = New()
+    # # New transformations are always represented as 'u', no matter
+    # # which step.
+    # transformation = Transformation(transformer, 'u')
+    # history = [transformation]
+
+    # return Data()
+    pass
 
 
 class Data(AbstractData, LinAlgHelper, Printable):
@@ -50,12 +94,14 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, _uuid=None, _uuids=None, _history=None, _failure=None,
+    def __init__(self, uuid, uuids, history, failure, storage=None,
                  **matrices):
         kwargs = matrices
         super().__init__(jsonable=kwargs)
+        # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
 
-        # Divide kwargs.
+        # Separate matrices from the rest of kwargs ('name', 'desc' etc.).
+        # TODO: what to do with info? 'name' and 'desc'?
         matrices = {}
         info = {}
         for k, v in kwargs.items():
@@ -64,46 +110,11 @@ class Data(AbstractData, LinAlgHelper, Printable):
             else:
                 info[k] = v
 
-        # TODO: what to do with info? 'name' and 'desc'?
-
-        if _uuid is None:
-            # TODO: Implement the rare case where the user creates Data:
-            raise NotImplementedError
-            # Intended for Data and matrices created directly by the user.
-            # self.history = []
-            # self._uuid = UUID()
-            #
-            # # Calculate unique hash for the matrices.
-            # packs = ''.encode()
-            # for mat in matrices:
-            #     packs += pack_data(mat)  # TODO: store uuids for each matrix
-            # matrices_hexhash = hexuuid(packs)
-            # matrices_hash = tiny_md5(matrices_hexhash)
-            #
-            # if 'name' in matrices:
-            #     matrices['name'] += '_' + matrices_hash[:6]
-            #
-            # class New:
-            #     """Fake New transformer."""
-            #     name = 'New'
-            #     path = 'pjml.tool.data.flow.new'
-            #     uuid = matrices_hash
-            #     hexuuid = matrices_hexhash
-            #     config = matrices
-            #     jsonable = {'_id': f'{name}@{path}', 'config': config}
-            #     serialized = serialize(jsonable)
-            #
-            # transformer = New()
-            # # New transformations are always represented as 'u', no matter
-            # # which step.
-            # transformation = Transformation(transformer, 'u')
-            # history = [transformation]
-
-        self.history = _history
-        self._uuid = _uuid
-        self.uuids = _uuids
-
-        self.failure = _failure
+        self.history = history
+        self._uuid = uuid
+        self.uuids = uuids
+        self.failure = failure
+        self.storage = storage
         self.matrices = matrices
         self._fields = matrices.copy()
 
@@ -147,38 +158,22 @@ class Data(AbstractData, LinAlgHelper, Printable):
         New Data object (it keeps references to the old one for performance).
         """
         from pjdata.specialdata import NoData
-
-        new_matrices = self.matrices.copy()
         if failure == 'keep':
             failure = self.failure
 
         # Translate shortcuts.
+        matrices = self.matrices.copy()
         for name, value in fields.items():
             new_name, new_value = Data._translate(name, value)
-            new_matrices[new_name] = new_value
+            matrices[new_name] = new_value
 
-        # Update UUID digests.
-        uuids = {}
-        for matrix_name in new_matrices:
-            # If it is a new matrix, assign '0000000000000000000'.
-            new_uuid = self.uuids.get(matrix_name, UUID())
-
-            # Transform new fields' UUID.
-            if matrix_name in fields:
-                for transformation in transformations:
-                    new_uuid += transformation.uuid00
-
-            uuids[matrix_name] = new_uuid
-
-        # Update UUID.
-        new_uuid = self.uuid00
-        for transformation in transformations:
-            new_uuid += transformation.uuid00
+        uuid, uuids = self._evolve(transformations, matrices, fields)
 
         klass = Data if self is NoData else self.__class__
-        return klass(_uuid=new_uuid, _uuids=uuids,
-                     _history=self.history + transformations, _failure=failure,
-                     **new_matrices)
+        return klass(
+            uuid=uuid, uuids=uuids, history=self.history + transformations,
+            failure=failure, **matrices
+        )
 
     def field(self, name, component=None):
         if name not in self._fields:
@@ -244,45 +239,22 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def allfrozen(self):
         return False
 
-    # @property
-    # @lru_cache()
-    # def hollow(self):
-    #     return self.mockup([])
-
     def mockup(self, transformations):
-        """A light Data object, i.e. without matrices.
-        Usefull to antecipate the outcome (uuid/uuids) of a Pipeline
+        """A tentative Data object, i.e. with a history ahead of its matrices.
+        Usefull to anticipate the outcome (uuid/uuids) of a Pipeline
          (e.g. to allow Cache fetching)."""
-        from pjdata.specialdata import HollowData
-        kwargs = {}
-        if 'name' in self.matrices:  # TODO: see TODO in init
-            kwargs['name'] = self.name
-        if 'desc' in self.matrices:
-            kwargs['desc'] = self.desc
+        from pjdata.specialdata import MockupData
 
-        # TODO: refactor duplicated code.
-        # Update UUID digests.
-        new_uuids = {}
-        for matrix_name in self.matrices:
-            new_uuid = self.uuids.get(matrix_name, UUID())
+        # TODO: see TODO in init
+        # if 'name' in self.matrices:
+        #     kwargs['name'] = self.name
+        # if 'desc' in self.matrices:
+        #     kwargs['desc'] = self.desc
 
-            # Transform new fields' UUID.
-            if matrix_name in self.matrices:
-                for transformation in transformations:
-                    new_uuid += transformation.uuid00
-
-            new_uuids[matrix_name] = new_uuid
-
-        # Update UUID.
-        new_uuid = self.uuid00
-        for transformation in transformations:
-            new_uuid += transformation.uuid00
-
-        return HollowData(_uuid=new_uuid, _uuids=new_uuids,
-                          _history=self.history + transformations,
-                          _failure=self.failure, **kwargs)
-
-    # Check if dataset Mt is compatible with M.
+        new_uuid, new_uuids = self._evolve(transformations)
+        return MockupData(uuid=new_uuid, uuids=new_uuids,
+                          history=self.history + transformations,
+                          failure=self.failure, **self.matrices)
 
     def _uuid_impl00(self):
         return self._uuid
@@ -300,6 +272,45 @@ class Data(AbstractData, LinAlgHelper, Printable):
         else:
             # Matrix given directly.
             return field_name, value
+
+    def __getattr__(self, item):
+        """Intercept any call to matrices to fetch them if needed."""
+        if len(item) > 2:
+            return super().__getattribute__(item)
+        if item in self.__dict__:
+            return self.__dict__[item]
+        else:
+            if self.storage is None:
+                raise MissingField(f'Field {item} not found!')
+            return self.fetch_matrix(item)
+
+    @lru_cache()
+    def fetch_matrix(self, name):
+        if self.storage is None:
+            raise Exception(f'There is no storage set to fetch {name})!')
+        return self.storage.fetch_matrix(self.field(name))
+
+    def _evolve(self, transformations, new_matrices=None, fields=None):
+        if new_matrices is None:
+            new_matrices = self.matrices
+        if fields is None:
+            fields = self.matrices
+
+        # Update UUID digests.
+        uuids = {}
+        for matrix_name in new_matrices:
+            # If it is a new matrix, assign '0000000000000000000'.
+            muuid = self.uuids.get(matrix_name, UUID())
+
+            # Transform new fields' UUID.
+            if matrix_name in fields:
+                muuid = evolve(muuid, transformations)
+            uuids[matrix_name] = muuid
+
+        # Update UUID.
+        uuid = evolve(self.uuid00, transformations)
+
+        return uuid, uuids
 
 
 class MissingField(Exception):
