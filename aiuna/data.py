@@ -216,12 +216,12 @@ class Data(AbstractData, LinAlgHelper, Printable):
     @property
     @lru_cache()
     def uuids_str(self):
-        return ','.join(u.pretty for u in self.uuids.values())
+        return ','.join(u.id for u in self.uuids.values())
 
     @property
     @lru_cache()
     def history_str(self):
-        return ','.join(transf.uuid00.pretty for transf in self.history)
+        return ','.join(transf.uuid00.id for transf in self.history)
 
     @lru_cache()
     def field_dump(self, name):
