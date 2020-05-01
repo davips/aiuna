@@ -167,7 +167,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
             new_name, new_value = Data._translate(name, value)
             matrices[new_name] = new_value
 
-        uuid, uuids = self._evolve(transformations, matrices, fields)
+        uuid, uuids = Data._evolve(self, transformations, matrices, fields)
 
         klass = Data if self is NoData else self.__class__
         return klass(
