@@ -64,24 +64,3 @@ class NoData(type):
     # def __bool__(self):
     #     return False
 
-
-@dataclass
-class FrozenData:
-    data: Data
-    isfrozen = True
-
-    @property
-    def uuid(self):
-        raise Exception('This is a result from an early ended pipeline!\n'
-                        'Access uuid through FrozenData.data\n'
-                        'HINT: probably an ApplyUsing is missing, around a '
-                        'Predictor')
-
-    def __post_init__(self):
-        self.failure = self.data.failure
-
-    def field(self, field, component=None):
-        raise Exception('This is a result from an early ended pipeline!\n'
-                        'Access field() through FrozenData.data\n'
-                        'HINT: probably an ApplyUsing is missing, around a '
-                        'Predictor')

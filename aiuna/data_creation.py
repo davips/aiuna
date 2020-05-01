@@ -92,7 +92,7 @@ def read_arff(filename, description='No description.'):
     # File transformations are always represented as 'u', no matter which step.
     transformation = Transformation(transformer, 'u')
     return Data(uuid=UUID() + transformation.uuid00, uuids=uuids,
-                history=[transformation], failure=None,
+                history=[transformation], failure=None, frozen=False,
                 X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
                 name=name_, desc=description)
 

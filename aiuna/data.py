@@ -12,9 +12,7 @@ from pjdata.mixin.printable import Printable
 
 def evolve(uuid, transformations):
     for transformation in transformations:
-        print(uuid, 'evolving through', transformation.name, transformation.uuid00)
         uuid += transformation.uuid00
-        print('results in ', uuid)
     return uuid
 
 
@@ -94,8 +92,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
     _vec2mat_map = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
     _sca2mat_map = {i: i.upper() for i in ['r', 's', 't']}
 
-    def __init__(self, uuid, uuids, history, failure, storage=None,
-                 **matrices):
+    def __init__(self, uuid, uuids, history, failure, frozen,
+                 storage=None, **matrices):
         kwargs = matrices
         super().__init__(jsonable=kwargs)
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
@@ -116,6 +114,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         self.failure = failure
         self.storage = storage
         self.matrices = matrices
+        self.isfrozen = frozen
         self._fields = matrices.copy()
 
         # Add vector shortcuts.
@@ -129,9 +128,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
             if v in matrices and matrices[v].shape == (1, 1):
                 self._fields[k] = self._matrix_to_scalar(matrices[v])
 
-        self.__dict__.update(self._fields)
-
-    def updated(self, transformations, failure='keep', **fields):
+    def updated(self, transformations, failure='keep', frozen='keep',
+                **fields):
         """Recreate Data object with updated matrices, history and failure.
 
         Parameters
@@ -158,8 +156,11 @@ class Data(AbstractData, LinAlgHelper, Printable):
         New Data object (it keeps references to the old one for performance).
         """
         from pjdata.specialdata import NoData
+
         if failure == 'keep':
             failure = self.failure
+        if frozen == 'keep':
+            frozen = self.isfrozen
 
         # Translate shortcuts.
         matrices = self.matrices.copy()
@@ -172,10 +173,11 @@ class Data(AbstractData, LinAlgHelper, Printable):
         klass = Data if self is NoData else self.__class__
         return klass(
             uuid=uuid, uuids=uuids, history=self.history + transformations,
-            failure=failure, **matrices
+            failure=failure, frozen=frozen, **matrices
         )
 
     def field(self, name, component=None):
+        name = self._check_unsafe_access(name)
         if name not in self._fields:
             name = component.name if 'name' in dir(component) else component
             raise MissingField(
@@ -232,8 +234,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
     @property
     @lru_cache()
     def frozen(self):
-        from pjdata.specialdata import FrozenData
-        return FrozenData(self)
+        return self.updated(transformations=[], frozen=True)
 
     @property
     def allfrozen(self):
@@ -254,7 +255,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
         new_uuid, new_uuids = self._evolve(transformations)
         return MockupData(uuid=new_uuid, uuids=new_uuids,
                           history=self.history + transformations,
-                          failure=self.failure, **self.matrices)
+                          failure=self.failure, frozen=self.isfrozen,
+                          **self.matrices)
 
     def _uuid_impl00(self):
         return self._uuid
@@ -273,12 +275,28 @@ class Data(AbstractData, LinAlgHelper, Printable):
             # Matrix given directly.
             return field_name, value
 
+    def _check_unsafe_access(self, item):
+        """Handle unsafe (i.e. frozen) fields."""
+        if item.startswith('unsafe'):
+            return item[6:]
+
+        if self.isfrozen and len(item) < 3:
+            raise Exception('Cannot access fields from Data objects that come '
+                            f'from a failed pipeline!\nHINT: use unsafe{item}.'
+                            f'\nHINT2: probably an ApplyUsing is missing, '
+                            f'around a Predictor.')
+        return item
+
     def __getattr__(self, item):
         """Intercept any call to matrices to fetch them if needed."""
-        if len(item) > 2:
-            return super().__getattribute__(item)
-        if item in self.__dict__:
-            return self.__dict__[item]
+        # TODO: decide what to do with nonmatricial fields like name, desc etc.
+        item = self._check_unsafe_access(item)
+
+        # if len(item) > 2 or item == 'Xy':
+        #     return super().__getattr__(item)
+
+        if item in self._fields:
+            return self._fields[item]
         else:
             if self.storage is None:
                 raise MissingField(f'Field {item} not found!')
