@@ -292,8 +292,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
         # TODO: decide what to do with nonmatricial fields like name, desc etc.
         item = self._check_unsafe_access(item)
 
-        # if len(item) > 2 or item == 'Xy':
-        #     return super().__getattr__(item)
+        if (len(item) > 2 and not item.startswith('unsafe')) or item == 'Xy':
+            return super().__getattribute__(item)
 
         if item in self._fields:
             return self._fields[item]
