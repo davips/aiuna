@@ -147,6 +147,8 @@ def read_data_frame(df, filename, target='class'):
     """
     Y = target and as_column_vector(df.pop(target).values.astype('float'))
     X = df.values.astype('float')  # Do not call this before setting Y!
+    raise NotImplementedError
+
     uuid_ = uuid(pickle.dumps((X, Y)))
     name = filename.split('/')[-1] + '_' + uuid_[:7]
     dataset = Dataset(name, "descrip stub")
@@ -209,6 +211,7 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
                                   n_features=n_attributes,
                                   n_classes=n_classes,
                                   n_informative=n + 1)
+    raise NotImplementedError
     name = 'RndData-' + uuid(pickle.dumps((X, y)))
     dataset = Dataset(
         name, "rnd", X=enumerate(n_attributes * ['rnd']), Y=['class']
