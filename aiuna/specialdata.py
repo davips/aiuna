@@ -32,6 +32,7 @@ class UUIDData(MockupData):
 class NoData(type):
     """Singleton to feed Data generators."""
     uuid = UUID()
+    id = uuid.id
     uuids = {}
     history = []
     matrices = {}
@@ -65,4 +66,3 @@ class NoData(type):
     #
     # def __bool__(self):
     #     return False
-

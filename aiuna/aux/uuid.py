@@ -5,19 +5,27 @@ from pjdata.aux.linalg import int2pmatrix, transpose, pmatrix2int, pmatmult
 
 
 class UUID:
-    first_matrix = int2pmatrix(1)
+    default_side = 35
+    lower_limit = 1  # Zero has ciclic inversions
+
+    # Things to avoid recalculating every init.
+    upper_limit = factorial(default_side) - 2
+    first_matrix = int2pmatrix(1, side=default_side)
+
+    # Lazy starters.
     _n = None  # number
     _id = None  # pretty
     _m = None  # matrix
     _isfirst = None
-    _inv = None
-    lower_limit = 1  # Zero has ciclic inversions
-    upper_limit = factorial(35) - 2  # To avoid recalculating every init.
+    _inv = None  # inverse (also transpose) pmatrix
 
     def __init__(self, identifier=first_matrix,
-                 digits=20, side=35, nolimits=False):
-        if side != 35:
+                 digits=20, side=default_side, nolimits=False):
+
+        if side != self.default_side:
             self.upper_limit = factorial(side) - 2  # (side! - 1) is identity
+            self.first_matrix = int2pmatrix(1, side=side)
+
         if nolimits:
             # "Zero" matrix has special properties:   Z*Z=I  Z-¹=Z
             self.lower_limit = 0
@@ -54,10 +62,15 @@ class UUID:
 
     @property  # Avoiding lru, due to the need of a "heavy" hashable function.
     def inv(self):
-        """Pretty printing version, proper for use in databases also."""
+        """Inverse."""
         if self._inv is None:
             self._inv = UUID(transpose(self.m))
         return self._inv
+
+    @property  # Avoiding lru, due to the need of a "heavy" hashable function.
+    def t(self):
+        """Transpose."""
+        return self.inv
 
     @property  # Cannot be lru, because id may come from init.
     def id(self):
@@ -71,7 +84,7 @@ class UUID:
     def m(self):
         """Id as a permutation matrix (list of numbers)."""
         if self._m is None:
-            self._m = int2pmatrix(self.n)
+            self._m = int2pmatrix(self.n, self.side)
         return self._m
 
     @property  # Cannot be lru, because n may come from init.
@@ -92,26 +105,31 @@ class UUID:
         """Flexible merge/unmerge with another UUID.
 
          Non commutative: a * b != b * a
-         Invertible: (a * b) * b.inv = a
+         Invertible: (a * b) / b = a
                      a.inv * (a * b) = b
          Associative: (a * b) * c = a * (b * c)
          """
         return UUID(pmatmult(self.m, other.m))
 
-    def __add__(self, other):
-        """Alias meaning a bounded merge with another UUID.
-
-         Non commutative: a + b != b + a
-         Invertible: (a + b) - b = a
-         Associative: (a + b) + c = a + (b + c)
-         """
-        return UUID(pmatmult(self.m, other.m))
-
-    def __sub__(self, other):
+    def __truediv__(self, other):
         """Bounded unmerge from last merged UUID."""
         if self.m == self.first_matrix:
-            raise Exception(f'Cannot subtract from UUID={self}!')
+            raise Exception(f'Cannot divide by UUID={self}!')
         return UUID(pmatmult(self.m, other.inv.m))
+
+    # # def __add__(self, other):
+    # #     """Alias meaning a bounded merge with another UUID.
+    # #
+    # #      Non commutative: a + b != b + a
+    # #      Invertible: (a + b) - b = a
+    # #      Associative: (a + b) + c = a + (b + c)
+    # #      """
+    # #     return UUID(pmatmult(self.m, other.m))
+    # def __sub__(self, other):
+    #     """Bounded unmerge from last merged UUID."""
+    #     if self.m == self.first_matrix:
+    #         raise Exception(f'Cannot subtract from UUID={self}!')
+    #     return UUID(pmatmult(self.m, other.inv.m))
 
     def __eq__(self, other):
         return self.n == other.n if self._m is None else self.m == other.m

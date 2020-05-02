@@ -1,12 +1,12 @@
 
 def pmatmult(a, b):
-    """Multiply two permutation matrices 35x35.
+    """Multiply two permutation matrices (of the same size?).
      a,b: lists of positive integers and zero."""
     return [b[-row - 1] for row in a]
 
 
 def transpose(m):
-    """Transpose a permutation matrix 35x35.
+    """Transpose a permutation matrix (square?).
      m: list of positive integers and zero.
 
      https://codereview.stackexchange.com/questions/241511/how-to-efficiently-fast-calculate-the-transpose-of-a-permutation-matrix-in-p/241524?noredirect=1#comment473994_241524
@@ -20,12 +20,12 @@ def transpose(m):
     return tr_ls
 
 
-def print_binmatrix(m):
-    """Print a permutation matrix 35x35.
+def print_binmatrix(m, side=35):
+    """Print a permutation matrix (default: 35x35).
      m: list of positive integers and zero."""
 
     for row in m:
-        print(' '.join(format(2 ** row, '035b')), row)
+        print(' '.join(format(2 ** row, f'0{side}b')), row)
 
 
 def pmatrix2int(m):
@@ -33,10 +33,14 @@ def pmatrix2int(m):
     return fac2int(pmatrix2fac(m))
 
 
-def int2pmatrix(big_number):
-    """Convert number to permutation matrix."""
+def int2pmatrix(big_number, side=35):
+    """Convert number to permutation matrix.
+
+    Pads to side. If None, no padding."""
     factoradic = int2fac(big_number)
-    padded_fac = [x for x in factoradic + [0] * (35 - len(factoradic))]
+    if side is None:
+        return fac2pmatrix(factoradic)
+    padded_fac = [x for x in factoradic + [0] * (side - len(factoradic))]
     return fac2pmatrix(padded_fac)
 
 
@@ -56,7 +60,6 @@ def fac2pmatrix(digits):
     available = list(range(len(digits)))
     mat = []
     for digit in reversed(digits):
-        # print(digit, available)
         mat.append(available.pop(digit))
     return mat
 

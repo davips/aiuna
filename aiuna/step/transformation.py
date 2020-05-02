@@ -57,7 +57,7 @@ class Transformation(Identifyable, Printable):
         # having the same uuid as its transformer (for general dump purposes).
         # TODO: customize crypto, allow header for 'a', 'u' and others.
         mark = UUID(self.step.encode())
-        return self.transformer_uuid + mark
+        return self.transformer_uuid * mark
 
 # class NoTransformation(type):
 #     transformer = None

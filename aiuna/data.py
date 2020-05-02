@@ -12,7 +12,7 @@ from pjdata.mixin.printable import Printable
 
 def evolve(uuid, transformations):
     for transformation in transformations:
-        uuid += transformation.uuid
+        uuid *= transformation.uuid
     return uuid
 
 
@@ -168,7 +168,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
             new_name, new_value = Data._translate(name, value)
             matrices[new_name] = new_value
 
-        uuid, uuids = Data._evolve(self, transformations, matrices, fields)
+        uuid, uuids = Data._evolve(self, transformations, matrices)
 
         klass = Data if self is NoData else self.__class__
         return klass(
@@ -179,14 +179,14 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def field(self, name, component=None):
         name = self._check_unsafe_access(name)
         if name not in self._fields:
-            name = component.name if 'name' in dir(component) else component
+            comp = component.name if 'name' in dir(component) else component
             raise MissingField(
                 f'\n=================================================\n'
-                f'Last transformation:\n{self.history.last} ... \n'
+                f'Last transformation:\n{self.history[-1]} ... \n'
                 f' Data object <{self}>\n'
                 f' last transformed by '
-                f'{self.history.last and self.history.last.name} does '
-                f'not provide field\n {name} needed by {name} .\n'
+                f'{self.history[-1] and self.history[-1].name} does '
+                f'not provide field\n {name} needed by {comp} .\n'
                 f'Available fields: {list(self._fields.keys())}')
         return self._fields[name]
 
@@ -210,15 +210,20 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def matrix_names_str(self):
         return ','.join(self.matrix_names)
 
-    @property
-    @lru_cache()
-    def field_names_str(self):
-        return ','.join(self.field_names)
+    # @property # check ordering?
+    # @lru_cache()
+    # def field_names_str(self):
+    #     return ','.join(self.field_names)
 
     @property
     @lru_cache()
-    def uuids_str(self):
-        return ','.join(u.id for u in self.uuids.values())
+    def ids_lst(self):
+        return [self.uuids[name].id for name in self.matrix_names]
+
+    @property
+    @lru_cache()
+    def ids_str(self):
+        return ','.join(self.ids_lst)
 
     @property
     @lru_cache()
@@ -308,22 +313,24 @@ class Data(AbstractData, LinAlgHelper, Printable):
             raise Exception(f'There is no storage set to fetch {name})!')
         return self.storage.fetch_matrix(self.field(name))
 
-    def _evolve(self, transformations, new_matrices=None, fields=None):
+    def _evolve(self, transformations, new_matrices=None):
         if new_matrices is None:
             new_matrices = self.matrices
-        if fields is None:
-            fields = self.matrices
 
         # Update UUID digests.
-        uuids = {}
-        for matrix_name in new_matrices:
-            # If it is a new matrix, assign '0000000000000000000'.
-            muuid = self.uuids.get(matrix_name, UUID())
+        uuids = self.uuids.copy()
+        for name, value in new_matrices.items():
+            # If it is a new matrix, assign matrix name as id+data.uuid.
+            # TODO: maybe it is better and slower to use pack(X) as identi here
+            #  Lengthy names are prone to collision.
+            #  Having a start equal to data_creation seems better.
+            muuid = self.uuids.get(
+                name, UUID('0' + name + self.id[len(name) + 1:])
+            )
 
-            # Transform new fields' UUID.
-            if matrix_name in fields:
-                muuid = evolve(muuid, transformations)
-            uuids[matrix_name] = muuid
+            # Transform UUID.
+            muuid = evolve(muuid, transformations)
+            uuids[name] = muuid
 
         # Update UUID.
         uuid = evolve(self.uuid, transformations)

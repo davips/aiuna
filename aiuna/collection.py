@@ -71,9 +71,8 @@ class Collection(AbstractData):
         # TODO: to require changes on Xt and Xd when X is changed.
 
         # Update UUID.
-        new_uuid = self.uuid
-        for transformation in transformations:
-            new_uuid += transformation.uuid
+        from pjdata.data import evolve
+        new_uuid = evolve(self.uuid, transformations)
 
         from pjdata.finitecollection import FiniteCollection
         return FiniteCollection(
