@@ -64,9 +64,9 @@ def read_arff(filename, description='No description.'):
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     uuids = {
-        'X': UUID(md5digest(pack(X))), 'Y': UUID(md5digest(pack(Y))),
-        'Xd': UUID(md5digest(pack(Xd))), 'Yd': UUID(md5digest(pack(Yd))),
-        'Xt': UUID(md5digest(pack(Xt))), 'Yt': UUID(md5digest(pack(Yt)))
+        'X': UUID(pack(X)), 'Y': UUID(pack(Y)),
+        'Xd': UUID(pack(Xd)), 'Yd': UUID(pack(Yd)),
+        'Xt': UUID(pack(Xt)), 'Yt': UUID(pack(Yt))
     }
     hashes = {k: v.id for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
@@ -86,12 +86,12 @@ def read_arff(filename, description='No description.'):
         }
         jsonable = {'_id': f'{name}@{path}', 'config': config}
         serialized = serialize(jsonable)
-        uuid00 = UUID(serialized.encode())
+        uuid = UUID(serialized.encode())
 
     transformer = FakeFile()
     # File transformations are always represented as 'u', no matter which step.
     transformation = Transformation(transformer, 'u')
-    return Data(uuid=UUID() + transformation.uuid00, uuids=uuids,
+    return Data(uuid=UUID() + transformation.uuid, uuids=uuids,
                 history=[transformation], failure=None, frozen=False,
                 X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
                 name=name_, desc=description)

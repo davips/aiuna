@@ -14,15 +14,15 @@ class Transformation(Identifyable, Printable):
                 'Transformation needs non Nones! Hint: self._transformation() '
                 'should be called only during apply() or use() steps!')
         self.name, self.path = transformer.name, transformer.path
-        self.transformer_uuid00 = transformer.uuid00
+        self.transformer_uuid = transformer.uuid
         self._serialized_transformer = transformer.serialized
         self.step = step
         jsonable = {
-            'uuid': self.uuid00,
+            'uuid': self.uuid,
             'step': step,
             'name': self.name,
             'path': self.path,
-            'transformer_uuid00': self.transformer_uuid00,
+            'transformer_uuid': self.transformer_uuid,
             'transformer': self._serialized_transformer
         }
         super().__init__(jsonable=jsonable)
@@ -45,7 +45,7 @@ class Transformation(Identifyable, Printable):
         class FakeTransformer:
             name = jsonable['name']
             path = jsonable['path']
-            uuid00 = UUID.from_pretty(jsonable['transformer_uuid00'])
+            uuid = UUID(jsonable['transformer_uuid'])
             serialized = jsonable['transformer']
 
         transformer = FakeTransformer()
@@ -57,7 +57,7 @@ class Transformation(Identifyable, Printable):
         # having the same uuid as its transformer (for general dump purposes).
         # TODO: customize crypto, allow header for 'a', 'u' and others.
         mark = UUID(self.step.encode())
-        return self.transformer_uuid00 + mark
+        return self.transformer_uuid + mark
 
 # class NoTransformation(type):
 #     transformer = None

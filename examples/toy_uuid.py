@@ -8,7 +8,7 @@ from pjdata.aux.uuid import UUID
 # Show output of operations.
 a = UUID(int2pmatrix(2 ** 128 - 1))
 b = UUID('12345678901234567890')
-c = UUID(0)
+c = UUID(1)
 print(a, b, c)
 print()
 print((a * b))
@@ -48,4 +48,4 @@ def f():
     (a * b) * b.inv
 
 
-print(timeit(f, number=100000) * 10, 'us')
+print(timeit(f, number=10000) * 100, 'us')

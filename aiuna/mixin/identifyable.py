@@ -5,7 +5,7 @@ from functools import lru_cache
 class Identifyable(ABC):
     @property
     @lru_cache()
-    def uuid00(self):
+    def uuid(self):
         """Lazily calculated unique identifier for this dataset.
 
         Should be accessed direct as a class member: 'uuid'.
@@ -23,6 +23,17 @@ class Identifyable(ABC):
 
     @property
     @lru_cache()
+    def id(self):
+        """
+        Short uuID
+        First 8 chars of uuid, usually for printing purposes.
+        First collision expect after 12671943 combinations.
+        :return:
+        """
+        return self.uuid.id
+
+    @property
+    @lru_cache()
     def sid(self):
         """
         Short uuID
@@ -30,7 +41,7 @@ class Identifyable(ABC):
         First collision expect after 12671943 combinations.
         :return:
         """
-        return self.uuid00.id[:8]
+        return self.id[:8]
 
     @abstractmethod
     def _uuid_impl00(self):

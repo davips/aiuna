@@ -11,7 +11,9 @@ class MockupData(Data):
 
     def __getattr__(self, item):
         if 0 < len(item) < 3:
-            raise Exception('This a phantom Data object. It has no matrices.')
+            raise Exception(
+                'This a MockupData object. It has no matrices nor id.'
+            )
         else:
             return self.__getattribute__(item)
 
@@ -29,7 +31,7 @@ class UUIDData(MockupData):
 
 class NoData(type):
     """Singleton to feed Data generators."""
-    uuid00 = UUID()
+    uuid = UUID()
     uuids = {}
     history = []
     matrices = {}
@@ -45,7 +47,7 @@ class NoData(type):
     #
     # # name = "No data"
     # # desc = ''
-    # sid = uuid00.pretty[:8]
+    # sid = uuid.pretty[:8]
     # # hollow = HollowData(history=[], failure=failure)
     # iscollection = False
     #

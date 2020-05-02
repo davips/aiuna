@@ -5,54 +5,88 @@ from pjdata.aux.linalg import int2pmatrix, transpose, pmatrix2int, pmatmult
 
 
 class UUID:
-    null_matrix = int2pmatrix(0)
-    null_pretty = '00000000000000000000'
-    _id = None
-    upper_limit = factorial(35) - 1
-    lower_limit = 0
+    first_matrix = int2pmatrix(1)
+    _n = None  # number
+    _id = None  # pretty
+    _m = None  # matrix
+    _isfirst = None
+    _inv = None
+    lower_limit = 1  # Zero has ciclic inversions
+    upper_limit = factorial(35) - 2  # To avoid recalculating every init.
 
-    def __init__(self, identifier=null_matrix):
+    def __init__(self, identifier=first_matrix,
+                 digits=20, side=35, nolimits=False):
+        if side != 35:
+            self.upper_limit = factorial(side) - 2  # (side! - 1) is identity
+        if nolimits:
+            # "Zero" matrix has special properties:   Z*Z=I  Z-¹=Z
+            self.lower_limit = 0
+            # Identity matrix has special properties: A*I=A  I-¹=I
+            self.upper_limit = factorial(side) - 1
+        self.side = side
+        self.digits = digits
         if isinstance(identifier, list):
-            if len(identifier) != 35:
+            if len(identifier) != side:
+                l = len(identifier)
                 raise Exception(
-                    'Permutation matrix should be 35x35! Not',
-                    len(identifier)
+                    f'Permutation matrix should be {side}x{side}! Not {l}x{l}'
                 )
-            self.matrix = identifier
+            self._m = identifier
         elif isinstance(identifier, int):
             if identifier > self.upper_limit or identifier < self.lower_limit:
                 raise Exception(
                     f'Number should be in the interval [{self.lower_limit},'
                     f'{self.upper_limit}]!'
                 )
-            self.matrix = int2pmatrix(identifier)
+            self._n = identifier
         elif isinstance(identifier, str):
-            if len(identifier) != 20:
-                raise Exception(
-                    'Pretty str should be 20 chars long! Not', len(identifier)
-                )
-            self._id = identifier
             from pjdata.aux.encoders import pretty2int
-            self.matrix = int2pmatrix(pretty2int(identifier))
+            if len(identifier) != digits:
+                l = len(identifier)
+                raise Exception(f'Str id should have {digits} chars! Not {l}!')
+            self._id = identifier
+            self._n = pretty2int(identifier)
         elif isinstance(identifier, bytes):
             from pjdata.aux.encoders import md5digest, bytes2int
-            self.matrix = int2pmatrix(bytes2int(md5digest(identifier)))
+            self._n = bytes2int(md5digest(identifier))
         else:
             raise Exception('Wrong argument type for UUID:', type(identifier))
-        self.isnull = self.matrix == self.null_matrix
 
-    @property  # Cannot be lru, because UUID should be hashable for __eq__ ==.
+    @property  # Avoiding lru, due to the need of a "heavy" hashable function.
     def inv(self):
         """Pretty printing version, proper for use in databases also."""
-        return UUID(transpose(self.matrix))
+        if self._inv is None:
+            self._inv = UUID(transpose(self.m))
+        return self._inv
 
     @property  # Cannot be lru, because id may come from init.
     def id(self):
         """Pretty printing version, proper for use in databases also."""
         if self._id is None:
             from pjdata.aux.encoders import int2pretty
-            self._id = int2pretty(pmatrix2int(self.matrix))
+            self._id = int2pretty(self.n)
         return self._id
+
+    @property  # Cannot be lru, because m may come from init.
+    def m(self):
+        """Id as a permutation matrix (list of numbers)."""
+        if self._m is None:
+            self._m = int2pmatrix(self.n)
+        return self._m
+
+    @property  # Cannot be lru, because n may come from init.
+    def n(self):
+        """Id as a natural number."""
+        if self._n is None:
+            self._n = pmatrix2int(self.m)
+        return self._n
+
+    @property  # Cannot be lru, because id may come from init.
+    def isfirst(self):
+        """Is this the origin of all UUIDs?"""
+        if self._isfirst is None:
+            self._isfirst = self.m == self.first_matrix
+        return self._isfirst
 
     def __mul__(self, other):
         """Flexible merge/unmerge with another UUID.
@@ -62,7 +96,7 @@ class UUID:
                      a.inv * (a * b) = b
          Associative: (a * b) * c = a * (b * c)
          """
-        return UUID(pmatmult(self.matrix, other.matrix))
+        return UUID(pmatmult(self.m, other.m))
 
     def __add__(self, other):
         """Alias meaning a bounded merge with another UUID.
@@ -71,16 +105,16 @@ class UUID:
          Invertible: (a + b) - b = a
          Associative: (a + b) + c = a + (b + c)
          """
-        return UUID(pmatmult(self.matrix, other.matrix))
+        return UUID(pmatmult(self.m, other.m))
 
     def __sub__(self, other):
         """Bounded unmerge from last merged UUID."""
-        if self.matrix == self.null_matrix:
-            raise Exception(f'Cannot subtract from UUID={self.null_pretty}!')
-        return UUID(pmatmult(self.matrix, other.inv.matrix))
+        if self.m == self.first_matrix:
+            raise Exception(f'Cannot subtract from UUID={self}!')
+        return UUID(pmatmult(self.m, other.inv.m))
 
     def __eq__(self, other):
-        return self.matrix == other.matrix
+        return self.n == other.n if self._m is None else self.m == other.m
 
     def __str__(self):
         return self.id
