@@ -41,8 +41,7 @@ class UUID:
             raise Exception('Wrong argument type for UUID:', type(identifier))
         self.isnull = self.matrix == self.null_matrix
 
-    @property
-    @lru_cache()
+    @property  # Cannot be lru, because UUID should be hashable for __eq__ ==.
     def inv(self):
         """Pretty printing version, proper for use in databases also."""
         return UUID(transpose(self.matrix))
@@ -79,6 +78,9 @@ class UUID:
         if self.matrix == self.null_matrix:
             raise Exception(f'Cannot subtract from UUID={self.null_pretty}!')
         return UUID(pmatmult(self.matrix, other.inv.matrix))
+
+    def __eq__(self, other):
+        return self.matrix == other.matrix
 
     def __str__(self):
         return self.id
