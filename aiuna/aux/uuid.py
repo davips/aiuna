@@ -54,6 +54,11 @@ class UUID:
                 raise Exception(f'Str id should have {digits} chars! Not {l}!')
             self._id = identifier
             self._n = pretty2int(identifier)
+            if self.n > self.upper_limit or self.n < self.lower_limit:
+                raise Exception(
+                    f'String should represent a number in the interval '
+                    f'[{self.lower_limit}, {self.upper_limit}]!'
+                )
         elif isinstance(identifier, bytes):
             from pjdata.aux.encoders import md5digest, bytes2int
             self._n = bytes2int(md5digest(identifier))
