@@ -14,12 +14,12 @@ class Identifyable(ABC):
         -------
             A unique identifier UUID object.
         """
-        from pjdata.aux.encoders import uuid00, UUID
+        from pjdata.aux.encoders import UUID
         content = self._uuid_impl00()
         if isinstance(content, UUID):
             return content
         else:
-            return uuid00(content.encode())
+            return UUID(content.encode())
 
     @property
     @lru_cache()

@@ -52,11 +52,11 @@ class Transformation(Identifyable, Printable):
         return Transformation(transformer, step)
 
     def _uuid_impl00(self):
-        from pjdata.aux.encoders import uuid00
+        from pjdata.aux.encoders import UUID
         # Mark step to differentiate 'apply' from 'use'. And also to avoid
         # having the same uuid as its transformer (for general dump purposes).
         # TODO: customize crypto, allow header for 'a', 'u' and others.
-        mark = uuid00(self.step.encode())
+        mark = UUID(self.step.encode())
         return self.transformer_uuid00 + mark
 
 # class NoTransformation(type):

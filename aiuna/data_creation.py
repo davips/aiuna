@@ -86,7 +86,7 @@ def read_arff(filename, description='No description.'):
         }
         jsonable = {'_id': f'{name}@{path}', 'config': config}
         serialized = serialize(jsonable)
-        uuid00 = encoders.uuid00(serialized.encode())
+        uuid00 = UUID(serialized.encode())
 
     transformer = FakeFile()
     # File transformations are always represented as 'u', no matter which step.
