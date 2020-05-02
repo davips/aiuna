@@ -1,4 +1,5 @@
 import _pickle as pickle
+import json
 
 import lz4.frame as lz
 import numpy as np
@@ -681,14 +682,18 @@ cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 
 def pack(obj):
     # Added char header leads to a number higher than 1 billion.
-    if isinstance(obj, np.ndarray) and str(obj.dtype) == 'float64':
+    if isinstance(obj, np.ndarray) and str(obj.dtype) == 'float64' and len(
+            obj.shape) == 2:
         h, w = obj.shape
         fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
         header = intlist2bytes(obj.shape)
         print((obj.shape), header)
-        return header + cctx.compress(fast_reduced)
+        return b'F' + header + cctx.compress(fast_reduced)
+    elif isinstance(obj, (list, set, str, int, float, bytearray, bool)):
+        js = json.dumps(obj, sort_keys=True, ensure_ascii=False)
+        return b'J' + cctx.compress(js.encode())
     elif isinstance(obj, str):
-        return b'T' + cctx.compress(obj.encode())  # b'T'+0s==1409286144
+        return b'T' + cctxdic.compress(obj.encode())  # b'T'+0s==1409286144
     else:
         pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
         fast_reduced = lz.compress(pickled, compression_level=1)
@@ -703,12 +708,14 @@ def unpack(dump_with_header):
         return pickle.loads(decompressed)
     elif header == b'T':
         return cctxdicdec.decompress(dump).decode()
-    else:
-        header = dump_with_header[:8]
-        dump = dump_with_header[8:]
+    elif header == b'F':
+        header = dump_with_header[1:9]
+        dump = dump_with_header[9:]
         decompressed = lz.decompress(cctxdec.decompress(dump))
         [h, w] = bytes2intlist(header)
         return np.reshape(np.frombuffer(decompressed), newshape=(h, w))
+    else:
+        return json.loads(cctxdec.decompress(dump).decode())
 
 # def pack_object(obj):  #blosc is buggy
 #     """
