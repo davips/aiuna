@@ -6,33 +6,21 @@ from pjdata.aux.linalg import int2pmatrix, transpose, pmatrix2int, pmatmult
 
 class UUID:
     default_side = 35
-    lower_limit = 1  # Zero has ciclic inversions
-
-    # Things to avoid recalculating every init.
-    upper_limit = factorial(default_side) - 2
-    first_matrix = int2pmatrix(1, side=default_side)
+    lower_limit = 1  # Zero has cyclic inversions, Z*Z=I  Z-¹=Z
 
     # Lazy starters.
     _n = None  # number
     _id = None  # pretty
     _m = None  # matrix
     _isfirst = None
-    _inv = None  # inverse (also transpose) pmatrix
+    _t = None  # inverse (also transpose) pmatrix
 
-    def __init__(self, identifier=first_matrix,
-                 digits=20, side=default_side, nolimits=False):
-
-        if side != self.default_side:
-            self.upper_limit = factorial(side) - 2  # (side! - 1) is identity
-            self.first_matrix = int2pmatrix(1, side=side)
-
-        if nolimits:
-            # "Zero" matrix has special properties:   Z*Z=I  Z-¹=Z
-            self.lower_limit = 0
-            # Identity matrix has special properties: A*I=A  I-¹=I
-            self.upper_limit = factorial(side) - 1
+    def __init__(self, identifier=None, digits=20, side=default_side):
         self.side = side
         self.digits = digits
+        if identifier is None:
+            identifier = self.first_matrix
+
         if isinstance(identifier, list):
             if len(identifier) != side:
                 l = len(identifier)
@@ -65,17 +53,31 @@ class UUID:
         else:
             raise Exception('Wrong argument type for UUID:', type(identifier))
 
-    @property  # Avoiding lru, due to the need of a "heavy" hashable function.
-    def inv(self):
-        """Inverse."""
-        if self._inv is None:
-            self._inv = UUID(transpose(self.m))
-        return self._inv
+    @staticmethod  # Needs to be static to get around making UUID hashable.
+    @lru_cache()
+    def _lazy_upper_limit(side):
+        # Identity matrix has special properties: A*I=A  I-¹=I
+        return factorial(side) - 2  # (side! - 1) is identity
+
+    @staticmethod  # Needs to be static to get around making UUID hashable.
+    @lru_cache()
+    def _lazy_first_matrix(side):
+        return int2pmatrix(1, side=side)
+
+    @property
+    def upper_limit(self):
+        return self._lazy_upper_limit(self.side)
+
+    @property
+    def first_matrix(self):
+        return self._lazy_first_matrix(self.side)
 
     @property  # Avoiding lru, due to the need of a "heavy" hashable function.
     def t(self):
-        """Transpose."""
-        return self.inv
+        """Transpose, but also inverse matrix."""
+        if self._t is None:
+            self._t = UUID(transpose(self.m))
+        return self._t
 
     @property  # Cannot be lru, because id may come from init.
     def id(self):
@@ -120,21 +122,7 @@ class UUID:
         """Bounded unmerge from last merged UUID."""
         if self.m == self.first_matrix:
             raise Exception(f'Cannot divide by UUID={self}!')
-        return UUID(pmatmult(self.m, other.inv.m))
-
-    # # def __add__(self, other):
-    # #     """Alias meaning a bounded merge with another UUID.
-    # #
-    # #      Non commutative: a + b != b + a
-    # #      Invertible: (a + b) - b = a
-    # #      Associative: (a + b) + c = a + (b + c)
-    # #      """
-    # #     return UUID(pmatmult(self.m, other.m))
-    # def __sub__(self, other):
-    #     """Bounded unmerge from last merged UUID."""
-    #     if self.m == self.first_matrix:
-    #         raise Exception(f'Cannot subtract from UUID={self}!')
-    #     return UUID(pmatmult(self.m, other.inv.m))
+        return UUID(pmatmult(self.m, other.t.m))
 
     def __eq__(self, other):
         return self.n == other.n if self._m is None else self.m == other.m

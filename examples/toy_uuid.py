@@ -13,7 +13,7 @@ print(a, b, c)
 print()
 print((a * b))
 print((a * b) * b)
-print((a * b) * b.inv)
+print((a * b) * b.t)
 print((a * b) * c)
 
 fac = int2fac(2 ** 128 + 3214134)
@@ -45,7 +45,7 @@ if i == 100000:
 def f():
     a = UUID(int2pmatrix(2 ** 128 - 1))
     b = UUID('12345678901234567890')
-    (a * b) * b.inv
+    (a * b) * b.t
 
 
 print(timeit(f, number=10000) * 100, 'us')

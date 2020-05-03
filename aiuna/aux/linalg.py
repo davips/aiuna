@@ -1,3 +1,8 @@
+import json
+from dataclasses import dataclass, field
+from functools import lru_cache
+from math import factorial
+
 
 def pmatmult(a, b):
     """Multiply two permutation matrices (of the same size?).
@@ -85,3 +90,47 @@ def fac2int(digits):
         radix += 1
         i *= radix
     return res
+
+
+@dataclass(frozen=False)
+class M:
+    """A class to ease playing around with permutation matrix operations.
+
+    'l' is the list representation of this matrix."""
+    n: int = 0
+    l: list = None
+    side: int = 35
+
+    def __post_init__(self):
+        if self.l is None:
+            self.l = int2pmatrix(self.n, self.side)
+        elif self.n != 0:
+            raise Exception(f'Cannot set both args... n:{self.n} l:{self.l}!')
+
+    @staticmethod
+    @lru_cache()
+    def _lazy_t(l):
+        return M(l=transpose(l))
+
+    @staticmethod
+    @lru_cache()
+    def _lazy_last(side):
+        return factorial(side) - 1
+
+    @property
+    def t(self):
+        return self._lazy_t(tuple(self.l))
+
+    @property
+    def last(self):
+        return self._lazy_last(self.side)
+
+    def __mul__(self, other):
+        return M(l=pmatmult(self.l, other.l))
+
+    def __truediv__(self, other):
+        return M(l=pmatmult(self.l, other.t))
+
+    def __add__(self, other):
+        n = pmatrix2int(self.l) + pmatrix2int(other.l)
+        return M(n % self.last)
