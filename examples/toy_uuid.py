@@ -7,7 +7,7 @@ from pjdata.aux.uuid import UUID
 
 # Show output of operations.
 a = UUID(int2pmatrix(2 ** 128 - 1))
-b = UUID('12345678901234567890')
+b = UUID('123456789012345678')
 c = UUID(1)
 print(a, b, c)
 print()
@@ -44,7 +44,7 @@ if i == 100000:
 # Check general overhead of all uuid ops.
 def f():
     a = UUID(int2pmatrix(2 ** 128 - 1))
-    b = UUID('12345678901234567890')
+    b = UUID('123456789012345678')
     (a * b) * b.t
 
 

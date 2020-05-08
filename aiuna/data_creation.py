@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
 
-from pjdata.aux import encoders
 from pjdata.aux.compression import pack
-from pjdata.aux.encoders import md5digest, digest2pretty, UUID
+from pjdata.aux.encoders import md5digest, digest2pretty
 from pjdata.aux.serialization import serialize
+from pjdata.aux.uuid import UUID
 from pjdata.data import Data
 from pjdata.step.transformation import Transformation
 

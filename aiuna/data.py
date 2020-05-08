@@ -5,7 +5,7 @@ import numpy as np
 
 from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.compression import pack
-from pjdata.aux.encoders import UUID
+from pjdata.aux.uuid import UUID
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
 
@@ -321,11 +321,11 @@ class Data(AbstractData, LinAlgHelper, Printable):
         uuids = self.uuids.copy()
         for name, value in new_matrices.items():
             # If it is a new matrix, assign matrix name as id+data.uuid.
-            # TODO: maybe it is better and slower to use pack(X) as identi here
-            #  Lengthy names are prone to collision.
-            #  Having a start equal to data_creation seems better.
+            # TODO:
+            #  maybe it is better and slower to use pack(X) as identity here.
+            #  Having a start identical to that of data_creation seems better.
             muuid = self.uuids.get(
-                name, UUID('0' + name + self.id[len(name) + 1:])
+                name, self.uuid * UUID(bytes(name, 'latin1'))
             )
 
             # Transform UUID.

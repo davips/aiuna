@@ -1,7 +1,7 @@
 import json
 from functools import lru_cache
 
-from pjdata.aux.encoders import UUID
+from pjdata.aux.uuid import UUID
 from pjdata.aux.serialization import deserialize, serialize
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
@@ -52,7 +52,7 @@ class Transformation(Identifyable, Printable):
         return Transformation(transformer, step)
 
     def _uuid_impl00(self):
-        from pjdata.aux.encoders import UUID
+        from pjdata.aux.uuid import UUID
         # Mark step to differentiate 'apply' from 'use'. And also to avoid
         # having the same uuid as its transformer (for general dump purposes).
         # TODO: customize crypto, allow header for 'a', 'u' and others.

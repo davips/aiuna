@@ -1,31 +1,86 @@
 from functools import lru_cache
 from math import factorial
 
+from pjdata.aux.alphabets import alphabet1224, alphabet1224dic
+from pjdata.aux.encoders import pretty2pmatrix, pmatrix2pretty
 from pjdata.aux.linalg import int2pmatrix, transpose, pmatrix2int, pmatmult
 
 
 class UUID:
-    default_side = 35
+    """Flexible representation of non-standard universal unique identifiers.
+    Intended to be an extension and "replacement" of MD5 (or SHA256) hashes.
+
+    This implementation intrinsically cannot comply with RFC 4122,
+    ISO/IEC 9834-8:2005, nor any related standards; since it is deterministic,
+    no time-dependant, and forms a non-abelian group over multiplication which
+    needs fredom to operate on all bits.
+
+    It allows cummulative and reversible combination of UUID objects.
+    For a fixed number of 'bits' (132 or 260), a UUID object represents any
+    given decimal integer, permutation matrix (see bellow), bytes or strings;
+    provided they are within certain bounds related to 'bits'.
+
+    The bit-size options 132 and 260 were defined to accomodate the usual 128
+    and 256-bit hashes.
+    The increase was necessary due to the mismatch between the amount of
+    possible (128/256-bit) numbers and the amount of possible permutation
+    matrices (sized 35x35/58x58).
+
+    E.g., for MD5 128-bit hashes, some 35x35 matrices resulting from UUID
+    operations will represent a number that exceeds the highest
+    number (2^128 - 1), becoming a 133-bit number (log2(35)) in the worst case.
+    Therefore, for a fixed-size exchangeable representation, one should choose
+    whether to use uuid.n which is at most a 133-bit (or 261-bit) number,
+    or uuid.id which is a fixed-size string with 18 (or 29) characters, which
+    is intended to be faster and visually shorter at the expense of using more
+    bytes.
+
+    Note that, despite the bit-size options (namely 132/260), the real limit
+    is somewhere between 132/260 and 133/261. So, it is highly recommended to
+    provide only up to 132/260 bits when generating a new UUID object directly
+    from binary information. It will be represented by 16/32 bytes anyway
+    (128/256 bits) in the hardware.
+
+    str: pretty-printing sequence of digits based on a custom alphabet.
+    list[numbers]: permutation matrix
+    """
+    # Default values for 128 bits.
+    bits = 128
+    side = 35
+    digits = 18
+
+    alphabet = alphabet1224
+    alphabetrev = alphabet1224dic
     lower_limit = 1  # Zero has cyclic inversions, Z*Z=I  Z-¹=Z
 
     # Lazy starters.
     _n = None  # number
-    _id = None  # pretty
     _m = None  # matrix
+    _id = None  # pretty
     _isfirst = None
     _t = None  # inverse (also transpose) pmatrix
 
-    def __init__(self, identifier=None, digits=20, side=default_side):
-        self.side = side
-        self.digits = digits
+    def __init__(self, identifier=None, bits=128):
         if identifier is None:
             identifier = self.first_matrix
 
+        # Handle internal representation for the provided number of bits.
+        if bits == 256:
+            self.bits = bits
+            self.side = 58
+            self.digits = 29  #TODO: check this when ready for 58x58
+            raise NotImplementedError('256 bits still not implemented.')
+
+        elif bits != 128:
+            raise NotImplementedError('Only 128 and 256 bits are implemented.')
+
+        # Handle different types of the provided identifier.
         if isinstance(identifier, list):
-            if len(identifier) != side:
-                l = len(identifier)
+            side = len(identifier)
+            if side != self.side:
                 raise Exception(
-                    f'Permutation matrix should be {side}x{side}! Not {l}x{l}'
+                    f'Permutation matrix should be {self.side}x{self.side}!'
+                    f' Not {side}x{side}'
                 )
             self._m = identifier
         elif isinstance(identifier, int):
@@ -36,22 +91,20 @@ class UUID:
                 )
             self._n = identifier
         elif isinstance(identifier, str):
-            from pjdata.aux.encoders import pretty2int
-            if len(identifier) != digits:
-                l = len(identifier)
-                raise Exception(f'Str id should have {digits} chars! Not {l}!')
-            self._id = identifier
-            self._n = pretty2int(identifier)
-            if self.n > self.upper_limit or self.n < self.lower_limit:
+            size = len(identifier)
+            if size != self.digits:
                 raise Exception(
-                    f'String should represent a number in the interval '
-                    f'[{self.lower_limit}, {self.upper_limit}]!'
+                    f'Str id should have {self.digits} chars! Not {size}!'
                 )
+            self._id = identifier
         elif isinstance(identifier, bytes):
             from pjdata.aux.encoders import md5digest, bytes2int
             self._n = bytes2int(md5digest(identifier))
         else:
             raise Exception('Wrong argument type for UUID:', type(identifier))
+
+        if self.m[0] ==28 and self.m[1] ==28:
+            raise Exception()
 
     @staticmethod  # Needs to be static to get around making UUID hashable.
     @lru_cache()
@@ -83,15 +136,25 @@ class UUID:
     def id(self):
         """Pretty printing version, proper for use in databases also."""
         if self._id is None:
-            from pjdata.aux.encoders import int2pretty
-            self._id = int2pretty(self.n)
+            self._id = pmatrix2pretty(self.m, self.alphabet)
         return self._id
 
     @property  # Cannot be lru, because m may come from init.
     def m(self):
         """Id as a permutation matrix (list of numbers)."""
         if self._m is None:
-            self._m = int2pmatrix(self.n, self.side)
+            if self._n:
+                self._m = int2pmatrix(self.n, self.side)
+            elif self._id:
+                self._m = pretty2pmatrix(self.id, self.side, self.alphabetrev)
+                # Wasteful check commented out:
+                # if self.n > self.upper_limit or self.n < self.lower_limit:
+                #     raise Exception(
+                #         f'String should represent a number in the interval '
+                #         f'[{self.lower_limit}, {self.upper_limit}]!'
+                #     )
+            else:
+                raise Exception('UUID broken, missing data to make pmatrix!')
         return self._m
 
     @property  # Cannot be lru, because n may come from init.

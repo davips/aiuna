@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import partial
 
-from pjdata.aux.encoders import UUID
+from pjdata.aux.uuid import UUID
 
 from pjdata.data import Data
 
@@ -48,7 +48,7 @@ class NoData(type):
     #
     # # name = "No data"
     # # desc = ''
-    # sid = uuid.pretty[:8]
+    # sid = uuid.pretty[:6]
     # # hollow = HollowData(history=[], failure=failure)
     # iscollection = False
     #

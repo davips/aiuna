@@ -14,7 +14,7 @@ class Identifyable(ABC):
         -------
             A unique identifier UUID object.
         """
-        from pjdata.aux.encoders import UUID
+        from pjdata.aux.uuid import UUID
         content = self._uuid_impl00()
         if isinstance(content, UUID):
             return content
@@ -37,11 +37,10 @@ class Identifyable(ABC):
     def sid(self):
         """
         Short uuID
-        First 8 chars of uuid, usually for printing purposes.
-        First collision expect after 12671943 combinations.
+        First 6 chars of uuid, usually for printing purposes.
         :return:
         """
-        return self.id[:8]
+        return self.id[:6]
 
     @abstractmethod
     def _uuid_impl00(self):
