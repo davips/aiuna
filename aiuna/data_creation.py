@@ -7,7 +7,7 @@ import pandas as pd
 import sklearn.datasets as ds
 
 from pjdata.aux.compression import pack
-from pjdata.aux.encoders import md5digest, digest2pretty
+from pjdata.aux.encoders import md5_int, enc
 from pjdata.aux.serialization import serialize
 from pjdata.aux.uuid import UUID
 from pjdata.data import Data
@@ -71,8 +71,7 @@ def read_arff(filename, description='No description.'):
     hashes = {k: v.id for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
-    digest = md5digest(serialize(hashes).encode())
-    name_ = splitted[-1] + '_' + digest2pretty(digest)[:6]
+    name_ = splitted[-1] + '_' + enc(md5_int(serialize(hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
     class FakeFile:
