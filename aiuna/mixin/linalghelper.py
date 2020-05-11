@@ -14,9 +14,9 @@ class LinAlgHelper:
         return vec.reshape(len(vec), 1)
 
     @classmethod
-    def _matrix_to_vector(cls, m, default=None):
+    def _mat2vec(cls, m, default=None):
         return default if m is None else cls._as_vector(m)
 
     @staticmethod
-    def _matrix_to_scalar(m, default=None):
+    def _mat2sca(m, default=None):
         return default if m is None else m[0][0]

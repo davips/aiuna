@@ -1,6 +1,6 @@
 import json
 
-from pjdata.aux.encoders import CustomJSONEncoder
+from pjdata.aux.customjsonencoder import CustomJSONEncoder
 
 
 def serialize(obj):

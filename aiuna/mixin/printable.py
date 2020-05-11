@@ -28,7 +28,7 @@ class Printable:
 
     def __str__(self, depth=''):
         from pjdata.step.transformation import Transformation
-        from pjdata.aux.encoders import CustomJSONEncoder
+        from pjdata.aux.customjsonencoder import CustomJSONEncoder
 
         if isinstance(self, Transformation):
             # Taking transformer out of string for a better printing.

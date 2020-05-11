@@ -6,7 +6,7 @@ import random
 import fastrand
 import psutil as psutil
 
-from pjdata.aux.linalg import int2pmatrix, pmatrix2int, pmatmult
+from pjdata.aux.linalg import pmat_mult, pmat2int, int2pmat
 
 # To check collisions. (seems unnecessary, due to the nature of the mult op.
 s = {}
@@ -17,12 +17,12 @@ n = lim - 10_000_000  # factorial(35) - 2
 c = 0
 for i in range(lim, lim - 10, -1):
     ii = random.randrange(lim)
-    mi = int2pmatrix(ii)
+    mi = int2pmat(ii)
     for j in range(m, n, -1):
         jj = random.randrange(lim)
         c += 1
-        mj = int2pmatrix(jj)
-        r = pmatrix2int(pmatmult(mi, mj))
+        mj = int2pmat(jj)
+        r = pmat2int(pmat_mult(mi, mj))
         s[r] = s.get(r, 0) + 1
 
         if (j - n) % round((m - n) * 0.005) == 0:
