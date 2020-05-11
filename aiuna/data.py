@@ -121,12 +121,12 @@ class Data(AbstractData, LinAlgHelper, Printable):
         for k, v in self._vec2mat_map.items():
             if v in matrices and (
                     matrices[v].shape[0] == 1 or matrices[v].shape[1] == 1):
-                self._fields[k] = self._matrix_to_vector(matrices[v])
+                self._fields[k] = self._mat2vec(matrices[v])
 
         # Add scalar shortcuts.
         for k, v in self._sca2mat_map.items():
             if v in matrices and matrices[v].shape == (1, 1):
-                self._fields[k] = self._matrix_to_scalar(matrices[v])
+                self._fields[k] = self._mat2sca(matrices[v])
 
     def updated(self, transformations, failure='keep', frozen='keep',
                 **fields):
