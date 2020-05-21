@@ -1,3 +1,7 @@
+from numpy.core.multiarray import ndarray
+import numpy as np
+
+
 class LinAlgHelper:
     @staticmethod
     def _as_vector(mat):
@@ -20,3 +24,22 @@ class LinAlgHelper:
     @staticmethod
     def _mat2sca(m, default=None):
         return default if m is None else m[0][0]
+
+    @classmethod
+    def _convert(cls, field_value):
+        """Given a field, return its corresponding matrix.
+        """
+
+        # Matrix given directly.
+        if isinstance(field_value, ndarray) and len(field_value.shape) == 2:
+            return field_value
+
+        # Vector.
+        if isinstance(field_value, ndarray) and len(field_value.shape) == 1:
+            return cls._as_column_vector(field_value)
+
+        # Scalar.
+        if isinstance(field_value, int):
+            return np.array(field_value, ndmin=2)
+
+        raise Exception('Unknown field type ', type(field_value))

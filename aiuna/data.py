@@ -263,7 +263,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
                           failure=self.failure, frozen=self.isfrozen,
                           **self.matrices)
 
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         return self._uuid
 
     @classmethod

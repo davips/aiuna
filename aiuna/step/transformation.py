@@ -51,7 +51,7 @@ class Transformation(Identifyable, Printable):
         transformer = FakeTransformer()
         return Transformation(transformer, step)
 
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         from pjdata.aux.uuid import UUID
         # Mark step to differentiate 'apply' from 'use'. And also to avoid
         # having the same uuid as its transformer (for general dump purposes).

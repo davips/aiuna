@@ -97,7 +97,6 @@ class Collection(AbstractData):
         self.next_index += 1
         return nex
 
-<<<<<<< HEAD
     def __str__(self):
         if self.infinite:
             return 'Infinite collection!' + \
@@ -159,10 +158,6 @@ class Collection(AbstractData):
         else:
             return self.history.last.step.upper(), \
                    self.history.uuid + self._uuids
-=======
-    def _uuid_impl00(self):
-        return self._uuid
->>>>>>> UUID completed, probably needing some fix
 
     # Collection not hashable! That's why we memoize it by hand here.
     @property

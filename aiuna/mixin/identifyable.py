@@ -15,7 +15,7 @@ class Identifyable(ABC):
             A unique identifier UUID object.
         """
         from pjdata.aux.uuid import UUID
-        content = self._uuid_impl00()
+        content = self._uuid_impl()
         if isinstance(content, UUID):
             return content
         else:
@@ -43,7 +43,7 @@ class Identifyable(ABC):
         return self.id[:6]
 
     @abstractmethod
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         """Specific internal calculation made by each child class.
 
         Should return a string or a UUID object to be used directly."""
