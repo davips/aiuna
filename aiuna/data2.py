@@ -19,7 +19,7 @@ def evolve(uuid, transformations):
 # Terminology:
 # history -> Data events since birth
 # transformations -> new Data events, or from some point in history
-#  (both are lists of Transformation)
+#  (both are lists of Transformers)
 #
 # matrix -> 2D numpy array
 # field -> matrix, vector or scalar  (numpy views for easy handling)
