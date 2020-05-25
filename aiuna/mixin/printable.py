@@ -15,7 +15,6 @@ def disable_global_pretty_printing():
 
 
 class Printable:
-
     def __init__(self, jsonable):
         self.jsonable = jsonable
         self.pretty_printing = PRETTY_PRINTING
