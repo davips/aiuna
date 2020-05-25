@@ -196,14 +196,15 @@ class Data2(AbstractData, LinAlgHelper, Printable):
         for name, value in new_matrices.items():
             # If it is a new matrix, assign a UUID for its birth.
             # TODO:
-            #  Evaluate performance of using pack(X) as identity here:
-            #  having a start identical to that of data_creation seems good,
-            #  but can be slow.
-            #  It avoids different UUIDs for the same content.
+            #  Benchmark to evaluate if using pack(X) as identity here is too
+            #  slow. Having a start identical to that of data_creation seems
+            #  good, but it can be slow for big matrices created after transf.
+            #  However, it is not usual. E.g. Xbig -> Ubig.
+            #  It is needed to avoid different UUIDs for the same content.
             #  A faster/dirtier choice would be data.uuid*matrix_name as birth.
             muuid = self.uuids.get(
                 name, UUID(pack(value))
-                # name, self.uuid * UUID(bytes(name, 'latin1'))
+                # name, self.uuid * UUID(bytes(name, 'latin1'))  # faster
             )
 
             # Transform UUID.
