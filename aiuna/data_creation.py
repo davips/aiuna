@@ -71,7 +71,8 @@ def read_arff(filename, description='No description.'):
     original_hashes = {k: v.id for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
-    name_ = splitted[-1] + '_' + enc(md5_int(serialize(original_hashes).encode()))[:6]
+    name_ = splitted[-1] + '_' + enc(
+        md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
     class FakeFile:
@@ -90,9 +91,10 @@ def read_arff(filename, description='No description.'):
     transformer = FakeFile()
     # File transformations are always represented as 'u', no matter which step.
     transformation = Transformation(transformer, 'u')
-    return original_hashes, Data(history=[transformation], failure=None, frozen=False,
-                X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
-                # name=name_, desc=description)  #  <- TODO
+    return original_hashes, Data(history=[transformation],
+                                 failure=None, frozen=False, hollow=False,
+                                 X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
+    # name=name_, desc=description)  #  <- TODO
 
 
 def translate_type(name):

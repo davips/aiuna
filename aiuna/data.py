@@ -1,5 +1,6 @@
 import json
 from functools import lru_cache
+from typing import Optional, Any
 
 from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.compression import pack
@@ -17,6 +18,7 @@ from pjdata.mixin.printable import Printable
 #
 # matrix -> 2D numpy array
 # field -> matrix, vector or scalar  (numpy views for easy handling)
+
 
 class Data(AbstractData, LinAlgHelper, Printable):
     """Immutable data for all machine learning scenarios one can imagine.
@@ -55,7 +57,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         Yt=[['rabbit', 'mouse']]
     """
 
-    def __init__(self, history, failure, frozen, storage_info=None,
+    def __init__(self, history, failure, frozen, hollow, storage_info=None,
                  **matrices):
         super().__init__(jsonable=matrices)
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
@@ -65,14 +67,17 @@ class Data(AbstractData, LinAlgHelper, Printable):
         self.history = history
         self.failure = failure
         self.isfrozen = frozen
-        self.ismelting = frozen is Melting
+        self.ishollow = hollow
         self.storage_info = storage_info
         self.matrices = matrices
 
         # Calculate UUIDs.
         self._uuid, self.uuids = self._evolve_id(UUID(), {}, history, matrices)
 
-    def updated(self, transformations, failure='keep', frozen: bool = 'keep',
+    def updated(self, transformations,
+                failure: bool = 'keep',
+                frozen: bool = 'keep',
+                hollow: bool = 'keep',
                 **fields):
         """Recreate or freeze a Data object with updated matrices, history and
         failure.
@@ -102,6 +107,8 @@ class Data(AbstractData, LinAlgHelper, Printable):
             failure = self.failure
         if frozen == 'keep':
             frozen = self.isfrozen
+        if hollow == 'keep':
+            hollow = self.ishollow
 
         matrices = self.matrices.copy()
         matrices.update(self._fields2matrices(fields))
@@ -109,8 +116,9 @@ class Data(AbstractData, LinAlgHelper, Printable):
         # klass can be Data or Collection.
         klass = Data if self is NoData else self.__class__
         return klass(
-            history=tuple(self.history) + transformations, failure=failure,
-            frozen=frozen, storage_info=self.storage_info, **matrices
+            history=tuple(self.history) + transformations,
+            failure=failure, frozen=frozen, hollow=hollow,
+            storage_info=self.storage_info, **matrices
         )
 
     @property
@@ -126,10 +134,9 @@ class Data(AbstractData, LinAlgHelper, Printable):
         return self.updated(transformations=tuple(), frozen=True)
 
     @lru_cache()
-    def melting(self, transformations):
-        """temporary frozen (only Persistence can melt it)         """
-        # noinspection PyTypeChecker
-        return self.updated(transformations=transformations, frozen=Melting)
+    def hollow(self: Any, transformations):
+        """temporary hollow (only Persistence can fill it)         """
+        return self.updated(transformations=transformations, hollow=True)
 
     @lru_cache()
     def field(self, name, component='undefined'):
@@ -215,11 +222,13 @@ class Data(AbstractData, LinAlgHelper, Printable):
     def _remove_unsafe_prefix(self, item):
         """Handle unsafe (i.e. frozen) fields."""
         if item.startswith('unsafe'):
+            # User knows what they are doing.
             return item[6:]
 
-        if self.isfrozen:
+        if self.isfrozen or self.ishollow:
             raise Exception('Cannot access fields from Data objects that come '
-                            f'from a failed pipeline!\nHINT: use unsafe{item}.'
+                            f'from a failed/frozen/hollow pipeline!\n'
+                            f'HINT: use unsafe{item}.'
                             f'\nHINT2: probably an ApplyUsing is missing, '
                             f'around a Predictor.')
         return item
@@ -239,8 +248,4 @@ class Data(AbstractData, LinAlgHelper, Printable):
 
 
 class MissingField(Exception):
-    pass
-
-
-class Melting(type):
     pass
