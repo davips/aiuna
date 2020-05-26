@@ -68,10 +68,10 @@ def read_arff(filename, description='No description.'):
         'Xd': UUID(pack(Xd)), 'Yd': UUID(pack(Yd)),
         'Xt': UUID(pack(Xt)), 'Yt': UUID(pack(Yt))
     }
-    hashes = {k: v.id for k, v in uuids.items()}
+    original_hashes = {k: v.id for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
-    name_ = splitted[-1] + '_' + enc(md5_int(serialize(hashes).encode()))[:6]
+    name_ = splitted[-1] + '_' + enc(md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
     class FakeFile:
@@ -81,7 +81,7 @@ def read_arff(filename, description='No description.'):
             'name': filename.split('/')[-1],
             'path': '/'.join(splitted[:-1]) + '/',
             'description': description,
-            'hashes': hashes
+            'hashes': original_hashes
         }
         jsonable = {'_id': f'{name}@{path}', 'config': config}
         serialized = serialize(jsonable)
@@ -90,10 +90,9 @@ def read_arff(filename, description='No description.'):
     transformer = FakeFile()
     # File transformations are always represented as 'u', no matter which step.
     transformation = Transformation(transformer, 'u')
-    return Data(uuid=UUID() * transformation.uuid, uuids=uuids,
-                history=[transformation], failure=None, frozen=False,
-                X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd,
-                name=name_, desc=description)
+    return original_hashes, Data(history=[transformation], failure=None, frozen=False,
+                X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
+                # name=name_, desc=description)  #  <- TODO
 
 
 def translate_type(name):

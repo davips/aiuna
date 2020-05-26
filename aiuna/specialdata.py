@@ -39,6 +39,7 @@ class NoData(type):
     failure = None
     isfrozen = False
     allfrozen = False
+    storage_info = None
 
     @staticmethod
     def mockup(transformations):
@@ -60,6 +61,11 @@ class NoData(type):
     @staticmethod
     def updated(transformations, failure='keep', **matrices):
         return Data.updated(NoData, transformations, failure, **matrices)
+
+    @staticmethod
+    def _fields2matrices(fields):
+        from pjdata.mixin.linalghelper import LinAlgHelper
+        return LinAlgHelper._fields2matrices(fields)
     #
     # def __new__(mcs, *args, **kwargs):
     #     raise Exception('NoData is a singleton and shouldn\'t be instantiated')

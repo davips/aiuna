@@ -135,7 +135,7 @@ class UUID:
         return self._t
 
     @property  # Cannot be lru, because id may come from init.
-    def id(self):
+    def id(self) -> str:
         """'Pretty' printing version, proper for use in databases also."""
         if self._id is None:
             self._id = enc(self.n, self.alphabet, padding=self.digits)

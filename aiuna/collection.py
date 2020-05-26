@@ -1,6 +1,7 @@
 from typing import Iterator
 
 from pjdata.abc.abstractdata import AbstractData
+from pjdata.mixin.linalghelper import evolve
 
 
 class Collection(AbstractData):
@@ -71,7 +72,6 @@ class Collection(AbstractData):
         # TODO: to require changes on Xt and Xd when X is changed.
 
         # Update UUID.
-        from pjdata.data import evolve
         new_uuid = evolve(self.uuid, transformations)
 
         from pjdata.finitecollection import FiniteCollection
