@@ -116,10 +116,12 @@ class Data(AbstractData, LinAlgHelper, Printable):
     @property
     @lru_cache()
     def frozen(self):
-        """frozen possa faz três papéis:
+        """frozen faz dois papéis:
             1- pipeline precoce (p. ex. após SVM.enhance)
             2- pipeline falho (após exceção)
-            3- melting = mockup p/ ser preenchido e descongelado pelo cururu
+        um terceiro papel não pode ser feito por ele, pois frozen é uma
+        propriedade armazenável de Data:
+            3- hollow = mockup p/ ser preenchido pelo cururu
          """
         return self.updated(transformations=tuple(), frozen=True)
 
@@ -152,6 +154,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         if isinstance(m, UUID):
             if self.storage_info is None:
                 raise Exception('Storage not set! Unable to fetch ' + m.id)
+            print('>>>> fetching field', name, m.id)
             self.matrices[mname] = m = self._fetch_matrix(m.id)
 
         if not name.islower():
