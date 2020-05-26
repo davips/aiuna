@@ -116,7 +116,7 @@ class Data(AbstractData, LinAlgHelper, Printable):
         # klass can be Data or Collection.
         klass = Data if self is NoData else self.__class__
         return klass(
-            history=tuple(self.history) + transformations,
+            history=tuple(self.history) + tuple(transformations),
             failure=failure, frozen=frozen, hollow=hollow,
             storage_info=self.storage_info, **matrices
         )
