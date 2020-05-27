@@ -42,18 +42,6 @@ class NoData(type):
         """A light Data object, i.e. without matrices."""
         return Data.hollow(NoData, transformations)
 
-    #
-    # # name = "No data"
-    # # desc = ''
-    # sid = uuid.pretty[:6]
-    # # hollow = HollowData(history=[], failure=failure)
-    # iscollection = False
-    #
-    # @staticmethod
-    # def mockup(transformations):
-    #     """A light Data object, i.e. without matrices."""
-    #     return Data.mockup(NoData, transformations)
-    #
     @staticmethod
     def updated(transformations, failure='keep', **matrices):
         return Data.updated(NoData, transformations, failure, **matrices)
@@ -62,9 +50,9 @@ class NoData(type):
     def _fields2matrices(fields):
         from pjdata.mixin.linalghelper import LinAlgHelper
         return LinAlgHelper._fields2matrices(fields)
-    #
-    # def __new__(mcs, *args, **kwargs):
-    #     raise Exception('NoData is a singleton and shouldn\'t be instantiated')
-    #
-    # def __bool__(self):
-    #     return False
+
+    def __new__(mcs, *args, **kwargs):
+        raise Exception('NoData is a singleton and shouldn\'t be instantiated')
+
+    def __bool__(self):
+        return False

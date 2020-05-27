@@ -1,12 +1,10 @@
-import json
 from functools import lru_cache
-from typing import Optional, Any
+from typing import Any
 
-from pjdata.abc.abstractdata import AbstractData
 from pjdata.aux.compression import pack
-from pjdata.aux.customjsonencoder import CustomJSONEncoder
 from pjdata.aux.uuid import UUID
 from pjdata.config import Global
+from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
 
@@ -20,7 +18,7 @@ from pjdata.mixin.printable import Printable
 # field -> matrix, vector or scalar  (numpy views for easy handling)
 
 
-class Data(AbstractData, LinAlgHelper, Printable):
+class Data(Identifyable, LinAlgHelper, Printable):
     """Immutable data for all machine learning scenarios one can imagine.
 
     Attributes
