@@ -17,9 +17,8 @@ def safety():
 import json
 
 with open('config.json', 'r') as f:
-    Global = json.load(f)
-Global['default_dump'] = {'engine': 'dump'}
-Global['default_sqlite'] = {'engine': 'sqlite'}
-Global['storages'] = {}
+    STORAGE_CONFIG = json.load(f)
+STORAGE_CONFIG['default_dump'] = {'engine': 'dump'}
+STORAGE_CONFIG['default_sqlite'] = {'engine': 'sqlite'}
+STORAGE_CONFIG['storages'] = {}
 
-# TODO: aproveitar gerenciador global do Edesio para embutir thread-safety.

@@ -3,7 +3,7 @@ from typing import Any
 
 from pjdata.aux.compression import pack
 from pjdata.aux.uuid import UUID
-from pjdata.config import Global
+from pjdata.config import STORAGE_CONFIG
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
@@ -215,7 +215,7 @@ class Data(Identifyable, LinAlgHelper, Printable):
     def _fetch_matrix(self, id):
         if self.storage_info is None:
             raise Exception(f'There is no storage set to fetch {id})!')
-        return Global['storages'][self.storage_info].fetch_matrix(id)
+        return STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
 
     def _remove_unsafe_prefix(self, item):
         """Handle unsafe (i.e. frozen) fields."""

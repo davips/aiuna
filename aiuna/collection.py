@@ -1,4 +1,9 @@
 from functools import lru_cache
+from itertools import cycle
+
+
+# class End(type):
+#     pass
 
 
 class Collection:
@@ -8,6 +13,10 @@ class Collection:
     """
 
     def __init__(self, generator, finalizer, finite=True, debug_info=None):
+        # TODO: it is possible to restart a collection, but I am not sure it
+        #  has any use.
+        #  if finite:
+        #     generator = cycle(chain(generator, (x for x in [End])))
         self.generator = generator
         self.finalizer = finalizer
         self.finite = finite
@@ -23,6 +32,11 @@ class Collection:
             if self.debug_info:
                 print(self.debug_info, 'asks for next data...')
             data = next(self.generator)
+
+            # TODO: the second part of restarting mode
+            # if data is End:
+            #     raise StopIteration
+
             if self.debug_info:
                 print('...and', self.debug_info, 'got', type(data))
             if type(data) == tuple:
@@ -50,3 +64,6 @@ class Collection:
     #
     # def _uuid_impl(self):
     #     raise Exception('não sabemos se será preciso!')
+    # def restart(self):
+    #     pass
+
