@@ -205,7 +205,7 @@ class M:
 
     def __post_init__(self):
         if self.l is None:
-            self.l = int2pmatrix(self.n, self.side)
+            self.l = int2pmat(self.n, self.side)
         elif self.n != 0:
             raise Exception(f'Cannot set both args... n:{self.n} l:{self.l}!')
 
@@ -234,5 +234,5 @@ class M:
         return M(l=pmat_mult(self.l, other.t))
 
     def __add__(self, other):
-        n = pmatrix2int(self.l) + pmatrix2int(other.l)
+        n = pmat2int(self.l) + pmat2int(other.l)
         return M(n % self.last)
