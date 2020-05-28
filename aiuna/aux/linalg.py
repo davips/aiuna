@@ -199,20 +199,22 @@ class M:
     """A class to ease playing around with permutation matrix operations.
 
     'l' is the list representation of this matrix."""
-    n: int = 0
-    l: list = None
+    n: int = None
+    m: list = None
     side: int = 35
 
     def __post_init__(self):
-        if self.l is None:
-            self.l = int2pmat(self.n, self.side)
-        elif self.n != 0:
-            raise Exception(f'Cannot set both args... n:{self.n} l:{self.l}!')
+        if self.m is None:
+            self.m = int2pmat(self.n, self.side)
+        elif self.n is None:
+            self.n = pmat2int(self.m)
+        else:
+            raise Exception(f'Cannot set both args... n:{self.n} l:{self.m}!')
 
     @staticmethod
     @lru_cache()
     def _lazy_t(l):
-        return M(l=pmat_transpose(l))
+        return M(m=pmat_transpose(l))
 
     @staticmethod
     @lru_cache()
@@ -221,18 +223,18 @@ class M:
 
     @property
     def t(self):
-        return self._lazy_t(tuple(self.l))
+        return self._lazy_t(tuple(self.m))
 
     @property
     def last(self):
         return self._lazy_last(self.side)
 
     def __mul__(self, other):
-        return M(l=pmat_mult(self.l, other.l))
+        return M(m=pmat_mult(self.m, other.m))
 
     def __truediv__(self, other):
-        return M(l=pmat_mult(self.l, other.t))
+        return M(m=pmat_mult(self.m, other.t))
 
     def __add__(self, other):
-        n = pmat2int(self.l) + pmat2int(other.l)
+        n = pmat2int(self.m) + pmat2int(other.m)
         return M(n % self.last)
