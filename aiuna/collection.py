@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from functools import lru_cache
 from itertools import cycle
 
-
 # class End(type):
 #     pass
+from pjdata.data import Data
+from pjdata.specialdata import NoData
 
 
 class Collection:
@@ -39,8 +41,10 @@ class Collection:
 
             if self.debug_info:
                 print('...and', self.debug_info, 'got', type(data))
-            if type(data) == tuple:
-                data, *self._last_args = data
+            if isinstance(data, AccResult):
+                print(self.debug_info, 'has', type(data.value), 'and',
+                      type(data.acc))
+                data, *self._last_args = data.both
             return data
         except StopIteration as e:
             if self.debug_info:
@@ -52,8 +56,8 @@ class Collection:
     @lru_cache()
     def data(self):
         if self.debug_info:
-            print(self.debug_info, 'asks for pendurado. Parametros:',
-                  self._last_args)
+            print(self.debug_info, 'asks for pendurado. Tipo:',
+                  type(self._last_args), 'Parametros:', self._last_args)
         if self.finite and not self._finished:
             raise Exception('Data object not ready!')
         return self.finalizer(*self._last_args)
@@ -67,3 +71,10 @@ class Collection:
     # def restart(self):
     #     pass
 
+
+@dataclass(frozen=True)
+class AccResult:
+    """Accumulator for generators that send args to finalizer()."""
+    value: Data = NoData
+    acc: list = None
+    both = value, acc
