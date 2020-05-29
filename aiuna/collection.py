@@ -31,6 +31,8 @@ class Collection:
 
     def __next__(self):
         try:
+            if self.debug_info:
+                print()
             self.debug('asks for next data...')
             data = next(self.iterator)
 
@@ -38,14 +40,14 @@ class Collection:
             # if data is End:
             #     raise StopIteration
 
-            self.debug('...and got', type(data))
+            self.debug('...and got', type(data), '\n')
             if isinstance(data, AccResult):
                 self.debug('has', type(data.value), 'and', type(data.acc))
                 data, *self._last_args = data.both
             return data
         except StopIteration as e:
             if self.debug_info:
-                self.debug('...no more data available')
+                self.debug('...no more data available\n')
             self._finished = True
             raise e from None
 
@@ -53,11 +55,26 @@ class Collection:
     @lru_cache()
     def data(self):
         if self.debug_info:
-            self.debug('asks for pendurado. Tipo:', type(self._last_args),
+            self.debug('asks for pendurado... Tipo:', type(self._last_args),
                        'Parametros:', self._last_args)
-        if self.finite and not self._finished:
-            raise Exception('Data object not ready!')
-        return self.finalizer(*self._last_args)
+
+        # TODO: precisei parar de checar para voltar a funcionar!!
+        # if self.finite and not self._finished:
+        #     raise Exception('Data object not ready!')
+
+        result = self.finalizer(*self._last_args)
+        self.debug('...got pendurado.')
+        return result
+
+    # def join(self):
+    #     """Call this when this is a twin of an ended iterator."""
+    #     # TODO: smells like gambiarra
+    #     self._finished = True
+    #     try:
+    #         next(self)
+    #         next(self.iterator)
+    #     except:
+    #         pass
 
     def debug(self, *msg):
         if self.debug_info:
@@ -78,4 +95,7 @@ class AccResult:
     """Accumulator for iterators that send args to finalizer()."""
     value: Data = NoData
     acc: list = None
-    both = value, acc
+
+    @property
+    def both(self):
+        return self.value, self.acc
