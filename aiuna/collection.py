@@ -31,24 +31,21 @@ class Collection:
 
     def __next__(self):
         try:
-            if self.debug_info:
-                print(self.debug_info, 'asks for next data...')
+            self.debug('asks for next data...')
             data = next(self.iterator)
 
             # TODO: the second part of restarting mode
             # if data is End:
             #     raise StopIteration
 
-            if self.debug_info:
-                print('...and', self.debug_info, 'got', type(data))
+            self.debug('...and got', type(data))
             if isinstance(data, AccResult):
-                print(self.debug_info, 'has', type(data.value), 'and',
-                      type(data.acc))
+                self.debug('has', type(data.value), 'and', type(data.acc))
                 data, *self._last_args = data.both
             return data
         except StopIteration as e:
             if self.debug_info:
-                print('...no more data available for', self.debug_info)
+                self.debug('...no more data available')
             self._finished = True
             raise e from None
 
@@ -56,11 +53,15 @@ class Collection:
     @lru_cache()
     def data(self):
         if self.debug_info:
-            print(self.debug_info, 'asks for pendurado. Tipo:',
-                  type(self._last_args), 'Parametros:', self._last_args)
+            self.debug('asks for pendurado. Tipo:', type(self._last_args),
+                       'Parametros:', self._last_args)
         if self.finite and not self._finished:
             raise Exception('Data object not ready!')
         return self.finalizer(*self._last_args)
+
+    def debug(self, *msg):
+        if self.debug_info:
+            print(self.debug_info, '>>>', *msg)
 
     # @property
     # def allfrozen(self):
