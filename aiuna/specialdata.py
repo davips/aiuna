@@ -25,7 +25,7 @@ class UUIDData(Data):
 
 
 class NoData(type):
-    """Singleton to feed Data generators."""
+    """Singleton to feed Data iterators."""
     uuid = UUID()
     id = uuid.id
     uuids = {}

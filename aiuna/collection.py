@@ -11,15 +11,15 @@ from pjdata.specialdata import NoData
 class Collection:
     """
 
-    Evidently, a generator cannot be shared between Collection objects!
+    Evidently, a iterator cannot be shared between Collection objects!
     """
 
-    def __init__(self, generator, finalizer, finite=True, debug_info=None):
+    def __init__(self, iterator, finalizer, finite=True, debug_info=None):
         # TODO: it is possible to restart a collection, but I am not sure it
         #  has any use.
         #  if finite:
-        #     generator = cycle(chain(generator, (x for x in [End])))
-        self.generator = generator
+        #     iterator = cycle(chain(iterator, (x for x in [End])))
+        self.iterator = iterator
         self.finalizer = finalizer
         self.finite = finite
         self._last_args = ()
@@ -33,7 +33,7 @@ class Collection:
         try:
             if self.debug_info:
                 print(self.debug_info, 'asks for next data...')
-            data = next(self.generator)
+            data = next(self.iterator)
 
             # TODO: the second part of restarting mode
             # if data is End:
@@ -74,7 +74,7 @@ class Collection:
 
 @dataclass(frozen=True)
 class AccResult:
-    """Accumulator for generators that send args to finalizer()."""
+    """Accumulator for iterators that send args to finalizer()."""
     value: Data = NoData
     acc: list = None
     both = value, acc
