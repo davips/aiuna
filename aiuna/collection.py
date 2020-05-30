@@ -13,6 +13,7 @@ class Collection:
 
     Evidently, a iterator cannot be shared between Collection objects!
     """
+    isfrozen = False
 
     def __init__(self, iterator, finalizer, finite=True, debug_info=None):
         # TODO: it is possible to restart a collection, but I am not sure it
@@ -54,17 +55,27 @@ class Collection:
     @property
     @lru_cache()
     def data(self):
-        if self.debug_info:
-            self.debug('asks for pendurado... Tipo:', type(self._last_args),
+        self.debug('asks for pendurado... Tipo:', type(self._last_args),
                        'Parametros:', self._last_args)
-
-        # TODO: precisei parar de checar para voltar a funcionar!!
-        # if self.finite and not self._finished:
-        #     raise Exception('Data object not ready!')
-
+        self._check_consumption()
         result = self.finalizer(*self._last_args)
         self.debug('...got pendurado.')
         return result
+
+    @property
+    @lru_cache()
+    def uuid(self):
+        return self.data.uuid
+
+    def _check_consumption(self):
+        if self.finite and not self._finished:
+            try:
+                # Check consumed iterators, but not marked as ended.
+                print(type(self.iterator), self.iterator)
+                next(self.iterator)
+                raise Exception('Data object not ready!')
+            except StopIteration as e:
+                pass
 
     # def join(self):
     #     """Call this when this is a twin of an ended iterator."""
@@ -84,8 +95,7 @@ class Collection:
     # def allfrozen(self):
     #     raise Exception('não sabemos se será preciso!')
     #
-    # def _uuid_impl(self):
-    #     raise Exception('não sabemos se será preciso!')
+
     # def restart(self):
     #     pass
 

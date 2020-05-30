@@ -223,7 +223,7 @@ class Data(Identifyable, LinAlgHelper, Printable):
             # User knows what they are doing.
             return item[6:]
 
-        if self.isfrozen or self.ishollow:
+        if self.failure or self.isfrozen or self.ishollow:
             raise Exception('Cannot access fields from Data objects that come '
                             f'from a failed/frozen/hollow pipeline!\n'
                             f'HINT: use unsafe{item}.'
