@@ -252,6 +252,11 @@ class Data(Identifyable, LinAlgHelper, Printable):
         # print('just curious...', item)
         return super().__getattribute__(item)
 
+    def __eq__(self, other):
+        return self.uuid == other.uuid
+
+    def __hash__(self):
+        return hash(self.uuid)
 
 class MissingField(Exception):
     pass
