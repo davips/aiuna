@@ -211,7 +211,7 @@ class Data(Identifyable, LinAlgHelper, Printable):
     def matrix_names_str(self):
         return ','.join(self.matrix_names)
 
-    def transformed(self, func):
+    def transformedby(self, func):
         """Return this Data object transformed by func.
 
         Return itself if it is frozen or failed."""

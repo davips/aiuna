@@ -43,8 +43,8 @@ class NoData(type):
         return Data.hollow(NoData, transformations)
 
     @staticmethod
-    def transformed(data):
-        return data
+    def transformedby(func):
+        return func(NoData)
 
     @staticmethod
     def updated(transformations, failure='keep', **matrices):

@@ -3,8 +3,10 @@ from functools import lru_cache
 
 
 class Identifyable(ABC):
+    # cannot use lru because we are overriding _hash_ with uuid --->>> loop
+    _uuid = None
+
     @property
-    @lru_cache()
     def uuid(self):
         """Lazily calculated unique identifier for this dataset.
 
@@ -14,12 +16,12 @@ class Identifyable(ABC):
         -------
             A unique identifier UUID object.
         """
-        from pjdata.aux.uuid import UUID
-        content = self._uuid_impl()
-        if isinstance(content, UUID):
-            return content
-        else:
-            return UUID(content.encode())
+        if self._uuid is None:
+            from pjdata.aux.uuid import UUID
+            content = self._uuid_impl()
+            isUUID = isinstance(content, UUID)
+            self._uuid = content if isUUID else UUID(content.encode())
+        return self._uuid
 
     @property
     @lru_cache()
