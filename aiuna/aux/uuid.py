@@ -186,6 +186,9 @@ class UUID:
     def __eq__(self, other):
         return self.n == other.n if self._m is None else self.m == other.m
 
+    def __hash__(self):
+        return self.n
+
     def __str__(self):
         return self.id
 
