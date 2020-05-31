@@ -211,6 +211,14 @@ class Data(Identifyable, LinAlgHelper, Printable):
     def matrix_names_str(self):
         return ','.join(self.matrix_names)
 
+    def transformed(self, func):
+        """Return this Data object transformed by func.
+
+        Return itself if it is frozen or failed."""
+        if self.isfrozen or self.failure:
+            return self
+        return func(self)
+
     @lru_cache()
     def _fetch_matrix(self, id):
         if self.storage_info is None:
