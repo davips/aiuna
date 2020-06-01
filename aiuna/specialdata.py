@@ -28,9 +28,9 @@ class NoData(type):
     """Singleton to feed Data iterators."""
     uuid = UUID()
     id = uuid.id
-    uuids = {}
-    history = []
-    matrices = {}
+    uuids: dict = {}
+    history: list = []
+    matrices: dict = {}
     failure = None
     isfrozen = False
     ishollow = False
