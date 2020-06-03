@@ -71,7 +71,7 @@ class Data(Identifyable, LinAlgHelper, Printable):
         # Calculate UUIDs.
         self._uuid, self.uuids = self._evolve_id(UUID(), {}, history, matrices)
 
-    def updated(self, transformers: Tuple[Transformer],
+    def updated(self: TDatas, transformers: Tuple[Transformer],
                 failure: Optional[str] = 'keep',
                 frozen: Union[str, bool] = 'keep', hollow: Union[str, bool] = 'keep',
                 **fields):

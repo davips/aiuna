@@ -9,7 +9,7 @@ class UUIDData(Data):
      The only available information is the UUID."""
 
     def __init__(self, uuid):
-        super().__init__(tuple(), failure=False, frozen=False, hollow=True)
+        super().__init__(tuple(), failure=None, frozen=False, hollow=True)
         self._uuid = uuid
 
     def _uuid_impl(self):
@@ -51,7 +51,7 @@ class NoData(type):
         return Data.updated(NoData, transformations, failure, **matrices)
 
     @staticmethod
-    def _fields2matrices(fields):
+    def _fields2matrices(fields: ):
         from pjdata.mixin.linalghelper import LinAlgHelper
         return LinAlgHelper._fields2matrices(fields)
 
