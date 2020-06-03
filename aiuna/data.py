@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Any
+from typing import Any, Tuple, Optional, Union
 
 from pjdata.aux.compression import pack
 from pjdata.aux.uuid import UUID
@@ -7,33 +7,27 @@ from pjdata.config import STORAGE_CONFIG
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.linalghelper import LinAlgHelper
 from pjdata.mixin.printable import Printable
-
-
-# Terminology:
-# history -> Data events since birth
-# transformations -> new Data events, or from some point in history
-#  (both are lists of Transformers)
-#
-# matrix -> 2D numpy array
-# field -> matrix, vector or scalar  (numpy views for easy handling)
+from pjdata.step.transformer import Transformer
 
 
 class Data(Identifyable, LinAlgHelper, Printable):
-    """Immutable data for all machine learning scenarios one can imagine.
-
-    Attributes
-    ----------
-    fields
-        A dictionary, like {X: <numpy array>, Y: <numpy array>}.
-        Matrix names should start with an uppercase letter and
-        have at most two letters.
-    fields
-        Shorcuts 'matrices', but seeing each column-vector matrix as a vector
-        and each single element matrix as a scalar.
+    """Immutable lazy data for most machine learning scenarios.
 
     Parameters
     ----------
-    fields
+    history
+        A tuple of Transformer objects.
+    failure
+        The reason why the workflow that generated this Data object failed.
+    frozen
+        Indicate wheter the workflow ended earlier due to a normal
+        component behavior.
+    hollow
+        Indicate whether this is a Data object intended to be filled by
+        Storage.
+    storage_info
+        An alias to a global Storage object for lazy matrix fetching.
+    matrices
         A dictionary like {X: <numpy array>, Y: <numpy array>}.
         Matrix names should have a single uppercase character, e.g.:
         X=[
@@ -55,12 +49,17 @@ class Data(Identifyable, LinAlgHelper, Printable):
         Yt=[['rabbit', 'mouse']]
     """
 
-    def __init__(self, history, failure, frozen, hollow, storage_info=None,
+    def __init__(self, history: Tuple[Transformer],
+                 failure: Optional[str],
+                 frozen: Union[str, bool], hollow: Union[str, bool],
+                 storage_info: Optional[str] = None,
                  **matrices):
         super().__init__(jsonable=matrices)
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
-        # TODO: what to do with extra info? 'name' and 'desc'?
-        #  Do they go to another arg or to a matrix? Are they necessary?
+        # TODO:
+        #  'name' and 'desc'
+        #  volatile fields
+        #  dna property?
 
         self.history = history
         self.failure = failure
@@ -72,33 +71,35 @@ class Data(Identifyable, LinAlgHelper, Printable):
         # Calculate UUIDs.
         self._uuid, self.uuids = self._evolve_id(UUID(), {}, history, matrices)
 
-    def updated(self, transformations,
-                failure: bool = 'keep',
-                frozen: bool = 'keep',
-                hollow: bool = 'keep',
+    def updated(self, transformers: Tuple[Transformer],
+                failure: Optional[str] = 'keep',
+                frozen: Union[str, bool] = 'keep', hollow: Union[str, bool] = 'keep',
                 **fields):
-        """Recreate or freeze a Data object with updated matrices, history and
-        failure.
+        """Recreate a updated, frozen or hollow Data object.
 
         Parameters
         ----------
-        frozen
-            Where the resulting Data object should be frozen.
-        transformations
-            List of Transformation objects.
+        transformers
+            List of Transformer objects that transforms this Data object.
         failure
-            The failure caused by the given transformations, if it failed.
+            Updated value for failure.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
-            None (unusual) = 'no failure', possibly overriding previous failures
+            None (unusual) = 'no failure', possibly overriding previous
+             failures
+        frozen
+            Whether the resulting Data object should be frozen.
+        hollow
+            Indicate whether the provided transformers list is just a
+            simulation, meaning that the resulting Data object is intended
+            to be filled by a Storage.
         fields
-            Changed/added matrices and updated values.
-        transformations
-            History object of transformations.
+            Matrices or vector/scalar shortcuts to them.
 
         Returns
         -------
         New Data object (it keeps references to the old one for performance).
         """
+
         from pjdata.specialdata import NoData
 
         if failure == 'keep':
