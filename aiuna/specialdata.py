@@ -1,3 +1,4 @@
+from pjdata.aux.util import TDatas
 from pjdata.aux.uuid import UUID
 
 from pjdata.data import Data
@@ -51,7 +52,7 @@ class NoData(type):
         return Data.updated(NoData, transformations, failure, **matrices)
 
     @staticmethod
-    def _fields2matrices(fields: ):
+    def _fields2matrices(fields: TDatas):
         from pjdata.mixin.linalghelper import LinAlgHelper
         return LinAlgHelper._fields2matrices(fields)
 

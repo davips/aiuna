@@ -2,14 +2,17 @@ from typing import Union, Tuple, Any
 
 from pjdata.collection import Collection
 from pjdata.data import Data
-from pjdata.specialdata import NoData
+from pjdata.specialdata import NoData, UUIDData
 
-TDatasTuple = Union[Tuple[NoData, ...], Tuple[Data, ...],
-                    Tuple[Collection, ...],
-                    NoData, Data, Collection]
+DataT = Union[NoData, Data]
+DataCollTupleT = Union[
+    Tuple[NoData, ...], Tuple[DataT, ...], Tuple[Collection, ...],
+    DataT, Collection
+]
+DataCollT = Union[DataT, Collection]
 
-TDatas = Union[NoData, Data, Collection]
 
+#  UUIDData
 
 def flatten(lst):
     return [item for sublist in lst for item in sublist]
