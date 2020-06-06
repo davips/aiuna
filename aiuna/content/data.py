@@ -1,16 +1,16 @@
 from functools import lru_cache
-from typing import Any, Tuple, Optional, Union
+from typing import Tuple, Optional
 
 from pjdata.aux.compression import pack
+from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
 from pjdata.config import STORAGE_CONFIG
-from pjdata.mixin.identifyable import Identifyable
+from pjdata.content.content import Content
 from pjdata.mixin.linalghelper import LinAlgHelper
-from pjdata.mixin.printable import Printable
-from pjdata.step.transformer import Transformer
+from pjdata.transformer import Transformer
 
 
-class Data(Identifyable, LinAlgHelper, Printable):
+class Data(LinAlgHelper, Content):
     """Immutable lazy data for most machine learning scenarios.
 
     Parameters
@@ -49,12 +49,14 @@ class Data(Identifyable, LinAlgHelper, Printable):
         Yt=[['rabbit', 'mouse']]
     """
 
-    def __init__(self, history: Tuple[Transformer],
+    def __init__(self,
+                 history: Tuple[Transformer],
                  failure: Optional[str],
-                 frozen: Union[str, bool], hollow: Union[str, bool],
+                 frozen: bool,
+                 hollow: bool,
                  storage_info: Optional[str] = None,
                  **matrices):
-        super().__init__(jsonable=matrices)
+        super().__init__(jsonable=matrices)   # <-- TODO: put additional useful info
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO:
         #  'name' and 'desc'
@@ -63,18 +65,22 @@ class Data(Identifyable, LinAlgHelper, Printable):
 
         self.history = history
         self.failure = failure
-        self.isfrozen = frozen
-        self.ishollow = hollow
+        self._frozen = frozen
+        self._hollow = hollow
         self.storage_info = storage_info
         self.matrices = matrices
 
         # Calculate UUIDs.
         self._uuid, self.uuids = self._evolve_id(UUID(), {}, history, matrices)
 
-    def updated(self: TDatas, transformers: Tuple[Transformer],
+    def updated(self: t.Data,
+                transformers: Tuple[Transformer],
                 failure: Optional[str] = 'keep',
-                frozen: Union[str, bool] = 'keep', hollow: Union[str, bool] = 'keep',
-                **fields):
+                frozen: t.Status = 'keep',
+                hollow: t.Status = 'keep',
+                **fields
+                ) -> Data:
+>>>>>>> 212ee55... Extensive typing needed after previous two commits:pjdata/content/data.py
         """Recreate a updated, frozen or hollow Data object.
 
         Parameters
@@ -110,17 +116,17 @@ class Data(Identifyable, LinAlgHelper, Printable):
             hollow = self.ishollow
 
         matrices = self.matrices.copy()
-        matrices.update(self._fields2matrices(fields))
+        matrices.update(LinAlgHelper.fields2matrices(fields))
 
         # klass can be Data or Collection.
         klass = Data if self is NoData else self.__class__
         return klass(
-            history=tuple(self.history) + tuple(transformations),
+            history=tuple(self.history) + tuple(transformers),
             failure=failure, frozen=frozen, hollow=hollow,
             storage_info=self.storage_info, **matrices
         )
 
-    @property
+    @Property
     @lru_cache()
     def frozen(self):
         """frozen faz dois papéis:
@@ -130,12 +136,12 @@ class Data(Identifyable, LinAlgHelper, Printable):
         propriedade armazenável de Data:
             3- hollow = mockup p/ ser preenchido pelo cururu
          """
-        return self.updated(transformations=tuple(), frozen=True)
+        return self.updated(transformers=tuple(), frozen=True)
 
     @lru_cache()
-    def hollow(self: Any, transformations):
+    def hollow(self: t.Data, transformations):
         """temporary hollow (only Persistence can fill it)         """
-        return self.updated(transformations=transformations, hollow=True)
+        return self.updated(transformers=transformations, hollow=True)
 
     @lru_cache()
     def field(self, name, component='undefined'):
@@ -172,31 +178,31 @@ class Data(Identifyable, LinAlgHelper, Printable):
         if name in ['y', 'z']:
             return self._mat2vec(m)
 
-    @property
+    @Property
     @lru_cache()
     def Xy(self):
         return self.field('X'), self.field('y')
 
-    @property
+    @Property
     def allfrozen(self):
         return False
 
-    @property
+    @Property
     @lru_cache()
     def matrix_names(self):
         return list(self.matrices.keys())
 
-    @property
+    @Property
     @lru_cache()
     def ids_lst(self):
         return [self.uuids[name].id for name in self.matrix_names]
 
-    @property
+    @Property
     @lru_cache()
     def ids_str(self):
         return ','.join(self.ids_lst)
 
-    @property
+    @Property
     @lru_cache()
     def history_str(self):
         return ','.join(transf.uuid.id for transf in self.history)
@@ -207,10 +213,18 @@ class Data(Identifyable, LinAlgHelper, Printable):
         Useful for optimized persistence backends for Cache."""
         return pack(self.field(name))
 
-    @property
+    @Property
     @lru_cache()
     def matrix_names_str(self):
         return ','.join(self.matrix_names)
+
+    @Property
+    def isfrozen(self):
+        return self._frozen
+
+    @Property
+    def ishollow(self):
+        return self._hollow
 
     def transformedby(self, func):
         """Return this Data object transformed by func.

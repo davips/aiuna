@@ -3,11 +3,11 @@ from functools import lru_cache
 
 from pjdata.aux.uuid import UUID
 from pjdata.aux.serialization import deserialize, serialize
-from pjdata.mixin.identifyable import Identifyable
+from pjdata.mixin.identifiable import Identifiable
 from pjdata.mixin.printable import Printable
 
 
-class Transformation(Identifyable, Printable):
+class Transformation(Identifiable, Printable):
     def __init__(self, transformer, step):
         if None in [transformer, step]:
             raise Exception(

@@ -1,14 +1,17 @@
+from __future__ import annotations
 from functools import lru_cache
 from math import factorial
+from typing import Union, List
 
-from pjdata.aux.alphabets import alphabet800, alphabet800dic
-from pjdata.aux.encoders import pretty2pmatrix, pmatrix2pretty, enc, dec
+import pjdata.aux.alphabets as alph
+
+from pjdata.aux.encoders import enc, dec
 from pjdata.aux.linalg import int2pmat, pmat_transpose, pmat_mult, pmat2int, \
     print_binmatrix
 
 
 class UUID:
-    """Flexible representation of non-standard universal unique identifiers.
+    """Flexible representation of a (non-standard) universal unique identifier.
     Intended to be an extension and "replacement" of MD5 (or SHA256) hashes.
 
     This implementation intrinsically cannot comply with RFC 4122,
@@ -53,8 +56,8 @@ class UUID:
     side = 35
     digits = 14
 
-    alphabet = alphabet800
-    alphabetrev = alphabet800dic
+    alphabet = alph.letters800
+    alphabetrev = alph.lookup800
     lower_limit = 1  # Zero has cyclic inversions, Z*Z=I  Z-¹=Z
 
     # Lazy starters.
@@ -64,7 +67,7 @@ class UUID:
     _isfirst = None
     _t = None  # inverse (also transpose) pmatrix
 
-    def __init__(self, identifier=None, bits=128):
+    def __init__(self, identifier: Union[List[int], int, str, bytes, None] = None, bits: int = 128):
         if identifier is None:
             identifier = self.first_matrix
 
@@ -110,25 +113,25 @@ class UUID:
 
     @staticmethod  # Needs to be static to get around making UUID hashable.
     @lru_cache()
-    def _lazy_upper_limit(side):
+    def _lazy_upper_limit(side: int) -> int:
         # Identity matrix has special properties: A*I=A  I-¹=I
         return factorial(side) - 2  # (side! - 1) is identity
 
     @staticmethod  # Needs to be static to get around making UUID hashable.
     @lru_cache()
-    def _lazy_first_matrix(side):
+    def _lazy_first_matrix(side: int) -> List[int]:
         return int2pmat(1, side=side)
 
     @property
-    def upper_limit(self):
+    def upper_limit(self) -> int:
         return self._lazy_upper_limit(self.side)
 
     @property
-    def first_matrix(self):
+    def first_matrix(self) -> List[int]:
         return self._lazy_first_matrix(self.side)
 
     @property  # Avoiding lru, due to the need of a "heavy" hashable function.
-    def t(self):
+    def t(self) -> UUID:
         """Transpose, but also inverse matrix."""
         if self._t is None:
             self._t = UUID(pmat_transpose(self.m))
@@ -142,14 +145,14 @@ class UUID:
         return self._id
 
     @property  # Cannot be lru, because m may come from init.
-    def m(self):
+    def m(self) -> List[int]:
         """Id as a permutation matrix (list of numbers)."""
         if self._m is None:
             self._m = int2pmat(self.n, self.side)
         return self._m
 
     @property  # Cannot be lru, because n may come from init.
-    def n(self):
+    def n(self) -> int:
         """Id as a natural number."""
         if self._n is None:
             if self._m:
@@ -161,13 +164,13 @@ class UUID:
         return self._n
 
     @property  # Cannot be lru, because id may come from init.
-    def isfirst(self):
+    def isfirst(self) -> bool:
         """Is this the origin of all UUIDs?"""
         if self._isfirst is None:
             self._isfirst = self.m == self.first_matrix
         return self._isfirst
 
-    def __mul__(self, other):
+    def __mul__(self, other: UUID) -> UUID:
         """Flexible merge/unmerge with another UUID.
 
          Non commutative: a * b != b * a
@@ -177,13 +180,15 @@ class UUID:
          """
         return UUID(pmat_mult(self.m, other.m))
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: UUID) -> UUID:
         """Bounded unmerge from last merged UUID."""
         if self.m == self.first_matrix:
             raise Exception(f'Cannot divide by UUID={self}!')
         return UUID(pmat_mult(self.m, other.t.m))
 
     def __eq__(self, other):
+        if isinstance(other, UUID):
+            return False
         return self.n == other.n if self._m is None else self.m == other.m
 
     def __hash__(self):

@@ -8,7 +8,7 @@ from functools import lru_cache
 
 # TODO: make a permanent representative dictionary and check if it
 #  reduces compression time and size of textual info like transformations.
-from pjdata.aux.encoders import intlist2bytes, bytes2intlist
+from pjdata.aux.encoders import integers2bytes, bytes2integers
 
 
 # Things that should be calculated only once.
@@ -692,7 +692,7 @@ def pack(obj):
                 obj.shape) == 2:
             h, w = obj.shape
             fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
-            header = intlist2bytes(obj.shape)
+            header = integers2bytes(obj.shape)
             return b'F' + header + cctx.compress(fast_reduced)
         elif isinstance(obj, (list, set, str, int, float, bytearray, bool)):
             js = json.dumps(obj, sort_keys=True, ensure_ascii=False)
@@ -718,7 +718,7 @@ def unpack(dump_with_header):
             header = dump_with_header[1:9]
             dump = dump_with_header[9:]
             decompressed = lz.decompress(cctxdec.decompress(dump))
-            [h, w] = bytes2intlist(header)
+            [h, w] = bytes2integers(header)
             return np.reshape(np.frombuffer(decompressed), newshape=(h, w))
         else:
             return json.loads(cctxdec.decompress(dump).decode())

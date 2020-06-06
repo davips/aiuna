@@ -1,23 +1,33 @@
 from dataclasses import dataclass
 from functools import lru_cache
-from itertools import cycle
+from typing import Optional, Iterator, Callable, Union, Any, Tuple
 
-# class End(type):
-#     pass
-from pjdata.data import Data
-from pjdata.specialdata import NoData
+import pjdata.content.data as d
+import pjdata.types as t
+from pjdata.aux.util import Property
+from pjdata.content.content import Content
 
 
-class Collection:
+class Collection(Content):
+    """ Evidently, a iterator cannot be shared between Collection objects!
     """
 
-    Evidently, a iterator cannot be shared between Collection objects!
-    """
-    isfrozen = False
+    @property
+    def isfrozen(self):
+        raise NotImplementedError("should it mean 'all frozen' or 'any frozen'?")  # <-- TODO
+        # TODO: what happens when a frozen Data reach a Streamer? Would it be fooled by outdated fields?
 
-    def __init__(self, iterator, finalizer, finite=True, debug_info=None):
-        # TODO: it is possible to restart a collection, but I am not sure it
-        #  has any use.
+    def _uuid_impl(self):
+        return self.data.uuid
+
+    def __init__(self,
+                 iterator: Iterator,
+                 finalizer: Callable[[Any], d.Data],
+                 finite: bool = True,
+                 debug_info: Optional[str] = None):
+        super().__init__(jsonable={'some info to print about colls': None})  # <-- TODO
+
+        # TODO: it is possible to restart a collection, but I am not sure it has any use. Code for that:
         #  if finite:
         #     iterator = cycle(chain(iterator, (x for x in [End])))
         self.iterator = iterator
@@ -67,7 +77,7 @@ class Collection:
     def uuid(self):
         return self.data.uuid
 
-    def _check_consumption(self):
+    def _check_consumption(self) -> None:
         if self.finite and not self._finished:
             try:
                 # Check consumed iterators, but not marked as ended.
@@ -77,17 +87,7 @@ class Collection:
             except StopIteration as e:
                 pass
 
-    # def join(self):
-    #     """Call this when this is a twin of an ended iterator."""
-    #     # TODO: smells like gambiarra
-    #     self._finished = True
-    #     try:
-    #         next(self)
-    #         next(self.iterator)
-    #     except:
-    #         pass
-
-    def debug(self, *msg):
+    def debug(self, *msg: Union[tuple, str]) -> None:
         if self.debug_info:
             print(self.debug_info, '>>>', *msg)
 
@@ -103,9 +103,9 @@ class Collection:
 @dataclass(frozen=True)
 class AccResult:
     """Accumulator for iterators that send args to finalizer()."""
-    value: Data = NoData
-    acc: list = None
+    value: Optional[t.Data] = None
+    acc: Optional[t.Acc] = None
 
-    @property
-    def both(self):
+    @Property
+    def both(self) -> Tuple[Optional[t.Data], Optional[t.Acc]]:
         return self.value, self.acc

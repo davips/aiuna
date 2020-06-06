@@ -1,13 +1,24 @@
 from abc import ABC, abstractmethod
-from functools import lru_cache
+from functools import cached_property
+
+from pjdata.aux.uuid import UUID
 
 
-class Identifyable(ABC):
-    # cannot use lru because we are overriding _hash_ with uuid --->>> loop
+class withIdentification(ABC):
+    """ Identifiable mixin. """
+    @cached_property
+    def name(self):
+        return self._name_impl()
+
+    @abstractmethod
+    def _name_impl(self):
+        pass
+
+    # cannot use lru for uuid() because we are overriding data._hash_ with uuid --->>> loop
     _uuid = None
 
-    @property
-    def uuid(self):
+    @property  # see comment above
+    def uuid(self) -> UUID:
         """Lazily calculated unique identifier for this dataset.
 
         Should be accessed direct as a class member: 'uuid'.
@@ -17,14 +28,11 @@ class Identifyable(ABC):
             A unique identifier UUID object.
         """
         if self._uuid is None:
-            from pjdata.aux.uuid import UUID
             content = self._uuid_impl()
-            isUUID = isinstance(content, UUID)
-            self._uuid = content if isUUID else UUID(content.encode())
+            self._uuid = content if isinstance(content, UUID) else UUID(content.encode())
         return self._uuid
 
-    @property
-    @lru_cache()
+    @cached_property
     def id(self):
         """
         Short uuID
@@ -34,8 +42,7 @@ class Identifyable(ABC):
         """
         return self.uuid.id
 
-    @property
-    @lru_cache()
+    @cached_property
     def sid(self):
         """
         Short uuID
@@ -49,4 +56,3 @@ class Identifyable(ABC):
         """Specific internal calculation made by each child class.
 
         Should return a string or a UUID object to be used directly."""
-        pass

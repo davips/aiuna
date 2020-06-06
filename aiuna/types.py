@@ -18,3 +18,4 @@ DataOrCollOrTup = Union[DataOrTup, CollOrTup]
 Field = Union[List[str], ndarray]  # For Data fields.
 Status = Union[str, bool, Literal['keep']]  # For frozen and hollow updates.
 Transformation = Callable[[Data], Data]  # Type of function transform(). Can return NoData because of Sink.
+Acc = Union[List[ndarray], float]

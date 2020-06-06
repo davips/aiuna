@@ -1,13 +1,17 @@
-from numpy.core.multiarray import ndarray
-import numpy as np
+from typing import Dict, List, Tuple, Optional
+
+import numpy as np  # type: ignore
+from numpy import ndarray
+import pjdata.types as t
 
 from pjdata.aux.compression import pack
 from pjdata.aux.uuid import UUID
+from pjdata.transformer import Transformer
 
 
 class LinAlgHelper:
     @staticmethod
-    def _as_vector(mat):
+    def _as_vector(mat: ndarray) -> ndarray:
         size = max(mat.shape[0], mat.shape[1])
         try:
             return mat.reshape(size)
@@ -17,21 +21,20 @@ class LinAlgHelper:
                 f'Expecting matrix {mat} as a column or row vector...')
 
     @staticmethod
-    def _as_column_vector(vec):
+    def _as_column_vector(vec: ndarray) -> ndarray:
         return vec.reshape(len(vec), 1)
 
     @classmethod
-    def _mat2vec(cls, m, default=None):
+    def _mat2vec(cls, m: ndarray, default: ndarray = None) -> ndarray:
         return default if m is None else cls._as_vector(m)
 
     @staticmethod
-    def _mat2sca(m, default=None):
+    def _mat2sca(m: ndarray, default: float = None) -> Optional[float]:
         return default if m is None else m[0][0]
 
     @classmethod
-    def _field_as_matrix(cls, field_value):
-        """Given a field, return its corresponding matrix.
-        """
+    def _field_as_matrix(cls, field_value: t.Field) -> t.Field:
+        """Given a field, return its corresponding matrix or itself if it is a list."""
 
         # Matrix given directly.
         if isinstance(field_value, ndarray) and len(field_value.shape) == 2:
@@ -51,7 +54,7 @@ class LinAlgHelper:
         raise Exception('Unknown field type ', type(field_value))
 
     @classmethod
-    def _fields2matrices(cls, fields):
+    def fields2matrices(cls, fields: Dict[str, t.Field]) -> Dict[str, t.Field]:
         matrices = {}
         for name, value in fields.items():
             if len(name) == 1:
@@ -60,7 +63,10 @@ class LinAlgHelper:
         return matrices
 
     @staticmethod
-    def _evolve_id(uuid, uuids, transformations, matrices):
+    def _evolve_id(uuid: UUID,
+                   uuids: Dict[str, UUID],
+                   transformers: Tuple[Transformer],
+                   matrices: Dict[str, t.Field]) -> Tuple[UUID, Dict[str, UUID]]:
         """Return UUID/UUIDs after transformations."""
 
         # Update matrix UUIDs.
@@ -84,16 +90,16 @@ class LinAlgHelper:
             )
 
             # Transform UUID.
-            muuid = evolve(muuid, transformations)
+            muuid = evolve(muuid, transformers)
             uuids_[name] = muuid
 
         # Update UUID.
-        uuid = evolve(uuid, transformations)
+        uuid = evolve(uuid, transformers)
 
         return uuid, uuids_
 
 
-def evolve(uuid, transformations):
-    for transformation in transformations:
-        uuid *= transformation.uuid
+def evolve(uuid: UUID, transformers: Tuple[Transformer]) -> UUID:
+    for transformer in transformers:
+        uuid *= transformer.uuid
     return uuid

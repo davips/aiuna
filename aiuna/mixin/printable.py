@@ -1,23 +1,25 @@
 import json
-
-from pjdata import PRETTY_PRINTING  # Needed despite IDE warnings!
-
+from abc import abstractmethod
+from functools import cached_property
 
 def enable_global_pretty_printing():
-    global PRETTY_PRINTING
     PRETTY_PRINTING = True
 
 
 def disable_global_pretty_printing():
-    global PRETTY_PRINTING
     PRETTY_PRINTING = False
-    print('Pretty printing disabled!')
 
 
-class Printable:
-    def __init__(self, jsonable):
-        self.jsonable = jsonable
-        self.pretty_printing = PRETTY_PRINTING
+class withPrinting:
+    """Mixin class to deal with string printing style"""
+    pretty_printing = False
+    @cached_property
+    def jsonable(self):
+        return self._jsonable_impl()
+
+    @abstractmethod
+    def _jsonable_impl(self):
+        pass
 
     def enable_pretty_printing(self):
         self.pretty_printing = True
@@ -25,24 +27,22 @@ class Printable:
     def disable_pretty_printing(self):
         self.pretty_printing = False
 
-    def __str__(self, depth=''):
-        from pjdata.step.transformation import Transformation
+    def __str__(self, depth):
+        from pjdata.transformer.transformer import Transformer
         from pjdata.aux.customjsonencoder import CustomJSONEncoder
 
-        if isinstance(self, Transformation):
-            # Taking transformer out of string for a better printing.
-            jsonable = self.jsonable.copy()
-            jsonable['transformer'] = json.loads(jsonable['transformer'])
-        else:
-            jsonable = self.jsonable
+        jsonable = self.jsonable
+        if isinstance(self, Transformer):
+            # Taking component out of string for a better printing.
+            # jsonable = self.jsonable.copy()
+            # jsonable["component"] = json.loads(jsonable["component"])
+            jsonable = self.jsonable  # TODO: improve this
 
-        if not self.pretty_printing:
-            js = json.dumps(jsonable, cls=CustomJSONEncoder,
-                            sort_keys=False, indent=0, ensure_ascii=False)
-            return js.replace('\n', '')
+        if self.pretty_printing:
+            js_str = json.dumps(jsonable, cls=CustomJSONEncoder, sort_keys=False, indent=4, ensure_ascii=False,)
+            return js_str.replace("\n", "\n" + depth)
 
-        js = json.dumps(jsonable, cls=CustomJSONEncoder,
-                        sort_keys=False, indent=4, ensure_ascii=False)
-        return js.replace('\n', '\n' + depth)
+        js_str = json.dumps(jsonable, cls=CustomJSONEncoder, sort_keys=False, indent=0, ensure_ascii=False,)
+        return js_str.replace("\n", "")
 
-    __repr__ = __str__  # TODO: is this needed?
+    __repr__ = __str__
