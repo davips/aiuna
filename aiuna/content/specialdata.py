@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Optional
 import pjdata.aux.uuid as u
 import pjdata.content.data as d
 import pjdata.types as t
-from pjdata.transformer import Transformer
+import pjdata.transformer as tr
 
 
 class UUIDData(d.Data):
@@ -33,7 +33,7 @@ class NoData(type):
     uuid = u.UUID()
     id = uuid.id
     uuids: dict = {}
-    history: List[Transformer] = []
+    history: List[tr.Transformer] = []
     matrices: Dict[str, t.Field] = {}
     failure = None
     isfrozen = False
@@ -42,17 +42,21 @@ class NoData(type):
     storage_info = None
 
     @staticmethod
-    def hollow(transformers: Tuple[Transformer]) -> d.Data:
+    def hollow(transformers: Tuple[tr.Transformer]) -> d.Data:
         """A light Data object, i.e. without matrices."""
         # noinspection PyCallByClass
         return d.Data.hollow(NoData, transformers)
 
     @staticmethod
-    def transformedby(func: t.Transformation) -> t.Data:
-        return func(NoData)
+    def transformedby(transformer: tr.Transformer):
+        """Return this Data object transformed by func.
+
+        Return itself if it is frozen or failed."""
+        result = transformer.func(NoData)
+        return result.updated(transformers=(transformer,))
 
     @staticmethod
-    def updated(transformers: Tuple[Transformer],
+    def updated(transformers: Tuple[tr.Transformer],
                 failure: Optional[str] = 'keep',
                 **fields) -> d.Data:
         # noinspection PyCallByClass

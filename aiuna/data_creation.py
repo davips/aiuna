@@ -10,8 +10,9 @@ from pjdata.aux.compression import pack
 from pjdata.aux.encoders import md5_int, enc
 from pjdata.aux.serialization import serialize
 from pjdata.aux.uuid import UUID
-from pjdata.data import Data
-from pjdata.step.transformation import Transformation
+from pjdata.content.data import Data
+from pjdata.content.specialdata import NoData
+from pjdata.transformer import Transformer
 
 
 def read_arff(filename, description='No description.'):
@@ -71,6 +72,7 @@ def read_arff(filename, description='No description.'):
     original_hashes = {k: v.id for k, v in uuids.items()}
     clean = filename.replace('.ARFF', '').replace('.arff', '')
     splitted = clean.split('/')
+    # TODO: use _name
     name_ = splitted[-1] + '_' + enc(
         md5_int(serialize(original_hashes).encode()))[:6]
 
@@ -84,14 +86,15 @@ def read_arff(filename, description='No description.'):
             'description': description,
             'hashes': original_hashes
         }
-        jsonable = {'_id': f'{name}@{path}', 'config': config}
+        transformer_info = {'_id': f'{name}@{path}', 'config': config}
+        jsonable = {'info': transformer_info, 'enhance': True, 'model': True}
         serialized = serialize(jsonable)
         uuid = UUID(serialized.encode())
+        cfg_serialized = serialize(transformer_info)
+        cfg_uuid = UUID(cfg_serialized.encode())
 
-    transformer = FakeFile()
-    # File transformations are always represented as 'u', no matter which step.
-    transformation = Transformation(transformer, 'u')
-    return original_hashes, Data(history=[transformation],
+    transformer = Transformer(FakeFile(), func=lambda: NoData, info={})  # <-- TODO:substitute NoData by real Data
+    return original_hashes, Data(history=(transformer,),
                                  failure=None, frozen=False, hollow=False,
                                  X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
     # name=name_, desc=description)  #  <- TODO

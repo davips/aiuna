@@ -9,6 +9,7 @@ import pjdata.content.data as d
 import pjdata.content.specialdata as s
 
 Data = Union[Type[s.NoData], d.Data]
+DataOrColl = Union[Data, c.Collection]
 DataTup = Tuple[Data, ...]  # HINT: Multi containing a Sink can produce heterogeneous tuples
 CollTup = Tuple[c.Collection, ...]
 DataOrTup = Union[Data, DataTup]

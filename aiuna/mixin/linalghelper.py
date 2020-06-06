@@ -1,15 +1,15 @@
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple, Optional
 
 import numpy as np  # type: ignore
 from numpy import ndarray
+
+import pjdata.aux.uuid as u
 import pjdata.types as t
-
-from pjdata.aux.compression import pack
-from pjdata.aux.uuid import UUID
-from pjdata.transformer import Transformer
+import pjdata.aux.compression as co
+import pjdata.transformer  as tr
 
 
-class LinAlgHelper:
+class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions  to end cyclic  imports
     @staticmethod
     def _as_vector(mat: ndarray) -> ndarray:
         size = max(mat.shape[0], mat.shape[1])
@@ -33,7 +33,7 @@ class LinAlgHelper:
         return default if m is None else m[0][0]
 
     @classmethod
-    def _field_as_matrix(cls, field_value: t.Field) -> t.Field:
+    def _field_as_matrix(cls, field_value: 't.Field') -> 't.Field':
         """Given a field, return its corresponding matrix or itself if it is a list."""
 
         # Matrix given directly.
@@ -54,7 +54,7 @@ class LinAlgHelper:
         raise Exception('Unknown field type ', type(field_value))
 
     @classmethod
-    def fields2matrices(cls, fields: Dict[str, t.Field]) -> Dict[str, t.Field]:
+    def fields2matrices(cls, fields: Dict[str, 't.Field']) -> Dict[str, 't.Field']:
         matrices = {}
         for name, value in fields.items():
             if len(name) == 1:
@@ -63,10 +63,10 @@ class LinAlgHelper:
         return matrices
 
     @staticmethod
-    def _evolve_id(uuid: UUID,
-                   uuids: Dict[str, UUID],
-                   transformers: Tuple[Transformer],
-                   matrices: Dict[str, t.Field]) -> Tuple[UUID, Dict[str, UUID]]:
+    def _evolve_id(uuid: u.UUID,
+                   uuids: Dict[str, u.UUID],
+                   transformers: Tuple[tr.Transformer, ...],
+                   matrices: Dict[str, 't.Field']) -> Tuple[u.UUID, Dict[str, u.UUID]]:
         """Return UUID/UUIDs after transformations."""
 
         # Update matrix UUIDs.
@@ -85,7 +85,7 @@ class LinAlgHelper:
             #  and at pickleserver it gives the same error at the same time:
             #  'ZstdError: cannot compress: Src size is incorrect'
             muuid = uuids.get(
-                name, UUID(pack(value))
+                name, u.UUID(co.pack(value))
                 # name, self.uuid * UUID(bytes(name, 'latin1'))  # faster
             )
 
@@ -99,7 +99,7 @@ class LinAlgHelper:
         return uuid, uuids_
 
 
-def evolve(uuid: UUID, transformers: Tuple[Transformer]) -> UUID:
+def evolve(uuid: u.UUID, transformers: Tuple[tr.Transformer]) -> u.UUID:
     for transformer in transformers:
         uuid *= transformer.uuid
     return uuid
