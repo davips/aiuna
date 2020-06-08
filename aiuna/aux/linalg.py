@@ -194,6 +194,15 @@ def fac2int(digits):
     return res
 
 
+def lazyhash(msg: bytes):
+    """Algebraic hash function: incremental/decremental, associative etc.
+    Provide all non-abelian group niceties over permutation matrix multiplication."""
+    r = range(34, -1, -1)
+    for b in msg:
+        r = pmat_mult(r, int2pmat(b))  # HINT: a byte is just an int for Python.
+    return pmat2int(r)
+
+
 @dataclass(frozen=False)
 class M:
     """A class to ease playing around with permutation matrix operations.
