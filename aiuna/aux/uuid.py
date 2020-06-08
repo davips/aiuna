@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 from functools import lru_cache
 from math import factorial
 from typing import Union, List
 
 import pjdata.aux.alphabets as alph
-
 from pjdata.aux.encoders import enc, dec
 from pjdata.aux.linalg import int2pmat, pmat_transpose, pmat_mult, pmat2int, \
     print_binmatrix
@@ -59,6 +59,7 @@ class UUID:
     alphabet = alph.letters800
     alphabetrev = alph.lookup800
     lower_limit = 1  # Zero has cyclic inversions, Z*Z=I  Z-¹=Z
+    identity = ClassProperty('identity_')
 
     # Lazy starters.
     _n = None  # number
@@ -66,6 +67,7 @@ class UUID:
     _id = None  # pretty
     _isfirst = None
     _t = None  # inverse (also transpose) pmatrix
+    _identity = None
 
     def __init__(self, identifier: Union[List[int], int, str, bytes, None] = None, bits: int = 128):
         if identifier is None:
@@ -111,16 +113,24 @@ class UUID:
         else:
             raise Exception('Wrong argument type for UUID:', type(identifier))
 
-    @staticmethod  # Needs to be static to get around making UUID hashable.
+    @staticmethod  # Needs to be static to avoid self.__hash__ starting calculation of lazy values
     @lru_cache()
     def _lazy_upper_limit(side: int) -> int:
         # Identity matrix has special properties: A*I=A  I-¹=I
         return factorial(side) - 2  # (side! - 1) is identity
 
-    @staticmethod  # Needs to be static to get around making UUID hashable.
+    @staticmethod  # Needs to be static to avoid self.__hash__ starting calculation of lazy values
     @lru_cache()
     def _lazy_first_matrix(side: int) -> List[int]:
         return int2pmat(1, side=side)
+
+    @classmethod
+    def identity_(cls, side: int = 35) -> UUID:
+        """UUID corresponding to a 35x35 identity permutation matrix.
+        It is enough to represent MD5 hashes."""
+        if cls._identity is None:
+            cls._identity = UUID(int2pmat(UUID._lazy_upper_limit(side) + 1, side=side))
+        return cls._identity
 
     @property
     def upper_limit(self) -> int:
