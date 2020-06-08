@@ -1,14 +1,13 @@
 """Alphabets carefully chosen to provide clickable, recognizable and short codes.
 Dictionaries for fast lookup are also provided"""
 
-from typing import Dict
+from typing import Dict, Optional
 
 
-def __getattr__(name: str) -> Dict[str, int]:
+def __getattr__(name: str) -> Optional[Dict[str, int]]:
     if name == "lookup800":
         return {char: idx for idx, char in enumerate(letters800)}
-    else:
-        raise Exception("Alphabet lookup not found:", name)
+    raise AttributeError
 
 
 # UTF-8, but only uses 1-2 bytes.
