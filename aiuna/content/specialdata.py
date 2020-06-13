@@ -1,11 +1,22 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Optional, Iterator, TYPE_CHECKING, Literal, Union
 
 import pjdata.aux.uuid as u
 import pjdata.content.data as d
 import pjdata.types as t
 import pjdata.transformer as tr
+
+
+@dataclass(frozen=True)
+class TemporaryData:
+    """Temporary class to exist between a transformation and the supply of the responsible transformer."""
+    data: t.Data
+
+    def history_updated(self, transformers: Tuple[tr.Transformer, ...]):
+        """Complete Data object started by 'updated_()'."""
+        return self.data.updated(transformers=transformers)
 
 
 class UUIDData(d.Data):
@@ -35,7 +46,7 @@ class NoData(type):
     uuids: dict = {}
     history: List[tr.Transformer] = []
     matrices: Dict[str, t.Field] = {}
-    failure = None
+    failure: Optional[str] = None
     isfrozen = False
     ishollow = False
     allfrozen = False  # TODO: is allfrozen still a thing
@@ -53,14 +64,19 @@ class NoData(type):
 
         Return itself if it is frozen or failed."""
         result = transformer.func(NoData)
-        return result.updated(transformers=(transformer,))
+        if isinstance(result, dict):
+            return NoData.updated(transformers=(transformer,), **transformer.func(NoData))
+        return result
 
     @staticmethod
-    def updated(transformers: Tuple[tr.Transformer],
-                failure: Optional[str] = 'keep',
-                **fields) -> d.Data:
+    def updated(
+            transformers: Tuple[tr.Transformer, ...],
+            failure: Union[str, t.Status] = 'keep',
+            stream: Union[Iterator[t.Data], None, Literal["keep"]] = 'keep',
+            **fields
+    ) -> t.Data:
         # noinspection PyCallByClass
-        return d.Data.updated(NoData, transformers, failure, **fields)
+        return d.Data.updated(NoData, transformers, failure, stream, **fields)
 
     def __new__(mcs, *args, **kwargs):
         raise Exception('NoData is a singleton and shouldn\'t be instantiated')

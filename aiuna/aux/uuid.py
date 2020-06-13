@@ -5,6 +5,7 @@ from math import factorial
 from typing import Union, List
 
 import pjdata.aux.alphabets as alph
+from pjdata.aux.classproperty import ClassProperty
 from pjdata.aux.encoders import enc, dec
 from pjdata.aux.linalg import int2pmat, pmat_transpose, pmat_mult, pmat2int, \
     print_binmatrix
