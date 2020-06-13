@@ -6,7 +6,7 @@ from pjdata.types import Data
 
 class NoInfo:
     @lru_cache()
-    def _enhancer_info(self, data: Data = None) -> Dict[str, Any]:
+    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         return {}
 
     @lru_cache()
