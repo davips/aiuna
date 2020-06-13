@@ -51,7 +51,10 @@ class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions 
         if isinstance(field_value, list):
             return field_value
 
-        raise Exception('Unknown field type ', type(field_value))
+        if callable(field_value):
+            return field_value
+
+        raise Exception("Unknown field type ", type(field_value))
 
     @classmethod
     def fields2matrices(cls, fields: Dict[str, 't.Field']) -> Dict[str, 't.Field']:
@@ -74,7 +77,7 @@ class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions 
         for name, value in matrices.items():
             # If it is a new matrix, assign a UUID for its birth.
             # TODO:
-            #  Benchmark to evaluate if using pack(X) as identity here is too
+            #  Perform benchmark to evaluate if using pack(X) as identity here is too
             #  slow. Having a start identical to that of data_creation seems
             #  good, but it can be slow for big matrices created after transf.
             #  However, it is not usual. E.g. Xbig -> Ubig.
@@ -84,9 +87,18 @@ class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions 
             #  It seems like ZStd also doesn't like to be inside a thread, here
             #  and at pickleserver it gives the same error at the same time:
             #  'ZstdError: cannot compress: Src size is incorrect'
+
+            # TODO: UPDATED 10/jun
+            #   Accessing fields just to calculate UUID defeats the purpose of lazy fields
+            #   (including lazy data from cururu and stream).
+            #   Vou colocar o cálculo rápido baseado em data.uuid*matrix_name,
+            #   a desvantagem é não ter o início da matriz compatível com o início em File,
+            #   mas talvez possamos mudar File pra ficar igual.
+
             muuid = uuids.get(
-                name, u.UUID(co.pack(value))
-                # name, self.uuid * UUID(bytes(name, 'latin1'))  # faster
+                name,
+                # u.UUID(co.pack(value))
+                uuid * u.UUID(bytes(name, 'latin1'))  # faster
             )
 
             # Transform UUID.
