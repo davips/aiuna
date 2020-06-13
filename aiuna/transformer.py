@@ -1,92 +1,112 @@
 from __future__ import annotations
 
 import json
+from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Union, Callable, Optional, overload, Any
 
-import pjdata.types as t
-from pjdata.aux.serialization import serialize, deserialize
+import pjdata.mixin.serialization as ser
+from typing import TYPE_CHECKING
+
 from pjdata.aux.util import Property
+if TYPE_CHECKING:
+    import pjdata.types as t
+    import pjdata.transformer.pholder as ph
+from pjdata.aux.serialization import serialize, deserialize
 from pjdata.aux.uuid import UUID
-from pjdata.mixin.identifiable import Identifiable
-from pjdata.mixin.printable import Printable
+from pjdata.mixin.printing import withPrinting
 
 
-class Transformer(Identifiable, Printable):  # TODO: it should have some features from old Transformation class
+class Transformer(ser.withSerialization, withPrinting, ABC):
+    ispholder = False
 
-    def __init__(
-            self,
-            component: Any,  # TODO: <-- use duck typing to import things from pjml into pjdata?
-            func: Optional[t.Transformation],  # problema
-            info: Optional[Union[
-                dict,
-                Callable[[], dict],
-                Callable[[t.Data], dict]  # TODO: improve this?
-            ]]
-    ):
-        self._uuid = component.cfg_uuid
-        self.name, self.path = component.name, component.path
-        self.component_uuid = component.uuid
-        self._serialized_component = component.serialized
+    def __init__(self, component: t.Union[str, ser.withSerialization]):
+        """Base class for all transformers.
+
+        ps. Assumes all components are symmetric. This class uses the same component details for both enhance and model.
+        I.e. the transformation, if any, is always the same, no matter at which step (enhancing/predicting) we are."""
+        if isinstance(component, str):
+            # If this transformer is created by other transformer, we can take advantage of a previous serialization.
+            # This only works for PHolder because of its simpler uuid calculation!
+            dic = json.loads(component)
+            self._name = dic["name"]
+            self.path = dic["path"]
+            self.config = dic["config"]
+            self.serialized_component = component
+            enhance, model = dic["enhance"], dic["model"]
+        else:
+            self._name = component.name
+            self.path = component.path
+            self.config = component.config  # TODO: put config/has* in WithSerialization? create a new mixin?
+            self.serialized_component = component.serialized
+            enhance, model = component.hasenhancer, component.hasmodel
+
+        # WARNING: serialization of Transformer cannot be reverted! It is just a bunch of shortcuts to component.
         self._jsonable = {
-            'uuid': self.uuid,
-            'name': self.name,
-            'path': self.path,
-            'component_uuid': component.uuid,
-            'component': self._serialized_component
+            # 'cfuuid': component.cfuuid,
+            # 'component_uuid': component.uuid,
+            "name": self.name,
+            "longname": self.longname,
+            "path": self.path,
+            "config": self.config,
+            "enhance": enhance,
+            "model": model,
+            # 'transformer': self.__class__.__name__,  # See 'ps' in docs.
+            "uuid": self.uuid,
         }
 
-        self.func = func if func else lambda data: data
-        if callable(info):
-            self.info = info
-        elif isinstance(info, dict):
-            self.info = lambda: info
-        elif info is None:
-            self.info = lambda: {}
-        else:
-            raise TypeError('Unexpected info type. You should use, callable, dict or None. Not', type(info))
+    @Property
+    @lru_cache()
+    def component(self):
+        return deserialize(self.serialized_component)
 
     @Property
     @lru_cache()
-    def serialized(self):
-        return serialize(self)
+    def longname(self):
+        return self.__class__.__name__ + f"[{self.name}]"
 
     @Property
     @lru_cache()
-    def config(self):
-        return deserialize(self._serialized_component)
+    def pholder(self) -> ph.PHolder:
+        from pjdata.transformer.pholder import PHolder
 
-    @staticmethod
-    def materialize(serialized):
+        return PHolder(self.component)
+
+    @classmethod
+    def materialize(cls, serialized):
         jsonable = json.loads(serialized)
 
-        class FakeComponent:
-            name = jsonable['name']
-            path = jsonable['path']
-            uuid = UUID(jsonable['component_uuid'])
-            serialized = jsonable['component']
+        class FakeComponent(ser.withSerialization):
+            path = jsonable["path"]
+            serialized = jsonable["component"]
+
+            def _name_impl(self):
+                return jsonable["name"]
+
+            def _uuid_impl(self):
+                return UUID(jsonable["component_uuid"])
+
+            def _cfuuid_impl(self, data=None):
+                return jsonable
 
         component = FakeComponent()
-        return Transformer(component, ) #TODO: how to materialize func?
+        return cls(component)
 
-    @overload
-    def transform(self, content: t.DataOrTup) -> t.DataOrTup:
-        ...
-
-    @overload
-    def transform(self, content: t.CollOrTup) -> t.CollOrTup:
-        ...
-
-    def transform(self, content: t.DataOrCollOrTup) -> t.DataOrCollOrTup:  # TODO: overload
+    def transform(self, content: t.DataOrTup, exit_on_error=True) -> t.DataOrTup:
         if isinstance(content, tuple):
             return tuple((dt.transformedby(self) for dt in content))
-        # Todo: We should add exception handling here because self.func can
-        #  raise an error
+        # Todo: We should add exception handling here because self.func can raise errors
+        # print(' transform... by', self.name)
         return content.transformedby(self)
 
-    def _uuid_impl(self):
-        return self._uuid
+    @abstractmethod
+    def _transform_impl(self, data: t.Data) -> t.Result:
+        pass
 
-    @Property
-    def jsonable(self):
+    def _jsonable_impl(self):
         return self._jsonable
+
+    def _name_impl(self):
+        return self._name
+
+    def _cfuuid_impl(self, data=None):
+        raise Exception("Non sense access!")
