@@ -95,7 +95,7 @@ def read_arff(filename, description='No description.'):
 
     transformer = Transformer(FakeFile(), func=lambda: NoData, info={})  # <-- TODO:substitute NoData by real Data
     return original_hashes, Data(history=(transformer,),
-                                 failure=None, frozen=False, hollow=False,
+                                 failure=None, frozen=False, hollow=False, stream=None, storage_info=None,
                                  X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
     # name=name_, desc=description)  #  <- TODO
 
