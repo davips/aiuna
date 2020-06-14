@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from math import factorial
 
 
@@ -230,11 +230,11 @@ class M:
     def _lazy_last(side):
         return factorial(side) - 1
 
-    @property
+    @cached_property
     def t(self):
         return self._lazy_t(tuple(self.m))
 
-    @property
+    @cached_property
     def last(self):
         return self._lazy_last(self.side)
 
