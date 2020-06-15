@@ -8,7 +8,7 @@ def serialize(obj):
 
 
 def deserialize(txt):
-    return _dict_to_transformer(json.loads(txt))
+    return _dict_to_component(json.loads(txt))
 
 
 def serialized_to_int(txt):
@@ -17,7 +17,7 @@ def serialized_to_int(txt):
 
 
 def materialize(name, path, config):
-    """Instantiate a transformer.
+    """Instantiate a component.
 
     Returns
     -------
@@ -32,14 +32,14 @@ def materialize(name, path, config):
             f'Problems materializing {name}@{path} with config\n{config}')
 
 
-def _dict_to_transformer(dic):
-    """Convert recursively a dict to a transformer."""
-    if 'transformer' not in dic:
-        raise Exception('Provided dict does not represent a transformer.')
+def _dict_to_component(dic):
+    """Convert recursively a dict to a component."""
+    if 'component' not in dic:
+        raise Exception('Provided dict does not represent a component.')
     name, path = dic['_id'].split('@')
     cfg = dic['config']
-    if 'transformer' in cfg:
-        cfg['transformer'] = _dict_to_transformer(cfg['transformer'])
+    if 'component' in cfg:
+        cfg['component'] = _dict_to_component(cfg['component'])
 
     return materialize(name, path, cfg)
 
