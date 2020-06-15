@@ -13,6 +13,6 @@ class CustomJSONEncoder(JSONEncoder):
                 return obj.id
             elif not isinstance(
                     obj, (list, set, str, int, float, bytearray, bool)):
-                return obj.jsonable
+                return obj._jsonable_impl
 
         return JSONEncoder.default(self, obj)
