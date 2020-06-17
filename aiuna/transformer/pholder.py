@@ -20,7 +20,7 @@ class PHolder(Transformer):  # TODO: Find a better name? Skiper?
         super().__init__(component)
 
     def rawtransform(self, content: t.Data) -> t.Result:
-        return content
+        return {}
 
     def _uuid_impl(self):
         return self._uuid
