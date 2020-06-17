@@ -28,7 +28,7 @@ class Enhancer(Transformer):
         info = self._info_func(data)
         return info if isinstance(info, Info) else Info(items=info)
 
-    def rawtransform(self, content: t.DataOrTup) -> t.DataOrTup:
+    def rawtransform(self, content: t.Data) -> t.Result:
         return self._rawtransform(content)
 
     def _uuid_impl(self):

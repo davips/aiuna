@@ -64,53 +64,35 @@ class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions 
             matrices[name] = cls._field_as_matrix(value)
         return matrices
 
-    @staticmethod
-    def _evolve_id(uuid: u.UUID,
-                   uuids: Dict[str, u.UUID],
-                   transformers: Tuple[tr.Transformer, ...],
-                   matrices: Dict[str, 't.Field']) -> Tuple[u.UUID, Dict[str, u.UUID]]:
-        """Return UUID/UUIDs after transformations."""
 
-        # Update matrix UUIDs.
-        uuids_ = uuids.copy()
-        for name, value in matrices.items():
-            # If it is a new matrix, assign a UUID for its birth.
-            # TODO:
-            #  Perform benchmark to evaluate if using pack(X) as identity here is too
-            #  slow. Having a start identical to that of data_creation seems
-            #  good, but it can be slow for big matrices created after transf.
-            #  However, it is not usual. E.g. Xbig -> Ubig.
-            #  It is needed to avoid different UUIDs for the same content.
-            #  A faster/dirtier choice would be data.uuid*matrix_name as birth.
-            #  UPDATE:
-            #  It seems like ZStd also doesn't like to be inside a thread, here
-            #  and at pickleserver it gives the same error at the same time:
-            #  'ZstdError: cannot compress: Src size is incorrect'
-
-            # TODO: UPDATED 10/jun
-            #   Accessing fields just to calculate UUID defeats the purpose of lazy fields
-            #   (including lazy data from cururu and stream).
-            #   Vou colocar o cálculo rápido baseado em data.uuid*matrix_name,
-            #   a desvantagem é não ter o início da matriz compatível com o início em File,
-            #   mas talvez possamos mudar File pra ficar igual.
-
-            muuid = uuids.get(
-                name,
-                # u.UUID(co.pack(value))
-                uuid * u.UUID(bytes(name, 'latin1'))  # faster
-            )
-
-            # Transform UUID.
-            muuid = evolve(muuid, transformers)
-            uuids_[name] = muuid
-
-        # Update UUID.
-        uuid = evolve(uuid, transformers)
-
-        return uuid, uuids_
-
-
-def evolve(uuid: u.UUID, transformers: Tuple[tr.Transformer]) -> u.UUID:
+def evolve(uuid: u.UUID, transformers: Tuple[tr.Transformer, ...]) -> u.UUID:
     for transformer in transformers:
         uuid *= transformer.uuid
     return uuid
+
+
+def evolve_id(
+        uuid: u.UUID,
+        uuids: Dict[str, u.UUID],
+        transformers: Tuple[tr.Transformer, ...],
+        matrices: Dict[str, "t.Field"],
+) :
+    """Return UUID/UUIDs after transformations."""
+
+    # Update matrix UUIDs.
+    uuids_ = uuids.copy()
+    for name, value in matrices.items():
+        muuid = uuids.get(
+            name,
+            # u.UUID(co.pack(value))
+            uuid * u.UUID(bytes(name, 'latin1'))  # faster
+        )
+
+        # Transform UUID.
+        muuid = evolve(muuid, transformers)
+        uuids_[name] = muuid
+
+    # Update UUID.
+    uuid = evolve(uuid, transformers)
+
+    return uuid, uuids_

@@ -45,18 +45,19 @@ class NoData(type):
     id = uuid.id
     uuids: dict = {}
     history: List[tr.Transformer] = []
+    stream = None
     matrices: Dict[str, t.Field] = {}
-    failure: Optional[str] = None
+    failure: str = None
     isfrozen = False
     ishollow = False
     allfrozen = False  # TODO: is allfrozen still a thing
     storage_info = None
 
     @staticmethod
-    def hollow(transformers: Tuple[tr.Transformer]) -> d.Data:
+    def hollow(transformer: tr.Transformer) -> d.Data:
         """A light Data object, i.e. without matrices."""
         # noinspection PyCallByClass
-        return d.Data.hollow(NoData, transformers)
+        return d.Data.hollow(NoData, transformer)
 
     @staticmethod
     def transformedby(transformer: tr.Transformer):

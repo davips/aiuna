@@ -19,8 +19,8 @@ class PHolder(Transformer):  # TODO: Find a better name? Skiper?
         self._uuid = UUID.identity
         super().__init__(component)
 
-    def rawtransform(self, data: t.Data):
-        return data
+    def rawtransform(self, content: t.Data) -> t.Result:
+        return content
 
     def _uuid_impl(self):
         return self._uuid

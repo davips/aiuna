@@ -21,7 +21,7 @@ class Model(Transformer):
         self._uuid = data.uuid * component.cfuuid
         super().__init__(component)
 
-    def rawtransform(self, content: t.DataOrTup) -> t.DataOrTup:
+    def rawtransform(self, content: t.Data) -> t.Result:
         return self._rawtransform(content)
 
     def _uuid_impl(self):
