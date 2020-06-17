@@ -66,7 +66,7 @@ class NoData(type):
         Return itself if it is frozen or failed.        """
         result = transformer.rawtransform(NoData)
         if isinstance(result, dict):
-            return NoData.updated(transformers=(transformer,), **transformer.func(NoData))
+            return NoData.updated(transformers=(transformer,), **result)
         return result
 
     @staticmethod
