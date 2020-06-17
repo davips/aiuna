@@ -62,8 +62,8 @@ class NoData(type):
     def transformedby(transformer: tr.Transformer):
         """Return this Data object transformed by func.
 
-        Return itself if it is frozen or failed."""
-        result = transformer.func(NoData)
+        Return itself if it is frozen or failed.        """
+        result = transformer.rawtransform(NoData)
         if isinstance(result, dict):
             return NoData.updated(transformers=(transformer,), **transformer.func(NoData))
         return result

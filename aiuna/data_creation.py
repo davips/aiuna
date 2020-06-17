@@ -12,7 +12,9 @@ from pjdata.aux.serialization import serialize
 from pjdata.aux.uuid import UUID
 from pjdata.content.data import Data
 from pjdata.content.specialdata import NoData
-from pjdata.transformer import Transformer
+from pjdata.fakefile import FakeFile
+from pjdata.mixin.withserialization import WithSerialization
+from pjdata.transformer.enhancer import Enhancer
 
 
 def read_arff(filename, description='No description.'):
@@ -70,30 +72,14 @@ def read_arff(filename, description='No description.'):
         'Xt': UUID(pack(Xt)), 'Yt': UUID(pack(Yt))
     }
     original_hashes = {k: v.id for k, v in uuids.items()}
-    clean = filename.replace('.ARFF', '').replace('.arff', '')
-    splitted = clean.split('/')
-    # TODO: use _name
-    name_ = splitted[-1] + '_' + enc(
-        md5_int(serialize(original_hashes).encode()))[:6]
+    # # TODO: use _name
+    # name_ = splitted[-1] + '_' + enc(
+    #     md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
-    class FakeFile:
-        name = 'File'
-        path = 'pjml.tool.data.flow.file'
-        config = {
-            'name': filename.split('/')[-1],
-            'path': '/'.join(splitted[:-1]) + '/',
-            'description': description,
-            'hashes': original_hashes
-        }
-        transformer_info = {'_id': f'{name}@{path}', 'config': config}
-        jsonable = {'info': transformer_info, 'enhance': True, 'model': True}
-        serialized = serialize(jsonable)
-        uuid = UUID(serialized.encode())
-        cfg_serialized = serialize(transformer_info)
-        cfg_uuid = UUID(cfg_serialized.encode())
-
-    transformer = Transformer(FakeFile(), func=lambda: NoData, info={})  # <-- TODO:substitute NoData by real Data
+    transformer = Enhancer(
+        FakeFile(filename, description, original_hashes), func=lambda: NoData, info_func=lambda _: {}
+    )  # TODO:substitute NoData by real Data
     return original_hashes, Data(history=(transformer,),
                                  failure=None, frozen=False, hollow=False, stream=None, storage_info=None,
                                  X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
