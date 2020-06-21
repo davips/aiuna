@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from functools import lru_cache, cached_property
 from math import factorial
 
+from pjdata.aux.decorator import classproperty
+from pjdata.aux.util import Property
+
 
 def int2pmat(number, side=35):
     """Convert number into permutation matrix.
@@ -220,6 +223,18 @@ class M:
         else:
             raise Exception(f'Cannot set both args... n:{self.n} l:{self.m}!')
 
+    # @classmethod
+    @classproperty
+    @lru_cache()
+    def z(cls):
+        return M(0)
+
+    # @classmethod
+    @classproperty
+    @lru_cache()
+    def i(cls):
+        return M(n=cls.last)
+
     @staticmethod
     @lru_cache()
     def _lazy_t(l):
@@ -234,9 +249,11 @@ class M:
     def t(self):
         return self._lazy_t(tuple(self.m))
 
-    @cached_property
-    def last(self):
-        return self._lazy_last(self.side)
+    # @classmethod
+    @classproperty
+    @lru_cache()
+    def last(cls):
+        return cls._lazy_last(cls.side)
 
     def __mul__(self, other):
         return M(m=pmat_mult(self.m, other.m))
@@ -246,4 +263,4 @@ class M:
 
     def __add__(self, other):
         n = pmat2int(self.m) + pmat2int(other.m)
-        return M(n % self.last)
+        return M(n % (self.last + 1))
