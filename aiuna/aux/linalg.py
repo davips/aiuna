@@ -238,7 +238,7 @@ class M:
     @staticmethod
     @lru_cache()
     def _lazy_t(l):
-        return M(m=pmat_transpose(l))
+        return M(m=pmat_transpose(l), side=len(l))
 
     @staticmethod
     @lru_cache()
@@ -256,11 +256,11 @@ class M:
         return cls._lazy_last(cls.side)
 
     def __mul__(self, other):
-        return M(m=pmat_mult(self.m, other.m))
+        return M(m=pmat_mult(self.m, other.m), side=self.side)
 
     def __truediv__(self, other):
-        return M(m=pmat_mult(self.m, other.t))
+        return M(m=pmat_mult(self.m, other.t), side=self.side)
 
     def __add__(self, other):
         n = pmat2int(self.m) + pmat2int(other.m)
-        return M(n % (self.last + 1))
+        return M(n % (self.last + 1), side=self.side)
