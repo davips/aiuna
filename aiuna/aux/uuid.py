@@ -198,7 +198,7 @@ class UUID:
         return UUID(pmat_mult(self.m, other.t.m))
 
     def __eq__(self, other):
-        if isinstance(other, UUID):
+        if not isinstance(other, UUID):
             return False
         return self.n == other.n if self._m is None else self.m == other.m
 
