@@ -16,9 +16,11 @@ def safety():
 # global provisorio
 import json
 
-with open('config.json', 'r') as f:
-    STORAGE_CONFIG = json.load(f)
+try:
+    with open('config.json', 'r') as f:
+        STORAGE_CONFIG = json.load(f)
+except FileNotFoundError:
+    STORAGE_CONFIG = {}
 STORAGE_CONFIG['default_dump'] = {'engine': 'dump'}
 STORAGE_CONFIG['default_sqlite'] = {'engine': 'sqlite'}
 STORAGE_CONFIG['storages'] = {}
-
