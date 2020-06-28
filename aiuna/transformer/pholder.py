@@ -13,6 +13,8 @@ from pjdata.aux.uuid import UUID
 
 
 class PHolder(Transformer):  # TODO: Find a better name? Skiper?
+    #TODO: lembrar por que o PHolder é necessário
+    #TODO: PHolder precisa ser posto apenas qnd usuário inibe step, ou mesmo quando frozen?
     """Placeholder for a component to appear in history but do nothing."""
 
     def __init__(self, component: WithSerialization):
