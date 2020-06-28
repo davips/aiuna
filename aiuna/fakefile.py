@@ -2,7 +2,7 @@ from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
-from pjdata.mixin.withserialization import WithSerialization
+from pjdata.mixin.serialization import WithSerialization
 
 
 class FakeFile(WithSerialization):

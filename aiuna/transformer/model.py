@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING, Union, Dict
 
-from pjdata.mixin.withserialization import WithSerialization
+from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.info import Info
 from pjdata.transformer.transformer import Transformer
 

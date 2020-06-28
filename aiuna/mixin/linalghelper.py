@@ -8,7 +8,7 @@ import pjdata.aux.uuid as u
 import pjdata.transformer.transformer as tr
 
 
-class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions  to end cyclic  imports
+class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions
     @staticmethod
     def _as_vector(mat: ndarray) -> ndarray:
         size = max(mat.shape[0], mat.shape[1])

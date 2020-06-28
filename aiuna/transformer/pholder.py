@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 from pjdata import types as t
-from pjdata.mixin.withserialization import WithSerialization
+from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.transformer import Transformer
 
 if typing.TYPE_CHECKING:

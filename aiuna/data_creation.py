@@ -13,7 +13,7 @@ from pjdata.aux.uuid import UUID
 from pjdata.content.data import Data
 from pjdata.content.specialdata import NoData
 from pjdata.fakefile import FakeFile
-from pjdata.mixin.withserialization import WithSerialization
+from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.enhancer import Enhancer
 
 

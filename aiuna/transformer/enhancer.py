@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Callable, TYPE_CHECKING, Union, Dict, Any
 
-from pjdata.mixin.withserialization import WithSerialization
+from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.info import Info
 from pjdata.transformer.transformer import Transformer
 

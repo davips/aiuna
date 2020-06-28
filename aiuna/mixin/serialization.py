@@ -9,7 +9,7 @@ if typing.TYPE_CHECKING:
 
 from pjdata.aux.serialization import serialize
 from pjdata.aux.util import Property
-from pjdata.mixin.withidentification import WithIdentification
+from pjdata.mixin.identification import WithIdentification
 
 
 class WithSerialization(WithIdentification, ABC):
