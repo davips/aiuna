@@ -13,7 +13,6 @@ class _(metaclass=_meta):
  
     _.m = apply map and convert to list (useful for easy printing while debugging)
     _ = item inside iterable (to provide as a function to map)
-
     Example:
         map(_[4], tuples)
         map(_('My class name applied for all new instances'), classes)

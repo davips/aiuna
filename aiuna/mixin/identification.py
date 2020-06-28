@@ -6,11 +6,7 @@ from functools import cached_property
 from pjdata.aux.uuid import UUID
 
 
-<<<<<<< HEAD
 class withIdentification(ABC):
-=======
-class WithIdentification(ABC):
->>>>>>> 0a93741... Remove WithEquality since only Data has equality by now
     """ Identifiable mixin. """
     @cached_property
     def name(self):
