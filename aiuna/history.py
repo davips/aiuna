@@ -1,18 +1,15 @@
 from typing import Tuple
 
+import pjdata.transformer.transformer as tr
+from pjdata.aux.util import _
 from pjdata.mixin.printing import withPrinting
 
 
 class History(withPrinting):
-    def _jsonable_impl(self):
-        # TODO: create a method for dirty history
-        return '§[' + ', '.join(map(str, self)) + ']'
-
-    def __init__(self, *args, tuples: Tuple[tuple, ...] = None):
+    def __init__(self, *args, tuples: Tuple[tr.Transformer, ...] = None):
         """Optimized tuple based on structural sharing. Ref: https://stackoverflow.com/a/62423033/9681577"""
         self.tuples = args if tuples is None else tuples
         self.size = sum(map(len, self.tuples))
-        print(self.tuples)
 
     def extend(self, transformations: tuple):
         return History(tuples=self.tuples + (transformations,))
@@ -34,5 +31,6 @@ class History(withPrinting):
     def __len__(self):
         return self.size
 
-    # TODO: dynamic(?) accessors to map history to fields of each transformation:  {history.names}
-
+    def _jsonable_impl(self):
+        # TODO: create a method for dirty history
+        return '§[' + ', '.join(map(str, self)) + ']'

@@ -65,7 +65,7 @@ class LinAlgHelper:  # TODO: dismiss this mixin and create a bunch of functions
         return matrices
 
 
-def evolve(uuid: u.UUID, transformers: Tuple[tr.Transformer, ...]) -> u.UUID:
+def evolve(uuid: u.UUID, transformers: t.Iterable[tr.Transformer]) -> u.UUID:
     for transformer in transformers:
         uuid *= transformer.uuid
     return uuid
@@ -74,7 +74,7 @@ def evolve(uuid: u.UUID, transformers: Tuple[tr.Transformer, ...]) -> u.UUID:
 def evolve_id(
         uuid: u.UUID,
         uuids: Dict[str, u.UUID],
-        transformers: Tuple[tr.Transformer, ...],
+        transformers: t.Iterable[tr.Transformer],
         matrices: Dict[str, "t.Field"],
 ) :
     """Return UUID/UUIDs after transformations."""

@@ -13,6 +13,7 @@ from pjdata.aux.uuid import UUID
 from pjdata.content.data import Data
 from pjdata.content.specialdata import NoData
 from pjdata.fakefile import FakeFile
+from pjdata.history import History
 from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.enhancer import Enhancer
 
@@ -80,7 +81,7 @@ def read_arff(filename, description='No description.'):
     transformer = Enhancer(
         FakeFile(filename, description, original_hashes), func=lambda: NoData, info_func=lambda _: {}
     )  # TODO:substitute NoData by real Data
-    return original_hashes, Data(history=(transformer,),
+    return original_hashes, Data(history=History((transformer,)),
                                  failure=None, frozen=False, hollow=False, stream=None, storage_info=None,
                                  X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
     # name=name_, desc=description)  #  <- TODO
