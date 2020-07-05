@@ -1,12 +1,11 @@
 from typing import Tuple
 
 import pjdata.transformer.transformer as tr
-from pjdata.aux.util import _
 from pjdata.mixin.printing import withPrinting
 
 
 class History(withPrinting):
-    def __init__(self, *args, tuples: Tuple[tr.Transformer, ...] = None):
+    def __init__(self, *args, tuples: Tuple[Tuple[tr.Transformer, ...], ...] = None):
         """Optimized tuple based on structural sharing. Ref: https://stackoverflow.com/a/62423033/9681577"""
         self.tuples = args if tuples is None else tuples
         self.size = sum(map(len, self.tuples))
