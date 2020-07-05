@@ -50,7 +50,6 @@ class NoData(type):
     failure: str = None
     isfrozen = False
     ishollow = False
-    allfrozen = False  # TODO: is allfrozen still a thing
     storage_info = None
 
     @staticmethod
