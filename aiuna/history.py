@@ -1,35 +1,46 @@
-from typing import Tuple
+from dataclasses import dataclass
+from typing import List
 
-import pjdata.transformer.transformer as tr
-from pjdata.mixin.printing import withPrinting
+from pjdata.transformer.transformer import Transformer
 
 
-class History(withPrinting):
-    def __init__(self, *args, tuples: Tuple[Tuple[tr.Transformer, ...], ...] = None):
-        """Optimized tuple based on structural sharing. Ref: https://stackoverflow.com/a/62423033/9681577"""
-        self.tuples = args if tuples is None else tuples
-        self.size = sum(map(len, self.tuples))
+@dataclass
+class Leaf:
+    transformer: Transformer
+    isleaf = True
 
-    def extend(self, transformations: tuple):
-        return History(tuples=self.tuples + (transformations,))
+    def __str__(self):
+        return self.transformer
+
+
+class History:
+    isleaf = False
+
+    def __init__(self, transformers: List[Transformer], nested=None):
+        """Optimized iterable based on structural sharing."""
+        self.nested = nested or list(map(Leaf, transformers))
+
+    def __add__(self, other):
+        return History([], nested=[self, other])
+
+    def __lshift__(self, transformers):
+        return History([], nested=[self, History(transformers)])
+
+    def traverse(self, node):
+        # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
+        if node.isleaf:
+            yield node.transformer
+        else:
+            for tup in node.nested:
+                yield from self.traverse(tup)
 
     def __iter__(self):
-        for tup in self.tuples:
-            for item in tup:
-                yield item
+        yield from self.traverse(self)
 
-    def __getitem__(self, index):
-        if index >= self.size:
-            raise IndexError
-        for tup in self.tuples:
-            if index > len(tup):
-                index -= len(tup)
-            else:
-                return tup[index]
+    def clean(self):
+        for transformer in self:
+            if not transformer.ispholder:
+                yield transformer
 
-    def __len__(self):
-        return self.size
-
-    def _jsonable_impl(self):
-        # TODO: create a method for dirty history
-        return '§[' + ', '.join(map(str, self)) + ']'
+    def __str__(self):
+        return '§[' + ', '.join(map(str, self.clean)) + ']'

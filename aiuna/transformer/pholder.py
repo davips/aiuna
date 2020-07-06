@@ -15,6 +15,7 @@ from pjdata.aux.uuid import UUID
 class PHolder(Transformer):  # TODO: Find a better name? Skiper?
     #TODO: lembrar por que o PHolder é necessário
     """Placeholder for a component to appear in history but do nothing."""
+    ispholder = True
 
     def __init__(self, component: WithSerialization):
         self._uuid = UUID.identity
