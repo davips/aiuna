@@ -5,7 +5,7 @@ import arff
 import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
-
+import pjdata.mixin.linalghelper as li
 from pjdata.aux.compression import pack
 from pjdata.aux.encoders import md5_int, enc
 from pjdata.aux.serialization import serialize
@@ -67,24 +67,32 @@ def read_arff(filename, description='No description.'):
     Yt = [translate_type(TgtAtt[1])]
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
-    uuids = {
-        'X': UUID(pack(X)), 'Y': UUID(pack(Y)),
-        'Xd': UUID(pack(Xd)), 'Yd': UUID(pack(Yd)),
-        'Xt': UUID(pack(Xt)), 'Yt': UUID(pack(Yt))
-    }
+    matrices = {'X': X, 'Y': Y, 'Xd': Xd, 'Yd': Yd, 'Xt': Xt, 'Yt': Yt}
+    uuids = {k: UUID(pack(v)) for k, v in matrices.items()}
     original_hashes = {k: v.id for k, v in uuids.items()}
+
     # # TODO: use _name
     # name_ = splitted[-1] + '_' + enc(
     #     md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
-    transformer = Enhancer(
+    faketransformer = Enhancer(
         FakeFile(filename, description, original_hashes), func=lambda: NoData, info_func=lambda _: {}
-    )  # TODO:substitute NoData by real Data
-    return original_hashes, Data(history=History((transformer,)),
-                                 failure=None, frozen=False, hollow=False, stream=None, storage_info=None,
-                                 X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
-    # name=name_, desc=description)  #  <- TODO
+    )
+    uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
+
+    # Create a temporary Data object (i.e. with a fake history).
+    data = Data(history=History([faketransformer]),
+                failure=None, frozen=False, hollow=False, stream=None, storage_info=None,
+                uuid=uuid,
+                uuids=uuids,
+                X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
+
+    # Patch the Data object with the real transformer and history.
+    transformer = Enhancer(FakeFile(filename, description, original_hashes), func=lambda: data, info_func=lambda _: {})
+    data.history = History([transformer])
+
+    return original_hashes, data
 
 
 def translate_type(name):
