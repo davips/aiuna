@@ -17,6 +17,8 @@ class _(metaclass=_meta):
         map(_[4], tuples)
         map(_('My class name applied for all new instances'), classes)
         _.m(_.id, users)
+
+    ps. Mostly for development.
     """
 
     def __new__(cls, *args, **kwargs):
