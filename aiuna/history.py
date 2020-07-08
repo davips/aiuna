@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import List
 
-from pjdata.aux.util import Property
+from pjdata.aux.util import Property, _
 from pjdata.mixin.printing import withPrinting
 from pjdata.transformer.transformer import Transformer
 
@@ -66,3 +66,6 @@ class History(withPrinting):
         for transformer_astext in self:
             if 'PHolder' not in transformer_astext:
                 yield transformer_astext
+
+    def __xor__(self, attrname):
+        yield from map(_.__dict__(attrname), self.traverse(self))
