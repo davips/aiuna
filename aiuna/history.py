@@ -1,17 +1,19 @@
-from dataclasses import dataclass
-from functools import lru_cache
-from typing import List
+from __future__ import annotations
 
+import json
+from functools import lru_cache
+from typing import List, Union
+
+import pjdata.transformer.transformer as tr
 from pjdata.aux.util import Property, _
 from pjdata.mixin.printing import withPrinting
-from pjdata.transformer.transformer import Transformer
 
 
 class Leaf(withPrinting):
     isleaf = True
 
-    def __init__(self, transformer: Transformer):
-        self.transformer_astext = transformer.serialized
+    def __init__(self, transformer: Union[str, tr.Transformer]):
+        self.transformer_astext = transformer if isinstance(transformer, str) else transformer.serialized
 
     def _jsonable_impl(self):
         return self.transformer_astext
@@ -20,7 +22,7 @@ class Leaf(withPrinting):
 class History(withPrinting):
     isleaf = False
 
-    def __init__(self, transformers: List[Transformer], nested=None):
+    def __init__(self, transformers: List[Union[str, tr.Transformer]], nested=None):
         """Optimized iterable based on structural sharing."""
         self.nested = nested or list(map(Leaf, transformers))
         # if len(self.nested)==0:
@@ -55,7 +57,7 @@ class History(withPrinting):
         if node.isleaf:
             return node.transformer_astext
         else:
-            print(node.nested)
+            # print(node.nested)
             return self._findlast(node.nested[-1])
 
     def __iter__(self):
@@ -68,4 +70,4 @@ class History(withPrinting):
                 yield transformer_astext
 
     def __xor__(self, attrname):
-        yield from map(_.__dict__(attrname), self.traverse(self))
+        return list(map(lambda x: json.loads(x)[attrname], self.traverse(self)))  # TODO: memoize json?

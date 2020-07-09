@@ -23,9 +23,9 @@ def materialize(name, path, config):
     -------
     A ready to use component.
     """
-    class_ = _get_class(path, name)
+    klass = _get_class(path, name)
     try:
-        return class_(**config)
+        return klass(**config)
     except Exception as e:
         print(e)
         raise Exception(
@@ -34,10 +34,10 @@ def materialize(name, path, config):
 
 def _dict_to_component(dic):
     """Convert recursively a dict to a component."""
-    if 'component' not in dic:
-        raise Exception('Provided dict does not represent a component.')
-    name, path = dic['_id'].split('@')
-    cfg = dic['config']
+    if 'info' not in dic:
+        raise Exception('Provided dict does not represent a component.', dic)
+    name, path = dic['info']['id'].split('@')
+    cfg = dic['info']['config']
     if 'component' in cfg:
         cfg['component'] = _dict_to_component(cfg['component'])
 

@@ -1,24 +1,21 @@
 from __future__ import annotations
 
-import typing
+from typing import TYPE_CHECKING
 
-from pjdata import types as t
-from pjdata.mixin.serialization import WithSerialization
-from pjdata.transformer.transformer import Transformer
-
-if typing.TYPE_CHECKING:
-    pass
-
-from pjdata.aux.uuid import UUID
+import pjdata.mixin.serialization as ser
+if TYPE_CHECKING:
+    import pjdata.types as t
+import pjdata.aux.uuid as u
+import pjdata.transformer.transformer as tr
 
 
-class PHolder(Transformer):  # TODO: Find a better name? Skiper?
-    #TODO: lembrar por que o PHolder é necessário
+class PHolder(tr.Transformer):  # TODO: Find a better name? Skiper?
+    # TODO: lembrar por que o PHolder é necessário
     """Placeholder for a component to appear in history but do nothing."""
     ispholder = True
 
-    def __init__(self, component: WithSerialization):
-        self._uuid = UUID.identity
+    def __init__(self, component: t.Union[str, ser.WithSerialization]):
+        self._uuid = u.UUID.identity
         super().__init__(component)
 
     def rawtransform(self, content: t.Data) -> t.Result:

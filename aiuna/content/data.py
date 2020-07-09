@@ -1,149 +1,113 @@
-# data
+# transformer
+from __future__ import annotations
+
 import json
-import traceback
-from functools import lru_cache, cached_property
-from typing import Optional, TYPE_CHECKING, Iterator, Union, Literal, Dict, List
+from abc import ABC, abstractmethod
+from functools import lru_cache
 
-import arff
+import pjdata.mixin.serialization as ser
+from typing import TYPE_CHECKING
 
-from pjdata.mixin.identification import withIdentification
+from pjdata.aux.util import Property
+if TYPE_CHECKING:
+    import pjdata.types as t
+    import pjdata.transformer.pholder as ph
+from pjdata.aux.serialization import serialize, deserialize
+from pjdata.aux.uuid import UUID
 from pjdata.mixin.printing import withPrinting
 
-import pjdata.aux.compression as com
-import pjdata.aux.uuid as u
-import pjdata.mixin.linalghelper as li
-import pjdata.transformer.transformer as tr
-from pjdata.aux.util import Property
-from pjdata.config import STORAGE_CONFIG
-import pjdata.history as h
-import numpy as np
 
+class Transformer(ser.withSerialization, withPrinting, ABC):
+    ispholder = False
 
-def new():
-    # TODO: create Data from matrices
-    raise NotImplementedError
+    def __init__(self, component: t.Union[str, ser.withSerialization]):
+        """Base class for all transformers.
 
+        ps. Assumes all components are symmetric. This class uses the same component details for both enhance and model.
+        I.e. the transformation, if any, is always the same, no matter at which step (enhancing/predicting) we are."""
+        if isinstance(component, str):
+            # If this transformer is created by other transformer, we can take advantage of a previous serialization.
+            # This only works for PHolder because of its simpler uuid calculation!
+            dic = json.loads(component)
+            self._name = dic["name"]
+            self.path = dic["path"]
+            self.config = dic["config"]
+            self.serialized_component = component
+            enhance, model = dic["enhance"], dic["model"]
+        else:
+            self._name = component.name
+            self.path = component.path
+            self.config = component.config  # TODO: put config/has* in WithSerialization? create a new mixin?
+            self.serialized_component = component.serialized
+            enhance, model = component.hasenhancer, component.hasmodel
 
-class Data(withIdentification, withPrinting):
-    """Immutable lazy data for most machine learning scenarios.
+        # WARNING: serialization of Transformer cannot be reverted! It is just a bunch of shortcuts to component.
+        self._jsonable = {
+            # 'cfuuid': component.cfuuid,
+            # 'component_uuid': component.uuid,
+            "name": self.name,
+            "longname": self.longname,
+            "path": self.path,
+            "config": self.config,
+            "enhance": enhance,
+            "model": model,
+            # 'transformer': self.__class__.__name__,  # See 'ps' in docs.
+            "uuid": self.uuid,
+        }
 
-    Parameters
-    ----------
-    history
-        A History objects that represents a sequence of Transformations objects.
-    failure
-        The reason why the workflow that generated this Data object failed.
-    frozen
-        Indicate wheter the workflow ended earlier due to a normal
-        component behavior.
-    hollow
-        Indicate whether this is a Data object intended to be filled by
-        Storage.
-    storage_info
-        An alias to a global Storage object for lazy matrix fetching.
-    matrices
-        A dictionary like {X: <numpy array>, Y: <numpy array>}.
-        Matrix names should have a single uppercase character, e.g.:
-        X=[
-           [23.2, 35.3, 'white'],
-           [87.0, 52.7, 'brown']
-        ]
-        Y=[
-           'rabbit',
-           'mouse'
-        ]
-        They can be, ideally, numpy arrays (e.g. storing is optimized).
-        A matrix name followed by a 'd' indicates its description, e.g.:
-        Xd=['weight', 'height', 'color']
-        Yd=['class']
-        A matrix name followed by a 't' indicates its types ('ord', 'int',
-        'real', 'cat'*).
-        * -> A cathegorical/nominal type is given as a list of nominal values:
-        Xt=['real', 'real', ['white', 'brown']]
-        Yt=[['rabbit', 'mouse']]
-    """
+    @Property
+    @lru_cache()
+    def component(self):
+        return deserialize(self.serialized_component)
 
-    _Xy = None
+    @Property
+    @lru_cache()
+    def longname(self):
+        return self.__class__.__name__ + f"[{self.name}]"
 
-    def __init__(self, uuid=u.UUID.identity, uuids=None, history=h.History([]), failure=None, frozen=False, hollow=False, stream=None, target="s,r", storage_info=None, historystr=None, trdata=None, **matrices):
-        # target: Fields precedence when comparing which data is greater.
-        if uuids is None:
-            uuids = {}
-        if historystr is None:
-            historystr = []
-        self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids}
-        # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
-        # TODO:
-        #  1- 'name' and 'desc'
-        #  2- volatile fields
-        #  3- dna property?
-        #  4- task?
+    @Property
+    @lru_cache()
+    def pholder(self) -> ph.PHolder:
+        from pjdata.transformer.pholder import PHolder
 
-        self.target = target.split(",")
-        self.history = history
-        self._failure = failure
-        self._frozen = frozen
-        self._hollow = hollow
-        self.stream = stream
-        self._target = [field for field in self.target if field.upper() in matrices]
-        self.storage_info = storage_info
-        self.matrices = matrices
-        self._uuid, self.uuids = uuid, uuids
-        self.historystr = historystr
-        self.trdata = trdata
+        return PHolder(self.component)
+
+    @classmethod
+    def materialize(cls, serialized):
+        jsonable = json.loads(serialized)
+
+        class FakeComponent(ser.withSerialization):
+            path = jsonable["path"]
+            serialized = jsonable["component"]
+
+            def _name_impl(self):
+                return jsonable["name"]
+
+            def _uuid_impl(self):
+                return UUID(jsonable["component_uuid"])
+
+            def _cfuuid_impl(self, data=None):
+                return jsonable
+
+        component = FakeComponent()
+        return cls(component)
+
+    def transform(self, content: t.DataOrTup, exit_on_error=True) -> t.DataOrTup:
+        if isinstance(content, tuple):
+            return tuple((dt.transformedby(self) for dt in content))
+        # Todo: We should add exception handling here because self.func can raise errors
+        # print(' transform... by', self.name)
+        return content.transformedby(self)
+
+    @abstractmethod
+    def _transform_impl(self, data: t.Data) -> t.Result:
+        pass
 
     def _jsonable_impl(self):
         return self._jsonable
 
-    def replace(self, transformers, truuid=u.UUID.identity, failure="keep", frozen="keep", stream="keep", trdata="keep", **fields):
-        """Recreate an updated Data object.
+    def _name_impl(self):
+        return self._name
 
-        Parameters
-        ----------
-        frozen
-        transformers
-            List of Transformer objects that transforms this Data object.
-        failure
-            Updated value for failure.
-            'keep' (recommended, default) = 'keep this attribute unchanged'.
-            None (unusual) = 'no failure', possibly overriding previous
-             failures
-        fields
-            Matrices or vector/scalar shortcuts to them.
-        stream
-            Iterator that generates Data objects.
-
-        Returns
-        -------
-        New Content object (it keeps references to the old one for performance).
-        :param trdata:
-        :param transformers:
-        :param stream:
-        :param frozen:
-        :param failure:
-        :param truuid:
-        """
-        if not isinstance(transformers, list):
-            transformers = [transformers]
-        if failure == "keep":
-            failure = self.failure
-        if frozen == "keep":
-            frozen = self.isfrozen
-        if stream == "keep":
-            stream = self.stream
-        if isinstance(trdata, str):
-            trdata = self.trdata
-        matrices = self.matrices.copy()
-        matrices.update(li.fields2matrices(fields))
-
-        uuid, uuids = li.evolve_id(self.uuid, self.uuids, transformers, matrices, truuid)
-
-        # noinspection Mypy
-        if self.history is None:
-            self.history = h.History([])
-        return Data(
-            history=self.history << transformers,
-            failure=failure,
-            frozen=frozen,
-            hollow=self.ishollow,
- 
+    def _cfuuid_impl(self, data=None):
+        raise Exception("Non sense access!")
