@@ -18,7 +18,9 @@ from pjdata.config import safety
 
 @lru_cache()
 def compression_dict():  # TODO: update dictionary
-    samples = [s.encode() for s in """[{"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "u"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "full"}},{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "not majority","seed": 0}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "SVMC@pjml.tool.data.modeling.supervised.classifier.svmc","config": {"C": 46.70277962456371,"class_weight": "balanced","decision_function_shape": "ovr","kernel": "linear","max_iter": 1000000,"probability": false,"seed": 0,"shrinking": false,"tol": 10000}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "u"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "u"}]
+    samples = [
+        s.encode()
+        for s in """[{"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "u"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "full"}},{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "not majority","seed": 0}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "SVMC@pjml.tool.data.modeling.supervised.classifier.svmc","config": {"C": 46.70277962456371,"class_weight": "balanced","decision_function_shape": "ovr","kernel": "linear","max_iter": 1000000,"probability": false,"seed": 0,"shrinking": false,"tol": 10000}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "u"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "u"}]
     [{"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "u"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}},{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "full"}},{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "not majority","seed": 0}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "SVMC@pjml.tool.data.modeling.supervised.classifier.svmc","config": {"C": 61.86643910979159,"class_weight": null,"coef0": 40.126381359572875,"decision_function_shape": "ovr","gamma": 50.442764892108094,"kernel": "sigmoid","max_iter": 1000000,"probability": false,"seed": 0,"shrinking": true,"tol": 10}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "u"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "u"}]
     [{"_id": "File@pjml.tool.data.flow.file","config": {"description": "No description.","matrices_hash": "OFÆdñOéNnWÅV08âDîgê","name": "iris.arff","path": "./"},"step": "u"}, {"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "a"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "not minority","seed": 0}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}},{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "full"}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "SVMC@pjml.tool.data.modeling.supervised.classifier.svmc","config": {"C": 43.67587105856549,"class_weight": "balanced","coef0": 43.89534979741296,"decision_function_shape": "ovo","degree": 8,"gamma": 75.57405052527169,"kernel": "poly","max_iter": 1000000,"probability": false,"seed": 0,"shrinking": true,"tol": 1e-05}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "a"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "a"}]
     [{"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "u"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "not minority","seed": 0}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}},{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "full"}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "SVMC@pjml.tool.data.modeling.supervised.classifier.svmc","config": {"C": 43.67587105856549,"class_weight": "balanced","coef0": 43.89534979741296,"decision_function_shape": "ovo","degree": 8,"gamma": 75.57405052527169,"kernel": "poly","max_iter": 1000000,"probability": false,"seed": 0,"shrinking": true,"tol": 1e-05}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "u"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "u"}]
@@ -671,15 +673,15 @@ def compression_dict():  # TODO: update dictionary
     [{"_id": "File@pjml.tool.data.flow.file","config": {"description": "No description.","matrices_hash": "OFÆdñOéNnWÅV08âDîgê","name": "iris.arff","path": "./"},"step": "u"}, {"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "a"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "all","seed": 0}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}},{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "scale"}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "DT@pjml.tool.data.modeling.supervised.classifier.dt","config": {"class_weight": "balanced","criterion": "entropy","max_depth": 997,"max_features": "sqrt","min_impurity_decrease": 0.053075693882466204,"min_samples_leaf": 0.14239129722820532,"min_samples_split": 0.11415354942829893,"min_weight_fraction_leaf": 0.035220196207520246,"seed": 0,"splitter": "best"}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "a"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "a"}]
     [{"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "u"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "all","seed": 0}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}},{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "scale"}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "DT@pjml.tool.data.modeling.supervised.classifier.dt","config": {"class_weight": "balanced","criterion": "entropy","max_depth": 997,"max_features": "sqrt","min_impurity_decrease": 0.053075693882466204,"min_samples_leaf": 0.14239129722820532,"min_samples_split": 0.11415354942829893,"min_weight_fraction_leaf": 0.035220196207520246,"seed": 0,"splitter": "best"}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "u"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "u"}]
     [{"_id": "File@pjml.tool.data.flow.file","config": {"description": "No description.","matrices_hash": "","name": "iris.arff","path": "./"},"step": "u"}, {"_id": "Partition@pjml.tool.collection.expand.partition","config": {"fields": ["X","Y"],"partitions": 10,"seed": 0,"split_type": "cv"},"step": "a"}, {"_id": "Map@pjml.tool.collection.transform.map","config": {"components": [{"_id": "Wrap@pjml.tool.meta.wrap","config": {"components": [{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "translate"}},{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [-1,1]}}]}},{"_id": "Chain@pjml.tool.chain","config": {"components": [{"_id": "MinMax@pjml.tool.data.processing.feature.scaler.minmax","config": {"feature_range": [0,1]}},{"_id": "Std@pjml.tool.data.processing.feature.scaler.std","config": {"operation": "full"}},{"_id": "UnderS@pjml.tool.data.processing.instance.sampler.under.random","config": {"sampling_strategy": "not majority","seed": 0}}]}},{"_id": "ApplyUsing@pjml.tool.data.flow.applyusing","config": {"components": [{"_id": "SVMC@pjml.tool.data.modeling.supervised.classifier.svmc","config": {"C": 61.86643910979159,"class_weight": null,"coef0": 40.126381359572875,"decision_function_shape": "ovr","gamma": 50.442764892108094,"kernel": "sigmoid","max_iter": 1000000,"probability": false,"seed": 0,"shrinking": true,"tol": 10}}]}}]}},{"_id": "Metric@pjml.tool.data.evaluation.metric","config": {"functions": ["accuracy"],"prediction": "Z","target": "Y"}}]},"step": "a"}, {"_id": "Summ@pjml.tool.collection.reduce.summ","config": {"field": "R","function": "mean_std"},"step": "a"}]
-    """.split('\n')]
-    return zs.train_dictionary(
-        dict_size=99999999, samples=samples, threads=-1
-    )
+    """.split(
+            "\n"
+        )
+    ]
+    return zs.train_dictionary(dict_size=99999999, samples=samples, threads=-1)
 
 
 cctx = zs.ZstdCompressor(threads=-1)
-cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(),
-                            write_dict_id=False)
+cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict_id=False)
 
 cctxdec = zs.ZstdDecompressor()
 cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
@@ -688,33 +690,32 @@ cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 
 def pack(obj):
     with safety():
-        if isinstance(obj, np.ndarray) and str(obj.dtype) == 'float64' and len(
-                obj.shape) == 2:
+        if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
             h, w = obj.shape
             fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
             header = integers2bytes(obj.shape)
-            return b'F' + header + cctx.compress(fast_reduced)
+            return b"F" + header + cctx.compress(fast_reduced)
         elif isinstance(obj, (list, set, str, int, float, bytearray, bool)):
             js = json.dumps(obj, sort_keys=True, ensure_ascii=False)
-            return b'J' + cctx.compress(js.encode())
+            return b"J" + cctx.compress(js.encode())
         elif isinstance(obj, str):
-            return b'T' + cctxdic.compress(obj.encode())  # b'T'+0s==1409286144
+            return b"T" + cctxdic.compress(obj.encode())  # b'T'+0s==1409286144
         else:
             pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
             fast_reduced = lz.compress(pickled, compression_level=1)
-            return b'P' + cctx.compress(fast_reduced)  # b'P'+0s==1342177280
+            return b"P" + cctx.compress(fast_reduced)  # b'P'+0s==1342177280
 
 
 def unpack(dump_with_header):
     with safety():
         header = dump_with_header[:1]
         dump = dump_with_header[1:]
-        if header == b'P':
+        if header == b"P":
             decompressed = lz.decompress(cctxdec.decompress(dump))
             return pickle.loads(decompressed)
-        elif header == b'T':
+        elif header == b"T":
             return cctxdicdec.decompress(dump).decode()
-        elif header == b'F':
+        elif header == b"F":
             header = dump_with_header[1:9]
             dump = dump_with_header[9:]
             decompressed = lz.decompress(cctxdec.decompress(dump))
@@ -722,6 +723,7 @@ def unpack(dump_with_header):
             return np.reshape(np.frombuffer(decompressed), newshape=(h, w))
         else:
             return json.loads(cctxdec.decompress(dump).decode())
+
 
 # def pack_object(obj):  #blosc is buggy
 #     """

@@ -7,8 +7,7 @@ from typing import Union, List
 import pjdata.aux.alphabets as alph
 from pjdata.aux.classproperty import ClassProperty
 from pjdata.aux.encoders import enc, dec
-from pjdata.aux.linalg import int2pmat, pmat_transpose, pmat_mult, pmat2int, \
-    print_binmatrix
+from pjdata.aux.linalg import int2pmat, pmat_transpose, pmat_mult, pmat2int, print_binmatrix
 
 
 class UUID:
@@ -60,7 +59,7 @@ class UUID:
     alphabet = alph.letters800
     alphabetrev = alph.lookup800
     lower_limit = 1  # Zero has cyclic inversions, Z*Z=I  Z-¹=Z
-    identity = ClassProperty('identity_')
+    identity = ClassProperty("identity_")
 
     # Lazy starters.
     _n = None  # number
@@ -79,40 +78,33 @@ class UUID:
             self.bits = bits
             self.side = 58
             self.digits = 27
-            raise NotImplementedError('256 bits still not implemented.')
+            raise NotImplementedError("256 bits still not implemented.")
 
         elif bits != 128:
-            raise NotImplementedError('Only 128 and 256 bits are implemented.')
+            raise NotImplementedError("Only 128 and 256 bits are implemented.")
 
         # Handle different types of the provided identifier.
         if isinstance(identifier, list):
             side = len(identifier)
             if side != self.side:
                 print_binmatrix(identifier)
-                raise Exception(
-                    f'Permutation matrix should be {self.side}x{self.side}!'
-                    f' Not {side}x{side}'
-                )
+                raise Exception(f"Permutation matrix should be {self.side}x{self.side}!" f" Not {side}x{side}")
             self._m = identifier
         elif isinstance(identifier, int):
             if identifier > self.upper_limit or identifier < self.lower_limit:
-                raise Exception(
-                    f'Number should be in the interval [{self.lower_limit},'
-                    f'{self.upper_limit}]!'
-                )
+                raise Exception(f"Number should be in the interval [{self.lower_limit}," f"{self.upper_limit}]!")
             self._n = identifier
         elif isinstance(identifier, str):
             size = len(identifier)
             if size != self.digits:
-                raise Exception(
-                    f'Str id should have {self.digits} chars! Not {size}!'
-                )
+                raise Exception(f"Str id should have {self.digits} chars! Not {size}!")
             self._id = identifier
         elif isinstance(identifier, bytes):
             from pjdata.aux.encoders import md5_int
+
             self._n = md5_int(identifier)
         else:
-            raise Exception('Wrong argument type for UUID:', type(identifier))
+            raise Exception("Wrong argument type for UUID:", type(identifier))
 
     @staticmethod  # Needs to be static to avoid self.__hash__ starting calculation of lazy values
     @lru_cache()
@@ -171,7 +163,7 @@ class UUID:
             elif self._id:
                 self._n = dec(self.id, self.alphabetrev)
             else:
-                raise Exception('UUID broken, missing data to calculate n!')
+                raise Exception("UUID broken, missing data to calculate n!")
         return self._n
 
     @property  # Cannot be lru, because id may come from init.
@@ -194,7 +186,7 @@ class UUID:
     def __truediv__(self, other: UUID) -> UUID:
         """Bounded unmerge from last merged UUID."""
         if self.m == self.first_matrix:
-            raise Exception(f'Cannot divide by UUID={self}!')
+            raise Exception(f"Cannot divide by UUID={self}!")
         return UUID(pmat_mult(self.m, other.t.m))
 
     def __eq__(self, other):

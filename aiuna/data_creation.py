@@ -18,7 +18,7 @@ from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.enhancer import Enhancer
 
 
-def read_arff(filename, description='No description.'):
+def read_arff(filename, description="No description."):
     """
     Create Data from ARFF file.
 
@@ -45,14 +45,14 @@ def read_arff(filename, description='No description.'):
     Data object
     """
     # Load file.
-    file = open(filename, 'r')
+    file = open(filename, "r")
     data = arff.load(file, encode_nominal=False)
     file.close()
 
     # Extract attributes and targets.
-    Arr = np.array(data['data'])
-    Att = data['attributes'][0:-1]
-    TgtAtt = data['attributes'][-1]
+    Arr = np.array(data["data"])
+    Att = data["attributes"][0:-1]
+    TgtAtt = data["attributes"][-1]
 
     # Extract X values (numeric when possible), descriptions and types.
     X = Arr[:, 0:-1]
@@ -67,7 +67,7 @@ def read_arff(filename, description='No description.'):
     Yt = [translate_type(TgtAtt[1])]
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
-    matrices = {'X': X, 'Y': Y, 'Xd': Xd, 'Yd': Yd, 'Xt': Xt, 'Yt': Yt}
+    matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
     uuids = {k: UUID(pack(v)) for k, v in matrices.items()}
     original_hashes = {k: v.id for k, v in uuids.items()}
 
@@ -82,11 +82,22 @@ def read_arff(filename, description='No description.'):
     uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
 
     # Create a temporary Data object (i.e. with a fake history).
-    data = Data(history=History([faketransformer]),
-                failure=None, frozen=False, hollow=False, stream=None, storage_info=None,
-                uuid=uuid,
-                uuids=uuids,
-                X=X, Y=Y, Xt=Xt, Yt=Yt, Xd=Xd, Yd=Yd)
+    data = Data(
+        history=History([faketransformer]),
+        failure=None,
+        frozen=False,
+        hollow=False,
+        stream=None,
+        storage_info=None,
+        uuid=uuid,
+        uuids=uuids,
+        X=X,
+        Y=Y,
+        Xt=Xt,
+        Yt=Yt,
+        Xd=Xd,
+        Yd=Yd,
+    )
 
     # Patch the Data object with the real transformer and history.
     transformer = Enhancer(FakeFile(filename, description, original_hashes), func=lambda: data, info_func=lambda _: {})
@@ -99,15 +110,15 @@ def translate_type(name):
     if isinstance(name, list):
         return name
     name = name.lower()
-    if name in ['numeric', 'real', 'float']:
-        return 'real'
-    elif name in ['integer', 'int']:
-        return 'int'
+    if name in ["numeric", "real", "float"]:
+        return "real"
+    elif name in ["integer", "int"]:
+        return "int"
     else:
-        raise Exception('Unknown type:', name)
+        raise Exception("Unknown type:", name)
 
 
-def read_csv(filename, target='class'):
+def read_csv(filename, target="class"):
     """
     Create Data from CSV file.
     See read_data_frame().
@@ -119,7 +130,7 @@ def read_csv(filename, target='class'):
     return read_data_frame(df, filename, target)
 
 
-def read_data_frame(df, filename, target='class'):
+def read_data_frame(df, filename, target="class"):
     """
     Assume X,y classification task.
     And that there were no transformations (history) on this Data.
@@ -143,14 +154,14 @@ def read_data_frame(df, filename, target='class'):
     -------
     Data object
     """
-    Y = target and as_column_vector(df.pop(target).values.astype('float'))
-    X = df.values.astype('float')  # Do not call this before setting Y!
+    Y = target and as_column_vector(df.pop(target).values.astype("float"))
+    X = df.values.astype("float")  # Do not call this before setting Y!
     raise NotImplementedError
 
     uuid_ = uuid(pickle.dumps((X, Y)))
-    name = filename.split('/')[-1] + '_' + uuid_[:7]
+    name = filename.split("/")[-1] + "_" + uuid_[:7]
     dataset = Dataset(name, "descrip stub")
-    return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=['class'])
+    return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=["class"])
 
 
 # def read_csv(filename, target='class'):
@@ -196,6 +207,7 @@ def read_data_frame(df, filename, target='class'):
 #     dataset = Dataset(name, "descrip stub")
 #     return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=['class'])
 
+
 def random_classification_dataset(n_attributes, n_classes, n_instances):
     """
     ps. Assume X,y classification task.
@@ -205,15 +217,12 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
     :return:
     """
     n = int(math.sqrt(2 * n_classes))
-    X, y = ds.make_classification(n_samples=n_instances,
-                                  n_features=n_attributes,
-                                  n_classes=n_classes,
-                                  n_informative=n + 1)
-    raise NotImplementedError
-    name = 'RndData-' + uuid(pickle.dumps((X, y)))
-    dataset = Dataset(
-        name, "rnd", X=enumerate(n_attributes * ['rnd']), Y=['class']
+    X, y = ds.make_classification(
+        n_samples=n_instances, n_features=n_attributes, n_classes=n_classes, n_informative=n + 1
     )
+    raise NotImplementedError
+    name = "RndData-" + uuid(pickle.dumps((X, y)))
+    dataset = Dataset(name, "rnd", X=enumerate(n_attributes * ["rnd"]), Y=["class"])
     return Data(dataset, X=X, Y=as_column_vector(y))
 
 

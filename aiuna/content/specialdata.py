@@ -12,6 +12,7 @@ import pjdata.transformer as tr
 @dataclass(frozen=True)
 class TemporaryData:
     """Temporary class to exist between a transformation and the supply of the responsible transformer."""
+
     data: t.Data
 
     def history_updated(self, transformers: Tuple[tr.Transformer, ...]):
@@ -32,15 +33,15 @@ class UUIDData(d.Data):
         return self._uuid
 
     def __getattr__(self, item):
-        raise Exception(
-            'This a UUIDData object. It has no fields!'
-        )
+        raise Exception("This a UUIDData object. It has no fields!")
+
     # else:
     #     return self.__getattribute__(item)
 
 
 class NoData(type):
     """Singleton to feed Data iterators."""
+
     uuid = u.UUID()
     id = uuid.id
     uuids: dict = {}
@@ -70,16 +71,16 @@ class NoData(type):
 
     @staticmethod
     def updated(
-            transformers: Tuple[tr.Transformer, ...],
-            failure: Union[str, t.Status] = 'keep',
-            stream: Union[Iterator[t.Data], None, Literal["keep"]] = 'keep',
-            **fields
+        transformers: Tuple[tr.Transformer, ...],
+        failure: Union[str, t.Status] = "keep",
+        stream: Union[Iterator[t.Data], None, Literal["keep"]] = "keep",
+        **fields
     ) -> t.Data:
         # noinspection PyCallByClass
         return d.Data.updated(NoData, transformers, failure, stream, **fields)
 
     def __new__(mcs, *args, **kwargs):
-        raise Exception('NoData is a singleton and shouldn\'t be instantiated')
+        raise Exception("NoData is a singleton and shouldn't be instantiated")
 
     def __bool__(self):
         return False

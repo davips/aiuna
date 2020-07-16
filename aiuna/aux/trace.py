@@ -21,18 +21,16 @@ class TraceCalls(object):
     def __call__(self, fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            indent = ' ' * TraceCalls.cur_indent
-            argstr = ', '.join(
-                [repr(a) for a in args] +
-                ["%s=%s" % (a, repr(b)) for a, b in kwargs.items()])
-            self.stream.write('%s%s(%s)\n' % (indent, fn.__name__, argstr))
+            indent = " " * TraceCalls.cur_indent
+            argstr = ", ".join([repr(a) for a in args] + ["%s=%s" % (a, repr(b)) for a, b in kwargs.items()])
+            self.stream.write("%s%s(%s)\n" % (indent, fn.__name__, argstr))
 
             TraceCalls.cur_indent += self.indent_step
             ret = fn(*args, **kwargs)
             TraceCalls.cur_indent -= self.indent_step
 
             if self.show_ret:
-                self.stream.write('%s--> %s\n' % (indent, ret))
+                self.stream.write("%s--> %s\n" % (indent, ret))
             return ret
 
         return wrapper

@@ -115,7 +115,7 @@ def print_binmatrix(m):
         None
     """
     for row in m:
-        print(' '.join(format(2 ** row, f'0{len(m)}b')), row)
+        print(" ".join(format(2 ** row, f"0{len(m)}b")), row)
 
 
 def int2fac(number):
@@ -211,6 +211,7 @@ class M:
     """A class to ease playing around with permutation matrix operations.
 
     'l' is the list representation of this matrix."""
+
     n: int = None
     m: list = None
     side: int = 35
@@ -221,7 +222,7 @@ class M:
         elif self.n is None:
             self.n = pmat2int(self.m)
         else:
-            raise Exception(f'Cannot set both args... n:{self.n} l:{self.m}!')
+            raise Exception(f"Cannot set both args... n:{self.n} l:{self.m}!")
 
     # @classmethod
     @classproperty

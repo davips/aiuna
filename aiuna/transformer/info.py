@@ -23,10 +23,10 @@ class Info:
         self.__dict__.update(items)
 
         # Create shortcuts for subtransformers.
-        if 'enhancers' in items:
-            self.transformers = items['enhancers']
-        elif 'models' in items:
-            self.transformers = items['models']
+        if "enhancers" in items:
+            self.transformers = items["enhancers"]
+        elif "models" in items:
+            self.transformers = items["models"]
         else:
             self.transformers = []
 

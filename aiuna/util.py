@@ -35,9 +35,7 @@ def ls_gl_config(show_values: bool = False) -> Union[List[str], Dict[str, Any]]:
     return ls_global_configuration_handler(GLOBAL_VARS_MODULE, show_values)
 
 
-def ls_global_configuration_handler(
-        module: str,
-        show_values: bool = False) -> Union[List[str], Dict[str, Any]]:
+def ls_global_configuration_handler(module: str, show_values: bool = False) -> Union[List[str], Dict[str, Any]]:
     """List global variables from a givem module.
 
     Parameters
@@ -60,8 +58,7 @@ def ls_global_configuration_handler(
     Global variables should follow PEP8 format.
     """
     if show_values:
-        return {key: value
-                for key, value in module.__dict__.items() if key.isupper()}
+        return {key: value for key, value in module.__dict__.items() if key.isupper()}
     return [item for item in module.__dict__.keys() if item.isupper()]
 
 
@@ -91,5 +88,4 @@ def global_configuration_handler(module: str, **kwargs):
         if key in gl_var:
             module.__dict__[key] = value
         else:
-            warnings.warn(f'Variable {key} not found.'
-                          f'This configuration was ignored!')
+            warnings.warn(f"Variable {key} not found." f"This configuration was ignored!")

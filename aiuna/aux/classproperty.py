@@ -1,6 +1,4 @@
-
 class ClassProperty:
-
     def __init__(self, initializer):
         """
         Another way to create a class property, instead of the broken @classproperty decorator.

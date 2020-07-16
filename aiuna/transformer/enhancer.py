@@ -14,9 +14,12 @@ from pjdata.aux.util import Property
 
 
 class Enhancer(Transformer):
-
-    def __init__(self, component: WithSerialization, func: t.Transformation,
-                 info_func: Callable[[t.Data], Union[Info, Dict[str, Any]]]):
+    def __init__(
+        self,
+        component: WithSerialization,
+        func: t.Transformation,
+        info_func: Callable[[t.Data], Union[Info, Dict[str, Any]]],
+    ):
         self._rawtransform = func
         self._info_func = info_func
         self._uuid = component.cfuuid

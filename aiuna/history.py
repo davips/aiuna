@@ -66,7 +66,7 @@ class History(withPrinting):
     @Property
     def clean(self):
         for transformer_astext in self:
-            if 'PHolder' not in transformer_astext:
+            if "PHolder" not in transformer_astext:
                 yield transformer_astext
 
     def __xor__(self, attrname):

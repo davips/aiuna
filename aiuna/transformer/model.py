@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 
 class Model(Transformer):
-
-    def __init__(self, component: WithSerialization, func: t.Transformation,
-                 info: Union[Info, Dict[str, Any]], data: t.Data):
+    def __init__(
+        self, component: WithSerialization, func: t.Transformation, info: Union[Info, Dict[str, Any]], data: t.Data
+    ):
         self._rawtransform = func
         self.info = info if isinstance(info, Info) else Info(items=info)
 

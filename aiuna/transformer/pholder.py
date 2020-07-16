@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pjdata.mixin.serialization as ser
+
 if TYPE_CHECKING:
     import pjdata.types as t
 import pjdata.aux.uuid as u
