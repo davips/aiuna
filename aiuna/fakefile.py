@@ -21,6 +21,7 @@ class FakeFile(WithSerialization):
         }
         self.info_for_transformer = {"id": f'{self.name}@{self.path}', 'config': self.config}
         self.jsonable = {'info': self.info_for_transformer, 'enhance': True, 'model': True}
+        self.hasenhancer, self.hasmodel = True, True
 
     @Property
     @lru_cache()
