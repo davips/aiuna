@@ -1,21 +1,17 @@
-import _pickle as pickle
 import math
 
 import arff
 import numpy as np
-import pandas as pd
 import sklearn.datasets as ds
+
 import pjdata.mixin.linalghelper as li
 from pjdata.aux.compression import pack
-from pjdata.aux.encoders import md5_int, enc
-from pjdata.aux.serialization import serialize
 from pjdata.aux.uuid import UUID
 from pjdata.content.data import Data
 from pjdata.content.specialdata import NoData
 from pjdata.fakefile import FakeFile
 from pjdata.history import History
-from pjdata.mixin.serialization import withSerialization
-from pjdata.transformer.enhancer import Enhancer, DSStep
+from pjdata.transformer.enhancer import DSStep
 
 
 def read_arff(filename, description="No description."):
@@ -111,6 +107,7 @@ def read_arff(filename, description="No description."):
 
         def _transform_impl(self, nodata):
             return NoData
+
     transformer = Step(FakeFile(filename, description, original_hashes))
     data.history = History([transformer])
 
@@ -129,50 +126,50 @@ def translate_type(name):
         raise Exception("Unknown type:", name)
 
 
-def read_csv(filename, target="class"):
-    """
-    Create Data from CSV file.
-    See read_data_frame().
-    :param filename:
-    :param target:
-    :return:
-    """
-    df = pd.read_csv(filename)  # 1169_airlines explodes here with RAM < 6GiB
-    return read_data_frame(df, filename, target)
+# def read_csv(filename, target="class"):
+#     """
+#     Create Data from CSV file.
+#     See read_data_frame().
+#     :param filename:
+#     :param target:
+#     :return:
+#     """
+#     df = pd.read_csv(filename)  # 1169_airlines explodes here with RAM < 6GiB
+#     return read_data_frame(df, filename, target)
 
 
-def read_data_frame(df, filename, target="class"):
-    """
-    Assume X,y classification task.
-    And that there were no transformations (history) on this Data.
-
-    A short hash will be added to the name, to ensure unique names.
-    Actually, the first collision is expected after 12M different datasets
-    with the same name ( n = 2**(log(107**7, 2)/2) ).
-    Since we already expect unique names like 'iris', and any transformed
-    dataset is expected to enter the system through a transformer,
-    12M should be safe enough. Ideally, a single 'iris' be will stored.
-    In practice, no more than a dozen are expected.
-
-    Parameters
-    ----------
-    filename
-        path of the dataset
-    target
-        name of target attribute
-
-    Returns
-    -------
-    Data object
-    """
-    Y = target and as_column_vector(df.pop(target).values.astype("float"))
-    X = df.values.astype("float")  # Do not call this before setting Y!
-    raise NotImplementedError
-
-    uuid_ = uuid(pickle.dumps((X, Y)))
-    name = filename.split("/")[-1] + "_" + uuid_[:7]
-    dataset = Dataset(name, "descrip stub")
-    return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=["class"])
+# def read_data_frame(df, filename, target="class"):
+#     """
+#     Assume X,y classification task.
+#     And that there were no transformations (history) on this Data.
+#
+#     A short hash will be added to the name, to ensure unique names.
+#     Actually, the first collision is expected after 12M different datasets
+#     with the same name ( n = 2**(log(107**7, 2)/2) ).
+#     Since we already expect unique names like 'iris', and any transformed
+#     dataset is expected to enter the system through a transformer,
+#     12M should be safe enough. Ideally, a single 'iris' be will stored.
+#     In practice, no more than a dozen are expected.
+#
+#     Parameters
+#     ----------
+#     filename
+#         path of the dataset
+#     target
+#         name of target attribute
+#
+#     Returns
+#     -------
+#     Data object
+#     """
+#     Y = target and as_column_vector(df.pop(target).values.astype("float"))
+#     X = df.values.astype("float")  # Do not call this before setting Y!
+#     raise NotImplementedError
+#
+#     uuid_ = uuid(pickle.dumps((X, Y)))
+#     name = filename.split("/")[-1] + "_" + uuid_[:7]
+#     dataset = Dataset(name, "descrip stub")
+#     return Data(dataset, X=X, Y=Y, Xd=list(df.columns), Yd=["class"])
 
 
 # def read_csv(filename, target='class'):
@@ -232,9 +229,9 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
         n_samples=n_instances, n_features=n_attributes, n_classes=n_classes, n_informative=n + 1
     )
     raise NotImplementedError
-    name = "RndData-" + uuid(pickle.dumps((X, y)))
-    dataset = Dataset(name, "rnd", X=enumerate(n_attributes * ["rnd"]), Y=["class"])
-    return Data(dataset, X=X, Y=as_column_vector(y))
+    # name = "RndData-" + uuid(pickle.dumps((X, y)))
+    # dataset = Dataset(name, "rnd", X=enumerate(n_attributes * ["rnd"]), Y=["class"])
+    # return Data(dataset, X=X, Y=as_column_vector(y))
 
 
 def as_column_vector(vec):

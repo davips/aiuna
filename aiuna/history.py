@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import List, Union
 
 import pjdata.transformer.transformer as tr
-from pjdata.aux.util import Property, _
+from pjdata.aux.util import Property
 from pjdata.mixin.printing import withPrinting
 
 
@@ -52,7 +52,7 @@ class History(withPrinting):
             for tup in node.nested:
                 yield from self.traverse(tup)
 
-    def _findlast(self, node):
+    def _findlast(self, node) -> str:
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
             return node.transformer_astext

@@ -4,15 +4,16 @@ from typing import TYPE_CHECKING
 
 import pjdata.mixin.serialization as ser
 
-if TYPE_CHECKING:
-    import pjdata.types as t
 import pjdata.aux.uuid as u
 import pjdata.transformer.transformer as tr
 
 
 class PHolder(tr.Transformer):  # TODO: Find a better name? Skiper?
-    # TODO: lembrar por que o PHolder é necessário
-    """Placeholder for a component to appear in history but do nothing."""
+    """Placeholder for a component to appear in history but do nothing.
+
+    Optionally a transformation 'idholder_func' can be passed, e.g. to freeze data.
+    """
+
     ispholder = True
 
     def __init__(self, component: t.Union[str, ser.withSerialization], *args):
