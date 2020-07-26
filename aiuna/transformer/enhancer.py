@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from functools import lru_cache
 from typing import Callable, TYPE_CHECKING, Union, Dict, Any
 
@@ -15,7 +15,6 @@ class Enhancer(Transformer):
         self._uuid = component.cfuuid()
         super().__init__(component)
 
-    @Property
     @lru_cache()
     def info(self, data: t.Data) -> Info:
         info = self._info_impl(data)
@@ -27,3 +26,8 @@ class Enhancer(Transformer):
 
     def _uuid_impl(self):
         return self._uuid
+
+
+class DSStep(Enhancer, ABC):
+    """Data Science Step. Just a meaningful alias for Enhancer, but for non-transformers like File, Metric, etc."""
+    pass

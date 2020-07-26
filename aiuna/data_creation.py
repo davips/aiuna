@@ -14,8 +14,8 @@ from pjdata.content.data import Data
 from pjdata.content.specialdata import NoData
 from pjdata.fakefile import FakeFile
 from pjdata.history import History
-from pjdata.mixin.serialization import WithSerialization
-from pjdata.transformer.enhancer import Enhancer
+from pjdata.mixin.serialization import withSerialization
+from pjdata.transformer.enhancer import Enhancer, DSStep
 
 
 def read_arff(filename, description="No description."):
@@ -76,14 +76,14 @@ def read_arff(filename, description="No description."):
     #     md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
-    class Enh(Enhancer):
+    class Step(DSStep):
         def _info_impl(self, data):
             pass
 
         def _transform_impl(self, nodata):
             return NoData
 
-    faketransformer = Enh(FakeFile(filename, description, original_hashes))
+    faketransformer = Step(FakeFile(filename, description, original_hashes))
     uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
 
     # Create a temporary Data object (i.e. with a fake history).
@@ -105,13 +105,13 @@ def read_arff(filename, description="No description."):
     )
 
     # Patch the Data object with the real transformer and history.
-    class Enh(Enhancer):
+    class Step(DSStep):
         def _info_impl(self, data):
             pass
 
         def _transform_impl(self, nodata):
             return NoData
-    transformer = Enh(FakeFile(filename, description, original_hashes))
+    transformer = Step(FakeFile(filename, description, original_hashes))
     data.history = History([transformer])
 
     return original_hashes, data
