@@ -15,11 +15,11 @@ class PHolder(tr.Transformer):  # TODO: Find a better name? Skiper?
     """Placeholder for a component to appear in history but do nothing."""
     ispholder = True
 
-    def __init__(self, component: t.Union[str, ser.WithSerialization]):
+    def __init__(self, component: t.Union[str, ser.withSerialization], *args):
         self._uuid = u.UUID.identity
         super().__init__(component)
 
-    def rawtransform(self, content: t.Data) -> t.Result:
+    def _transform_impl(self, data: t.Data) -> t.Result:
         return {}
 
     def _uuid_impl(self):

@@ -76,9 +76,14 @@ def read_arff(filename, description="No description."):
     #     md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
-    faketransformer = Enhancer(
-        FakeFile(filename, description, original_hashes), func=lambda: NoData, info_func=lambda _: {}
-    )
+    class Enh(Enhancer):
+        def _info_impl(self, data):
+            pass
+
+        def _transform_impl(self, nodata):
+            return NoData
+
+    faketransformer = Enh(FakeFile(filename, description, original_hashes))
     uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
 
     # Create a temporary Data object (i.e. with a fake history).
@@ -100,7 +105,13 @@ def read_arff(filename, description="No description."):
     )
 
     # Patch the Data object with the real transformer and history.
-    transformer = Enhancer(FakeFile(filename, description, original_hashes), func=lambda: data, info_func=lambda _: {})
+    class Enh(Enhancer):
+        def _info_impl(self, data):
+            pass
+
+        def _transform_impl(self, nodata):
+            return NoData
+    transformer = Enh(FakeFile(filename, description, original_hashes))
     data.history = History([transformer])
 
     return original_hashes, data
