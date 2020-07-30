@@ -4,8 +4,10 @@ from functools import lru_cache
 from inspect import signature
 from typing import Dict, Any, Callable
 
+from pjdata.mixin.printing import withPrinting
 
-class Info:
+
+class Info(withPrinting):
     def __init__(self, items: Dict[str, Any] = None, **kwargs):
         if items is None:
             items = kwargs
@@ -47,3 +49,6 @@ class Info:
         lazy_props = {k: property(lru_cache(f)) for k, f in lazies.items()}
         child_class = type(klass.__name__, (klass,), lazy_props)
         self.__class__ = child_class
+
+    def _jsonable_impl(self):
+        return self.__dict__

@@ -10,7 +10,7 @@ from pjdata.transformer.transformer import Transformer
 
 
 class Enhancer(Transformer):
-    def __init__(self, component: withSerialization, *args):
+    def __init__(self, component: withSerialization, *args):  # args is here just to ignore training data
         self._uuid = component.cfuuid()
         super().__init__(component)
 
@@ -28,6 +28,6 @@ class Enhancer(Transformer):
 
 
 class DSStep(Enhancer, ABC):
-    """Data Science Step. Just a meaningful alias for Enhancer, but for non-transformers like File, Metric, etc."""
+    """Data Science Step. Just a meaningful alias for Enhancer, but for non-real-transformers like File, Metric, etc."""
 
     pass
