@@ -2,9 +2,8 @@ import math
 
 import arff
 import numpy as np
-import sklearn.datasets as ds
-
 import pjdata.mixin.linalghelper as li
+import sklearn.datasets as ds
 from pjdata.aux.compression import pack
 from pjdata.aux.uuid import UUID
 from pjdata.content.data import Data
@@ -38,7 +37,7 @@ def read_arff(filename, description="No description."):
 
     Returns
     -------
-    Data object
+    (dict of matrix hashes, Data object)
     """
     # Load file.
     file = open(filename, "r")
