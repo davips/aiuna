@@ -13,7 +13,7 @@ from pjdata.history import History
 from pjdata.transformer.enhancer import DSStep
 
 
-def read_arff(filename, description="No description."):
+def read_arff(filename):
     """
     Create Data from ARFF file.
 
@@ -41,13 +41,15 @@ def read_arff(filename, description="No description."):
     """
     # Load file.
     file = open(filename, "r")
-    data = arff.load(file, encode_nominal=False)
+    dic = arff.load(file, encode_nominal=False)  # ['description', 'relation', 'attributes', 'data']
+    name = dic["relation"]
+    description = dic["description"]
     file.close()
 
     # Extract attributes and targets.
-    Arr = np.array(data["data"])
-    Att = data["attributes"][0:-1]
-    TgtAtt = data["attributes"][-1]
+    Arr = np.array(dic["data"])
+    Att = dic["attributes"][0:-1]
+    TgtAtt = dic["attributes"][-1]
 
     # Extract X values (numeric when possible), descriptions and types.
     X = Arr[:, 0:-1]
@@ -66,7 +68,7 @@ def read_arff(filename, description="No description."):
     uuids = {k: UUID(pack(v)) for k, v in matrices.items()}
     original_hashes = {k: v.id for k, v in uuids.items()}
 
-    # # TODO: use _name
+    # # old, unique, name...
     # name_ = splitted[-1] + '_' + enc(
     #     md5_int(serialize(original_hashes).encode()))[:6]
 
@@ -78,7 +80,7 @@ def read_arff(filename, description="No description."):
         def _transform_impl(self, nodata):
             return NoData
 
-    faketransformer = Step(FakeFile(filename, description, original_hashes))
+    faketransformer = Step(FakeFile(filename, original_hashes))
     uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
 
     # Create a temporary Data object (i.e. with a fake history).
@@ -107,10 +109,10 @@ def read_arff(filename, description="No description."):
         def _transform_impl(self, nodata):
             return NoData
 
-    transformer = Step(FakeFile(filename, description, original_hashes))
+    transformer = Step(FakeFile(filename, original_hashes))
     data.history = History([transformer])
 
-    return original_hashes, data
+    return original_hashes, data, name, description
 
 
 def translate_type(name):
