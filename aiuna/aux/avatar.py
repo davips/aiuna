@@ -5,14 +5,16 @@ width = 154
 height = 176
 back_ground_color = (255, 255, 255)
 font_size = 48
+start_limit = 200
+limit = 245
+inc = 15
 
 
 def move(fc, aft):
     r, g, b = fc
-    inc = 15
-    dr = (r + inc) % 225 if r < round(inc + (225 * ord(aft[0]) / 800)) else (r + 225 - inc) % 225
-    dg = (g + inc) % 225 if g < round(inc + (225 * ord(aft[1]) / 800)) else (r + 225 - inc) % 225
-    db = (b + inc) % 225 if b < round(inc + (225 * ord(aft[2]) / 800)) else (r + 225 - inc) % 225
+    dr = (r + inc) % limit if r < round((limit * ord(aft[0]) / 800)) else (r + limit - inc) % limit
+    dg = (g + inc) % limit if g < round((limit * ord(aft[1]) / 800)) else (r + limit - inc) % limit
+    db = (b + inc) % limit if b < round((limit * ord(aft[2]) / 800)) else (r + limit - inc) % limit
     return dr, dg, db
 
 
@@ -20,18 +22,21 @@ def avatar(uuid, f="/tmp/text.jpg"):
     n = uuid.n
     tt = " " + uuid.id
 
-    res, rem = divmod(n, 21780986680939)
-    r = 15 + round(225 * rem / 21780986680939)
-    res, rem = divmod(res, 21780986680939)
-    g = 15 + round(225 * rem / 21780986680939)
-    res, rem = divmod(res, 21780986680939)
-    b = 15 + round(225 * rem / 21780986680939)
+    res, c1 = divmod(n, 21780986680939)
+    res, c2 = divmod(res, 21780986680939)
+    _, c3 = divmod(res, 21780986680939)
 
     im = Image.new("RGB", (width, height), back_ground_color)
     draw = ImageDraw.Draw(im)
     unicode_font = ImageFont.truetype("DejaVuSansMono.ttf", font_size)
-    font_color = r, g, b
 
+    res, rem = divmod(c1, 27928)
+    r = round(start_limit * rem / 27928)
+    res, rem = divmod(res, 27928)
+    g = round(start_limit * rem / 27928)
+    res, rem = divmod(res, 27928)
+    b = round(start_limit * rem / 27928)
+    font_color = r, g, b
     c = 0
     i = 0
     for l in tt[0:5]:
@@ -40,6 +45,14 @@ def avatar(uuid, f="/tmp/text.jpg"):
         c += 1
         font_color = move(font_color, tt[c:c + 3])
 
+    res, rem = divmod(c2, 27928)
+    r = round(start_limit * rem / 27928)
+    res, rem = divmod(res, 27928)
+    g = round(start_limit * rem / 27928)
+    res, rem = divmod(res, 27928)
+    b = round(start_limit * rem / 27928)
+    font_color = r, g, b
+    c = 0
     i = 0
     for l in tt[5:10]:
         draw.text((3 + i, 61), l, font=unicode_font, fill=font_color)
@@ -47,14 +60,23 @@ def avatar(uuid, f="/tmp/text.jpg"):
         c += 1
         font_color = move(font_color, tt[c:c + 3])
 
+    res, rem = divmod(c3, 27928)
+    r = round(start_limit * rem / 27928)
+    res, rem = divmod(res, 27928)
+    g = round(start_limit * rem / 27928)
+    res, rem = divmod(res, 27928)
+    b = round(start_limit * rem / 27928)
+    font_color = r, g, b
+    c = 0
     i = 0
     for l in tt[10:15]:
         draw.text((3 + i, 117), l, font=unicode_font, fill=font_color)
         i += 31
         c += 1
-        if c == 13:
-            font_color = move(font_color, tt[13:15] + tt[1])
-        else:
-            font_color = move(font_color, tt[14] + tt[1:3])
+        font_color = move(font_color, tt[c:c + 3])
+        # if c == 13:
+        #     font_color = move(font_color, tt[13:15] + tt[1])
+        # else:
+        #     font_color = move(font_color, tt[14] + tt[1:3])
 
     im.save(f)
