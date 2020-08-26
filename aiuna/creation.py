@@ -13,6 +13,22 @@ from pjdata.history import History
 from pjdata.transformer.enhancer import DSStep
 
 
+class FakeStep(DSStep):
+    def _info_impl(self, data):
+        pass
+
+    def _transform_impl(self, nodata):
+        return NoData
+
+
+class Step(DSStep):
+    def _info_impl(self, data):
+        pass
+
+    def _transform_impl(self, nodata):
+        return NoData
+
+
 def read_arff(filename):
     """
     Create Data from ARFF file.
@@ -73,14 +89,7 @@ def read_arff(filename):
     #     md5_int(serialize(original_hashes).encode()))[:6]
 
     # Generate the first transformation of a Data object: being born.
-    class Step(DSStep):
-        def _info_impl(self, data):
-            pass
-
-        def _transform_impl(self, nodata):
-            return NoData
-
-    faketransformer = Step(FakeFile(filename, original_hashes))
+    faketransformer = FakeStep(FakeFile(filename, original_hashes))
     uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
 
     # Create a temporary Data object (i.e. with a fake history).
@@ -102,13 +111,6 @@ def read_arff(filename):
     )
 
     # Patch the Data object with the real transformer and history.
-    class Step(DSStep):
-        def _info_impl(self, data):
-            pass
-
-        def _transform_impl(self, nodata):
-            return NoData
-
     transformer = Step(FakeFile(filename, original_hashes))
     data.history = History([transformer])
 

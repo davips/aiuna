@@ -13,10 +13,10 @@ class Leaf(withPrinting):
     isleaf = True
 
     def __init__(self, transformer: Union[str, tr.Transformer]):
-        self.transformer_astext = transformer if isinstance(transformer, str) else transformer.serialized
+        self.transformer = transformer
 
     def _jsonable_impl(self):
-        return self.transformer_astext
+        return self.transformer
 
 
 class History(withPrinting):
@@ -47,7 +47,7 @@ class History(withPrinting):
     def traverse(self, node):
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
-            yield node.transformer_astext
+            yield node.transformer
         else:
             for tup in node.nested:
                 yield from self.traverse(tup)
@@ -55,7 +55,7 @@ class History(withPrinting):
     def _findlast(self, node) -> str:
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
-            return node.transformer_astext
+            return node.transformer
         else:
             # print(node.nested)
             return self._findlast(node.nested[-1])
@@ -65,9 +65,9 @@ class History(withPrinting):
 
     @Property
     def clean(self):
-        for transformer_astext in self:
-            if "PHolder" not in transformer_astext:
-                yield transformer_astext
+        for transformer in self:
+            if transformer.ispholder:
+                yield transformer
 
     def __xor__(self, attrname):
         return list(map(lambda x: json.loads(x)[attrname], self.traverse(self)))  # TODO: memoize json?
