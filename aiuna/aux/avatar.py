@@ -1,13 +1,13 @@
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 # configuration
-width = 154
+width = 158
 height = 176
-back_ground_color = (255, 255, 255)
 font_size = 48
-start_limit = 200
-limit = 245
+start_limit = 150
+limit = 200
 inc = 15
+offset = 200
 
 
 def move(fc, aft):
@@ -25,10 +25,16 @@ def avatar(uuid, f="/tmp/text.jpg"):
     res, c1 = divmod(n, 21780986680939)
     res, c2 = divmod(res, 21780986680939)
     _, c3 = divmod(res, 21780986680939)
+    b1, b2, b3 = (
+        offset + round((255 - offset) * c1 / 21780986680939),
+        offset + round((255 - offset) * c2 / 21780986680939),
+        offset + round((255 - offset) * c3 / 21780986680939),
+    )
+    back_ground_color = b1, b2, b3
 
     im = Image.new("RGB", (width, height), back_ground_color)
     draw = ImageDraw.Draw(im)
-    unicode_font = ImageFont.truetype("DejaVuSansMono.ttf", font_size)
+    unicode_font = ImageFont.truetype("DejaVuSansMono-Bold.ttf", font_size)
 
     res, rem = divmod(c1, 27928)
     r = round(start_limit * rem / 27928)
