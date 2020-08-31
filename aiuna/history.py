@@ -70,4 +70,4 @@ class History(withPrinting):
                 yield transformer
 
     def __xor__(self, attrname):
-        return list(map(lambda x: json.loads(x)[attrname], self.traverse(self)))  # TODO: memoize json?
+        return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))  # TODO: memoize json?
