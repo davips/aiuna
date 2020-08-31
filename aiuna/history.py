@@ -16,7 +16,7 @@ class Leaf(withPrinting):
         self.transformer = transformer
 
     def _jsonable_impl(self):
-        return self.transformer
+        return self.transformer.jsonable
 
 
 class History(withPrinting):
@@ -66,7 +66,7 @@ class History(withPrinting):
     @Property
     def clean(self):
         for transformer in self:
-            if transformer.ispholder:
+            if not transformer.ispholder:
                 yield transformer
 
     def __xor__(self, attrname):
