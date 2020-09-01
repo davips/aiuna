@@ -65,6 +65,7 @@ class History(withPrinting):
 
     @Property
     def clean(self):
+        """Clean version of history. Only the names (of real transformations)."""
         for transformer in self:
             if not transformer.ispholder:
                 yield transformer
