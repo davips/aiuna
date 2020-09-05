@@ -10,7 +10,6 @@ from functools import lru_cache
 #  reduces compression time and size of textual info like transformations.
 from pjdata.aux.encoders import integers2bytes, bytes2integers
 
-
 # Things that should be calculated only once.
 # ##################################################
 from pjdata.config import safety
@@ -685,6 +684,8 @@ cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict
 
 cctxdec = zs.ZstdDecompressor()
 cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
+
+
 # ##################################################
 
 
@@ -721,9 +722,10 @@ def unpack(dump_with_header):
             decompressed = lz.decompress(cctxdec.decompress(dump))
             [h, w] = bytes2integers(header)
             return np.reshape(np.frombuffer(decompressed), newshape=(h, w))
-        else:
+        elif header == b"J":
             return json.loads(cctxdec.decompress(dump).decode())
-
+        else:
+            raise Exception("Unknown compression format:", header)
 
 # def pack_object(obj):  #blosc is buggy
 #     """
