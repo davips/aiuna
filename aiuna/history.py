@@ -22,7 +22,7 @@ class Leaf(withPrinting):
 class History(withPrinting):
     isleaf = False
 
-    def __init__(self, transformers: List[Union[str, tr.Transformer]], nested=None):
+    def __init__(self, transformers, nested=None):
         """Optimized iterable based on structural sharing."""
         self.nested = nested or list(map(Leaf, transformers))
         # if len(self.nested)==0:

@@ -114,7 +114,7 @@ def read_arff(filename):
     transformer = Step(FakeFile(filename, original_hashes))
     data.history = History([transformer])
 
-    return original_hashes, data, name, description
+    return original_hashes, data, name, description, uuids
 
 
 def translate_type(name):
