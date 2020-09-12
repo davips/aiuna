@@ -81,7 +81,7 @@ def read_arff(filename):
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
-    uuids = {k: UUID(pack(v)) for k, v in matrices.items()}
+    uuids = {k: UUID(pack(v)) for k, v in matrices.items()}   #TODO: mudar hash p/ ficar igual Data.evolve
     original_hashes = {k: v.id for k, v in uuids.items()}
 
     # # old, unique, name...
@@ -90,7 +90,7 @@ def read_arff(filename):
 
     # Generate the first transformation of a Data object: being born.
     faketransformer = FakeStep(FakeFile(filename, original_hashes))
-    uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices)
+    uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices, UUID.identity)
 
     # Create a temporary Data object (i.e. with a fake history).
     data = Data(

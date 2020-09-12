@@ -69,7 +69,8 @@ class UUID:
     _t = None  # inverse (also transpose) pmatrix
     _identity = None
 
-    def __init__(self, identifier: Union[List[int], int, str, bytes, None] = None, bits: int = 128):
+    def __init__(self, identifier=None, bits=128, ignore_call=False):
+        self.ignore_call = ignore_call
         if identifier is None:
             identifier = self.first_matrix
 
@@ -137,7 +138,7 @@ class UUID:
     def t(self) -> UUID:
         """Transpose, but also inverse matrix."""
         if self._t is None:
-            self._t = UUID(pmat_transpose(self.m))
+            self._t = UUID(pmat_transpose(self.m), ignore_call=self.ignore_call)
         return self._t
 
     @property  # Cannot be lru, because id may come from init.
@@ -187,13 +188,13 @@ class UUID:
                      a.inv * (a * b) = b
          Associative: (a * b) * c = a * (b * c)
          """
-        return UUID(pmat_mult(self.m, other.m))
+        return UUID(pmat_mult(self.m, other.m), ignore_call=self.ignore_call)
 
     def __truediv__(self, other: UUID) -> UUID:
         """Bounded unmerge from last merged UUID."""
         if self.m == self.first_matrix:
             raise Exception(f"Cannot divide by UUID={self}!")
-        return UUID(pmat_mult(self.m, other.t.m))
+        return UUID(pmat_mult(self.m, other.t.m), ignore_call=self.ignore_call)
 
     def __eq__(self, other):
         if not isinstance(other, UUID):
@@ -205,5 +206,8 @@ class UUID:
 
     def __str__(self):
         return self.id
+
+    def __call__(self, uuid):
+        return self if self.ignore_call else self * uuid
 
     __repr__ = __str__  # TODO: is this needed?
