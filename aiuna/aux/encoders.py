@@ -84,7 +84,6 @@ def enc(number: int, alphabet: str = alph.letters800, padding: int = 14) -> str:
     typeable and double-clickable (63)
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz
 
-<<<<<<< HEAD
 14:
 ÂɕÃѓνʓʅŶTČϒËzЂ
 
@@ -109,8 +108,6 @@ Out[7]: 22.32449128323706
     Qstya8
 
 
-=======
->>>>>>> 212ee55... Extensive typing needed after previous two commits
     Parameters
     ----------
     number
@@ -161,6 +158,7 @@ def dec(digits: str, lookup: Dict[str, int] = alph.lookup800) -> int:
 def encrypt(msg: bytes, key: bytes) -> bytes:
     """AES 16 bytes encryption."""
     from Crypto.Cipher import AES
+
     cipher = AES.new(key, AES.MODE_ECB)
     return cipher.encrypt(msg)
 
@@ -168,6 +166,7 @@ def encrypt(msg: bytes, key: bytes) -> bytes:
 def decrypt(encrypted_msg: bytes, key: bytes) -> bytes:
     """AES 16 bytes decryption."""
     from Crypto.Cipher import AES
+
     cipher = AES.new(key, AES.MODE_ECB)
     return cipher.decrypt(encrypted_msg)
 
