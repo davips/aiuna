@@ -21,14 +21,4 @@ class Transformation:
         :return: unique identifier
         """
         if self._uuid is None:
-<<<<<<< HEAD
-<<<<<<< HEAD
-            self._uuid = uuid(self.transformer.uuid().encode(), self.operation)
-=======
-            txt = (self.transformer.uuid()).encode()
-            self._uuid = uuid(txt, prefix=self.operation)
->>>>>>> 2f329f9... improved tinyMD5
-=======
-            self._uuid = uuid(self.transformer.uuid().encode(), self.operation)
->>>>>>> b528667... minor
         return self._uuid
