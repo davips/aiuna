@@ -1,23 +1,14 @@
+#special
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Iterator, TYPE_CHECKING, Literal, Union
+from typing import Dict, List, Tuple, Iterator, TYPE_CHECKING, Literal, Union
+
+from pjdata.history import History
 
 import pjdata.aux.uuid as u
 import pjdata.content.data as d
-import pjdata.types as t
 import pjdata.transformer as tr
-
-
-@dataclass(frozen=True)
-class TemporaryData:
-    """Temporary class to exist between a transformation and the supply of the responsible transformer."""
-
-    data: t.Data
-
-    def history_updated(self, transformers: Tuple[tr.Transformer, ...]):
-        """Complete Data object started by 'updated_()'."""
-        return self.data.updated(transformers=transformers)
 
 
 class UUIDData(d.Data):
@@ -25,15 +16,17 @@ class UUIDData(d.Data):
 
      The only available information is the UUID."""
 
-    def __init__(self, uuid: u.UUID):
-        super().__init__(tuple(), failure=None, frozen=False, hollow=True)
-        self._uuid = uuid
+    def __init__(self, uuid: t.Union[u.UUID, str]):
+        if isinstance(uuid, str):
+            uuid = u.UUID(uuid)
+        super().__init__(uuid, {}, history=History([]), failure=None, frozen=False, hollow=True, stream=None)
 
     def _uuid_impl(self) -> u.UUID:
         return self._uuid
 
     def __getattr__(self, item):
-        raise Exception("This a UUIDData object. It has no fields!")
+        if item not in ["id"]:
+            raise Exception("This a UUIDData object. It has no fields!")
 
     # else:
     #     return self.__getattribute__(item)
@@ -45,13 +38,14 @@ class NoData(type):
     uuid = u.UUID()
     id = uuid.id
     uuids: dict = {}
-    history: List[tr.Transformer] = []
+    history: History = History([])
     stream = None
     matrices: Dict[str, t.Field] = {}
     failure: str = None
     isfrozen = False
     ishollow = False
     storage_info = None
+    trdata = None
 
     @staticmethod
     def hollow(transformer: tr.Transformer) -> d.Data:
@@ -64,20 +58,20 @@ class NoData(type):
         """Return this Data object transformed by func.
 
         Return itself if it is frozen or failed.        """
-        result = transformer.rawtransform(NoData)
+        result = transformer._transform_impl(NoData)
         if isinstance(result, dict):
             return NoData.updated(transformers=(transformer,), **result)
         return result
 
     @staticmethod
     def updated(
-        transformers: Tuple[tr.Transformer, ...],
-        failure: Union[str, t.Status] = "keep",
-        stream: Union[Iterator[t.Data], None, Literal["keep"]] = "keep",
-        **fields
+            transformers: Tuple[tr.Transformer, ...],
+            failure: Union[str, t.Status] = "keep",
+            stream: Union[Iterator[t.Data], None, Literal["keep"]] = "keep",
+            **fields
     ) -> t.Data:
         # noinspection PyCallByClass
-        return d.Data.updated(NoData, transformers, failure, stream, **fields)
+        return d.Data.replace(NoData, transformers, failure, stream, **fields)
 
     def __new__(mcs, *args, **kwargs):
         raise Exception("NoData is a singleton and shouldn't be instantiated")

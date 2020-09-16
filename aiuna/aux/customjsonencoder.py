@@ -11,8 +11,6 @@ class CustomJSONEncoder(JSONEncoder):
                 return str(obj)
             elif isinstance(obj, UUID):
                 return obj.id
-            elif not isinstance(
-                    obj, (list, set, str, int, float, bytearray, bool)):
-                return obj._jsonable_impl
-
+            elif not isinstance(obj, (list, set, str, int, float, bytearray, bool)): # other
+                return obj.jsonable # default
         return JSONEncoder.default(self, obj)
