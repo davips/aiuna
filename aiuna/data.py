@@ -150,11 +150,6 @@ class PhantomData(Data):
 
 class NoData(type):
     dataset = NoDataset
-<<<<<<< HEAD
-    uuid = 'n' + int2tiny(0)
-=======
-    uuid = 'D' + int2tiny(0)
->>>>>>> ecfe28b... prefixes n and N for NoData and NoDataset
     failure = None
 
     def __new__(cls, *args, **kwargs):
