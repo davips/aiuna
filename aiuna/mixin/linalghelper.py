@@ -6,7 +6,6 @@ from typing import Dict, Tuple, Optional
 import numpy as np  # type: ignore
 from numpy import ndarray
 
-import aiuna.transformer.transformer as tr
 from aiuna.compression import pack
 from cruipto.uuid import UUID
 

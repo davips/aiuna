@@ -85,9 +85,6 @@ class Data(AbsData, withPrinting):
         self.historystr = historystr
         self.trdata = trdata
 
-    def _jsonable_impl(self):
-        return self._jsonable
-
     def replace(self, transformers, truuid=u.UUID.identity, failure="keep", frozen="keep", stream="keep", trdata="keep", **fields):
         """Recreate an updated Data object.
 
@@ -148,8 +145,7 @@ class Data(AbsData, withPrinting):
             **matrices,
         )
 
-    @property
-    def jsonable(self):
+    def _jsonable_(self):
         return self._jsonable
 
     @cached_property

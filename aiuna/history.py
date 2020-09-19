@@ -9,7 +9,7 @@ class Leaf(withPrinting):
     def __init__(self, transformer):
         self.transformer = transformer
 
-    def _jsonable_impl(self):
+    def _jsonable_(self):
         return self.transformer.jsonable
 
 
@@ -26,8 +26,7 @@ class History(withPrinting):
     def last(self):
         return self._findlast(self)
 
-    @lru_cache()
-    def _jsonable_impl(self):
+    def _jsonable_(self):
         return list(self.clean)
 
     def __add__(self, other):
