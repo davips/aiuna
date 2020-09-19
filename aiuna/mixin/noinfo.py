@@ -1,6 +1,6 @@
 from typing import Dict, Any
 
-from pjdata.types import Data
+from aiuna.types import Data
 
 
 class NoInfo:

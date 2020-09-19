@@ -8,11 +8,11 @@ from functools import lru_cache
 
 # TODO: make a permanent representative dictionary and check if it
 #  reduces compression time and size of textual info like transformations.
-from pjdata.aux.encoders import integers2bytes, bytes2integers
+from cruipto.encoders import integers2bytes, bytes2integers
 
 # Things that should be calculated only once.
 # ##################################################
-from pjdata.config import safety
+from aiuna.config import safety
 
 
 @lru_cache()

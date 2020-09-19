@@ -1,5 +1,5 @@
 """
-``pjdata`` is a ...
+``aiuna`` is a ...
 """
 # Based on NiLearn package
 # License: simplified BSD

@@ -6,7 +6,7 @@ import random
 import fastrand
 import psutil as psutil
 
-from pjdata.aux.linalg import pmat_mult, pmat2int, int2pmat
+from cruipto.linalg import pmat_mult, pmat2int, int2pmat
 
 # To check collisions. (seems unnecessary, due to the nature of the mult op.
 s = {}

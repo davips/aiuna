@@ -1,7 +1,7 @@
-from pjdata.aux.util import TDatas
-from pjdata.aux.uuid import UUID
+from cruipto.util import TDatas
+from cruipto.uuid import UUID
 
-from pjdata.data import Data
+from aiuna.data import Data
 
 
 class UUIDData(Data):
@@ -49,11 +49,11 @@ class NoData(type):
 
     @staticmethod
     def updated(transformations, failure='keep', **matrices):
-        return Data.updated(NoData, transformations, failure, **matrices)
+        return Data.replace(NoData, transformations, failure, **matrices)
 
     @staticmethod
     def _fields2matrices(fields: TDatas):
-        from pjdata.mixin.linalghelper import LinAlgHelper
+        from aiuna.mixin.linalghelper import LinAlgHelper
         return LinAlgHelper._fields2matrices(fields)
 
     def __new__(mcs, *args, **kwargs):

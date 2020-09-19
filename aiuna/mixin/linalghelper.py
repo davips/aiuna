@@ -6,7 +6,9 @@ from typing import Dict, Tuple, Optional
 import numpy as np  # type: ignore
 from numpy import ndarray
 
-import pjdata.transformer.transformer as tr
+import aiuna.transformer.transformer as tr
+from aiuna.compression import pack
+from cruipto.uuid import UUID
 
 
 def _as_vector(mat: ndarray) -> ndarray:
@@ -93,8 +95,15 @@ def evolve_id(uuid, uuids, transformers, matrices, truuid):
         #   Vou colocar o cálculo rápido baseado em data.uuid*matrix_name,
         #   a desvantagem é não ter o início da matriz compatível com o início em File,
         #   mas talvez possamos mudar File pra ficar igual.
+        #   [19/set/20 : impossível fazer isso no File, pois todo Data vem de NoData, UUID=1]
 
-        muuid = uuids.get(name, uuid * u.UUID(bytes(name, "latin1")))  # <-- fallback value
+        if name in uuids:
+            muuid = uuids.get(name)
+        else:  # fallback options:
+            if uuid == UUID.identity:  # whole data creation
+                muuid = UUID(pack(value))
+            else:  # only matrix creation (avoids packing for non birth transformations)
+                muuid = uuid * UUID(bytes(name, "latin1"))
 
         # Transform UUID.
         muuid = evolve(muuid, transformers, truuid)

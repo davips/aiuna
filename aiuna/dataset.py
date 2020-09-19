@@ -1,5 +1,5 @@
-from pjdata.mixin.identifyable import Identifyable
-from pjdata.mixin.printable import Printable
+from aiuna.mixin.identifyable import Identifyable
+from aiuna.mixin.printable import Printable
 
 
 class Dataset(Identifyable, Printable):
@@ -20,7 +20,7 @@ class Dataset(Identifyable, Printable):
 
 class NoDataset(type):
     name = 'NoDataset'
-    from pjdata.aux.encoders import int2tiny
+    from cruipto.encoders import int2tiny
     def __new__(cls, *args, **kwargs):
         raise Exception(
             'NoDataset is a singleton and shouldn\'t be instantiated')

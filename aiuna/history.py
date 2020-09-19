@@ -1,18 +1,12 @@
-from __future__ import annotations
-
-import json
 from functools import lru_cache
-from typing import List, Union
 
-import pjdata.transformer.transformer as tr
-from pjdata.aux.util import Property
-from pjdata.mixin.printing import withPrinting
+from transf.mixin.printing import withPrinting
 
 
 class Leaf(withPrinting):
     isleaf = True
 
-    def __init__(self, transformer: Union[str, tr.Transformer]):
+    def __init__(self, transformer):
         self.transformer = transformer
 
     def _jsonable_impl(self):
@@ -28,7 +22,7 @@ class History(withPrinting):
         # if len(self.nested)==0:
         #     raise Exception
 
-    @Property
+    @property
     def last(self):
         return self._findlast(self)
 
@@ -63,7 +57,7 @@ class History(withPrinting):
     def __iter__(self):
         yield from self.traverse(self)
 
-    @Property
+    @property
     def clean(self):
         """Clean version of history. Only the names (of real transformations)."""
         for transformer in self:

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from functools import cached_property
 
-from pjdata.aux.uuid import UUID
+from cruipto.uuid import UUID
 
 
 class withIdentification(ABC):

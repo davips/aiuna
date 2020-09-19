@@ -1,9 +1,9 @@
 from random import random
 from timeit import timeit
 
-from pjdata.aux.linalg import int2pmat, print_binmatrix, pmat2int, \
+from cruipto.linalg import int2pmat, print_binmatrix, pmat2int, \
     int2fac, pmat_mult
-from pjdata.aux.uuid import UUID
+from cruipto.uuid import UUID
 
 # Show output of operations.
 a = UUID(int2pmat(2 ** 128 - 1))

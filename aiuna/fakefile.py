@@ -1,10 +1,8 @@
-from functools import lru_cache
+from functools import lru_cache, cached_property
 
-from pjdata.aux.decorator import classproperty
-from pjdata.aux.serialization import serialize
-from pjdata.aux.util import Property
-from pjdata.aux.uuid import UUID
-from pjdata.mixin.serialization import WithSerialization
+from transf.serialization import serialize
+from cruipto.uuid import UUID
+from aiuna.mixin.serialization import WithSerialization
 
 
 class FakeFile(WithSerialization):
@@ -22,8 +20,7 @@ class FakeFile(WithSerialization):
         self.jsonable = {"info": self.info_for_transformer, "enhance": True, "model": True}
         self.hasenhancer, self.hasmodel = True, True
 
-    @Property
-    @lru_cache()
+    @cached_property
     def cfserialized(self):
         return serialize(self.info_for_transformer)
 

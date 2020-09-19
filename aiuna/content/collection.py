@@ -2,10 +2,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Optional, Iterator, Callable, Union, Any, Tuple
 
-import pjdata.content.data as d
-import pjdata.types as t
-from pjdata.aux.util import Property
-from pjdata.content.content import Content
+import aiuna.content.data as d
+from aiuna.content.content import Content
 
 
 class Collection(Content):
@@ -89,12 +87,12 @@ class Collection(Content):
         if self.debug_info:
             print(self.debug_info, '>>>', *msg)
 
-    @Property
+    @property
     def isfrozen(self):
         # TODO: what happens when a frozen Data reach a Streamer? Would it be fooled by outdated fields?
         return self._frozen
 
-    @Property
+    @property
     def ishollow(self):
         return self._hollow
 
@@ -108,6 +106,6 @@ class AccResult:
     value: Optional[t.Data] = None
     acc: Optional[t.Acc] = None
 
-    @Property
+    @property
     def both(self) -> Tuple[Optional[t.Data], Optional[t.Acc]]:
         return self.value, self.acc

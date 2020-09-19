@@ -1,27 +1,19 @@
-#special
-
-from __future__ import annotations
-
-from typing import Dict, List, Tuple, Iterator, TYPE_CHECKING, Literal, Union
-
-from pjdata.history import History
-
-import pjdata.aux.uuid as u
-import pjdata.content.data as d
-import pjdata.transformer as tr
+from aiuna.content.data import Data
+from aiuna.history import History
+from cruipto.uuid import UUID
 
 
-class UUIDData(d.Data):
+class UUIDData(Data):
     """Exactly like Data, but without matrices and infos.
 
      The only available information is the UUID."""
 
-    def __init__(self, uuid: t.Union[u.UUID, str]):
+    def __init__(self, uuid):
         if isinstance(uuid, str):
-            uuid = u.UUID(uuid)
+            uuid = UUID(uuid)
         super().__init__(uuid, {}, history=History([]), failure=None, frozen=False, hollow=True, stream=None)
 
-    def _uuid_impl(self) -> u.UUID:
+    def _uuid_impl(self) -> UUID:
         return self._uuid
 
     def __getattr__(self, item):
@@ -35,12 +27,12 @@ class UUIDData(d.Data):
 class NoData(type):
     """Singleton to feed Data iterators."""
 
-    uuid = u.UUID()
+    uuid = UUID()
     id = uuid.id
     uuids: dict = {}
     history: History = History([])
     stream = None
-    matrices: Dict[str, t.Field] = {}
+    matrices = {}
     failure: str = None
     isfrozen = False
     ishollow = False
@@ -48,30 +40,25 @@ class NoData(type):
     trdata = None
 
     @staticmethod
-    def hollow(transformer: tr.Transformer) -> d.Data:
+    def hollow(transformer):
         """A light Data object, i.e. without matrices."""
         # noinspection PyCallByClass
-        return d.Data.hollow(NoData, transformer)
+        return Data.hollow(NoData, transformer)
 
     @staticmethod
-    def transformedby(transformer: tr.Transformer):
+    def transformedby(transformer):
         """Return this Data object transformed by func.
 
         Return itself if it is frozen or failed.        """
         result = transformer._transform_impl(NoData)
         if isinstance(result, dict):
-            return NoData.updated(transformers=(transformer,), **result)
+            return NoData.replace(transformers=(transformer,), **result)
         return result
 
     @staticmethod
-    def updated(
-            transformers: Tuple[tr.Transformer, ...],
-            failure: Union[str, t.Status] = "keep",
-            stream: Union[Iterator[t.Data], None, Literal["keep"]] = "keep",
-            **fields
-    ) -> t.Data:
-        # noinspection PyCallByClass
-        return d.Data.replace(NoData, transformers, failure, stream, **fields)
+    def replace(transformers, failure="keep", stream="keep", **fields):
+        # noinspection PyCallByClass,PyTypeChecker
+        return Data.replace(NoData, transformers, failure=failure, stream=stream, **fields)
 
     def __new__(mcs, *args, **kwargs):
         raise Exception("NoData is a singleton and shouldn't be instantiated")

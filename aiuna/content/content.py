@@ -1,13 +1,11 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional
 
-import pjdata.mixin.linalghelper as li
-import pjdata.transformer as tr
-import pjdata.types as t
-from pjdata.mixin.identifiable import Identifiable
-from pjdata.mixin.printable import Printable
+import aiuna.mixin.linalghelper as li
+import aiuna.transformer as tr
+import aiuna.types as t
+from aiuna.mixin.identifiable import Identifiable
+from aiuna.mixin.printable import Printable
 
 
 class Content(Identifiable, Printable, ABC):
@@ -37,7 +35,7 @@ class Content(Identifiable, Printable, ABC):
         if self.isfrozen or self.failure:
             return self
         result = transformer.func(self)
-        return result.updated(transformers=(transformer,))
+        return result.replace(transformers=(transformer,))
 
     def updated(self: t.DataOrColl,
                 transformers: Tuple[tr.Transformer, ...],
@@ -83,8 +81,8 @@ class Content(Identifiable, Printable, ABC):
         matrices.update(li.LinAlgHelper.fields2matrices(fields))
 
         # klass can be Data or Collection.
-        from pjdata.content.specialdata import NoData
-        from pjdata.content.data import Data
+        from aiuna.content.specialdata import NoData
+        from aiuna.content.data import Data
         klass = Data if self is NoData else self.__class__
         return klass(
             history=tuple(self.history) + tuple(transformers),

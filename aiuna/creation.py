@@ -2,33 +2,15 @@ import math
 
 import arff
 import numpy as np
-import pjdata.mixin.linalghelper as li
 import sklearn.datasets as ds
-from pjdata.aux.compression import pack
-from pjdata.aux.uuid import UUID
-from pjdata.content.data import Data
-from pjdata.content.specialdata import NoData
-from pjdata.fakefile import FakeFile
-from pjdata.history import History
-from pjdata.transformer.enhancer import DSStep
+
+from aiuna.compression import pack
+from aiuna.content.specialdata import NoData
+from aiuna.file import File_
+from cruipto.uuid import UUID
 
 
-class FakeStep(DSStep):
-    def _info_impl(self, data):
-        pass
-
-    def _transform_impl(self, nodata):
-        return NoData
-
-
-class Step(DSStep):
-    def _info_impl(self, data):
-        pass
-
-    def _transform_impl(self, nodata):
-        return NoData
-
-
+# noinspection PyPep8Naming
 def read_arff(filename):
     """
     Create Data from ARFF file.
@@ -81,40 +63,12 @@ def read_arff(filename):
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
-    uuids = {k: UUID(pack(v)) for k, v in matrices.items()}   #TODO: mudar hash p/ ficar igual Data.evolve
+    uuids = {k: UUID(pack(v)) for k, v in matrices.items()}
     original_hashes = {k: v.id for k, v in uuids.items()}
 
-    # # old, unique, name...
-    # name_ = splitted[-1] + '_' + enc(
-    #     md5_int(serialize(original_hashes).encode()))[:6]
-
-    # Generate the first transformation of a Data object: being born.
-    faketransformer = FakeStep(FakeFile(filename, original_hashes))
-    uuid, uuids = li.evolve_id(UUID(), {}, [faketransformer], matrices, UUID.identity)
-
-    # Create a temporary Data object (i.e. with a fake history).
-    data = Data(
-        history=History([faketransformer]),
-        failure=None,
-        frozen=False,
-        hollow=False,
-        stream=None,
-        storage_info=None,
-        uuid=uuid,
-        uuids=uuids,
-        X=X,
-        Y=Y,
-        Xt=Xt,
-        Yt=Yt,
-        Xd=Xd,
-        Yd=Yd,
-    )
-
-    # Patch the Data object with the real transformer and history.
-    transformer = Step(FakeFile(filename, original_hashes))
-    data.history = History([transformer])
-
-    return original_hashes, data, name, description, uuids
+    path = "/".join(name.split("/")[:-1])
+    data = NoData.replace([File_(name, path, original_hashes)], **matrices)
+    return data, name, description
 
 
 def translate_type(name):
