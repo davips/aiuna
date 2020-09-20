@@ -1,17 +1,18 @@
 # data
 import traceback
 from functools import lru_cache, cached_property
+from typing import Union, Iterator, List, Optional
 
 import arff
 import numpy as np
 
-import aiuna.compression as com
-import aiuna.history as h
-import aiuna.mixin.linalghelper as li
-import cruipto.uuid as u
 from aiuna.config import STORAGE_CONFIG
+from aiuna.history import History
+from aiuna.mixin.linalghelper import fields2matrices, evolve_id
+from cruipto.uuid import UUID
 from transf.absdata import AbsData
 from transf.mixin.printing import withPrinting
+from transf.transformer import Transformer
 
 
 def new():
@@ -28,9 +29,6 @@ class Data(AbsData, withPrinting):
         A History objects that represents a sequence of Transformations objects.
     failure
         The reason why the workflow that generated this Data object failed.
-    frozen
-        Indicate wheter the workflow ended earlier due to a normal
-        component behavior.
     hollow
         Indicate whether this is a Data object intended to be filled by
         Storage.
@@ -60,37 +58,32 @@ class Data(AbsData, withPrinting):
 
     _Xy = None
 
-    def __init__(self, uuid, uuids, history=h.History([]), failure=None, frozen=False, hollow=False, stream=None, target="s,r", storage_info=None, historystr=None, trdata=None, **matrices):
+    def __init__(self, uuid, uuids, history, failure=None, time=None, timeout=False, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
         # target: Fields precedence when comparing which data is greater.
-        if historystr is None:
-            historystr = []
         self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids}
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
-        # TODO:
-        #  1- 'name' and 'desc'
-        #  2- volatile fields
-        #  3- dna property?
-        #  4- task?
-
+        # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
         self.target = target.split(",")
         self.history = history
         self._failure = failure
-        self._frozen = frozen
+        self.time = time
+        self.timeout = timeout
         self._hollow = hollow
         self.stream = stream
         self._target = [field for field in self.target if field.upper() in matrices]
         self.storage_info = storage_info
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
-        self.historystr = historystr
-        self.trdata = trdata
+        self._inner =inner
 
-    def replace(self, transformers, truuid=u.UUID.identity, failure="keep", frozen="keep", stream="keep", trdata="keep", **fields):
+    def replace(self, transformer: Union[Transformer, List[Transformer]],
+                time: Union[str, float] = "keep",
+                stream: Union[str, Iterator] = "keep",
+                **fields):
         """Recreate an updated Data object.
 
         Parameters
         ----------
-        frozen
         transformers
             List of Transformer objects that transforms this Data object.
         failure
@@ -106,120 +99,45 @@ class Data(AbsData, withPrinting):
         Returns
         -------
         New Content object (it keeps references to the old one for performance).
-        :param trdata:
-        :param transformers:
+        :param inner:
+        :param transformer:
         :param stream:
-        :param frozen:
-        :param failure:
-        :param truuid:
+        :param time:
         """
-        if not isinstance(transformers, list):
-            transformers = [transformers]
-        if failure == "keep":
-            failure = self.failure
-        if frozen == "keep":
-            frozen = self.isfrozen
-        if stream == "keep":
-            stream = self.stream
-        if isinstance(trdata, str):
-            trdata = self.trdata
+        return self._replace(transformer, time=time, stream=stream, **fields)
+
+    # TODO:proibir mudança no inner, exceto por meio do transformer Inner
+    def _replace(self, transformer, failure="keep", time="keep", timeout: bool = "keep", hollow: bool = "keep", stream="keep", inner="keep", **fields):
+        history = self.history or History([])
+        transformer = transformer if isinstance(transformer, list) else [transformer]
+        failure = self.failure if failure == "keep" else failure
+        time = self.time if time == "keep" else time
+        timeout = self.timeout if timeout == "keep" else timeout
+        hollow = self.ishollow if hollow == "keep" else hollow
+        stream = self.stream if stream == "keep" else stream
+        inner = self.inner if isinstance(inner, str) else inner
         matrices = self.matrices.copy()
-        matrices.update(li.fields2matrices(fields))
 
-        print(truuid)
-        uuid, uuids = li.evolve_id(self.uuid, self.uuids, transformers, matrices, truuid)
+        matrices.update(fields2matrices(fields))
+        uuid, uuids = evolve_id(self.uuid, self.uuids, transformer, matrices)
 
-        # noinspection Mypy
-        if self.history is None:
-            self.history = h.History([])
-        return Data(
-            history=self.history << transformers,
-            failure=failure,
-            frozen=frozen,
-            hollow=self.ishollow,
-            stream=stream,
-            storage_info=self.storage_info,
-            uuid=uuid,
-            uuids=uuids,
-            trdata=trdata,
-            **matrices,
-        )
+        kw = {"time": time, "timeout": timeout, "hollow": hollow, "stream": stream, "storage_info": self.storage_info}
+        return Data(uuid, uuids, history << transformer, failure, **kw, inner=inner, **matrices)
 
-    def _jsonable_(self):
-        return self._jsonable
+    def timed(self, time):
+        return self._replace([], time=time)
 
-    @cached_property
-    def frozen(self):
-        """TODO: Explicar aqui papéis de frozen...
-            1- pipeline fim-precoce (p. ex. após SVM.enhance)
-            2- pipeline falho (após exceção)
-         """
-        return Data(
-            history=self.history,
-            failure=self.failure,
-            frozen=True,
-            hollow=self.ishollow,
-            stream=self.stream,
-            storage_info=self.storage_info,
-            uuid=self.uuid,
-            uuids=self.uuids,
-            **self.matrices,
-        )
+    def timedout(self, transformer, time=None):
+        return self._replace(transformer, time=time, timeout=True)
 
-    @cached_property
-    def unfrozen(self):  # TODO: check if component Unfreeze is really needed
-        return Data(
-            history=self.history,
-            failure=self.failure,
-            frozen=False,
-            hollow=self.ishollow,
-            stream=self.stream,
-            storage_info=self.storage_info,
-            uuid=self.uuid,
-            uuids=self.uuids,
-            **self.matrices,
-        )
+    def failed(self, transformer, failure):
+        return self._replace(transformer, failure=failure)
 
     @lru_cache()
-    def hollow(self, transformer=None):
+    def hollow(self, transformer):
         """Create a temporary hollow Data object (only Persistence can fill it).
-
-        ps. History is transferred to historystr, uuid is changed."""
-        if transformer is None:
-            uuid, uuids = self.uuid, self.uuids
-        else:
-            uuid, uuids = li.evolve_id(self.uuid, self.uuids, (transformer,), self.matrices)
-        return Data(
-            history=h.History([]),  # TODO: check if history must be updated as well.
-            failure=self.failure,
-            frozen=self.isfrozen,
-            hollow=True,
-            stream=self.stream,
-            storage_info=self.storage_info,
-            uuid=uuid,
-            uuids=uuids,
-            historystr=self.history.pickable,
-            **self.matrices,
-        )
-
-    @property
-    @lru_cache()
-    def pickable(self):
-        """Create a pickable Data object (i.e. without History)."""
-        if self.history is None:
-            self.history = h.History([])
-        return Data(
-            history=h.History([]),  # TODO: remove IFs history is None?
-            failure=self.failure,
-            frozen=self.isfrozen,
-            hollow=self.ishollow,
-            stream=self.stream,
-            storage_info=self.storage_info,
-            uuid=self.uuid,
-            uuids=self.uuids,
-            historystr=self.history.pickable,
-            **self.matrices,
-        )
+        Notice: uuid is changed."""
+        return self._replace(transformer, hollow=True)
 
     @lru_cache()
     def field(self, name, block=False, context="undefined"):
@@ -255,7 +173,7 @@ class Data(AbsData, withPrinting):
         m = self.matrices[mname]
 
         # Fetch from storage?...
-        if isinstance(m, u.UUID):
+        if isinstance(m, UUID):
             if self.storage_info is None:
                 comp = context.name if "name" in dir(context) else context
                 raise Exception("Storage not set! Unable to fetch " + m.id, "requested by", comp)
@@ -279,40 +197,40 @@ class Data(AbsData, withPrinting):
             comp = context.name if "name" in dir(context) else context
             raise Exception("Unexpected lower letter:", m, "requested by", comp)
 
-    def transformedby(self, transformer):
-        """Return this Data object transformed by func.
-
-        Return itself if it is frozen or failed."""
-        # REMINDER: It is preferable to have this method in Data instead of Transformer because of the different
-        # data handling depending on the type of content: Data, NoData.
-        if self.isfrozen or self.failure:
-            transformer = transformer.pholder
-            output_data = self.replace([transformer])  # TODO: check if Pholder here is what we want
-            # print(888777777777777777777777)
-        else:
-            output_data = transformer._transform_impl(self)
-            if isinstance(output_data, dict):
-                output_data = self.replace(transformers=[transformer], **output_data)
-            # print(888777777777777777777777999999999999999999999999)
-
-        # TODO: In the future, remove this temporary check. It has a small cost, but is useful while in development:
-        # print(type(transformer))
-        # print(type(output_data))
-        if self.uuid * transformer.uuid != output_data.uuid:
-            print("Error:", 4444444444444444, transformer)
-            print(
-                f"Expected UUID {self.uuid} * {transformer.uuid} = {self.uuid * transformer.uuid} "
-                f"doesn't match the output_data {output_data.uuid}"
-            )
-            print("Histories:")
-            print(self.history ^ "longname", self.history ^ "uuid")
-            print(output_data.history ^ "longname", output_data.history ^ "uuid")
-            # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("4ʊĘÓĹmրӐƉοÝѕȷg"))
-            # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("1ϺϽΖМȅÏОʌŨӬѓȤӟ"))
-            print(transformer.longname)
-            print()
-            raise Exception
-        return output_data
+    # def transformedby(self, transformer):
+    #     """Return this Data object transformed by func.
+    #
+    #     Return itself if it is frozen or failed."""
+    #     # REMINDER: It is preferable to have this method in Data instead of Transformer because of the different
+    #     # data handling depending on the type of content: Data, NoData.
+    #     if self.isfrozen or self.failure:
+    #         transformer = transformer.pholder
+    #         output_data = self.replace([transformer])  # TODO: check if Pholder here is what we want
+    #         # print(888777777777777777777777)
+    #     else:
+    #         output_data = transformer._transform_impl(self)
+    #         if isinstance(output_data, dict):
+    #             output_data = self.replace(transformer=[transformer], **output_data)
+    #         # print(888777777777777777777777999999999999999999999999)
+    #
+    #     # TODO: In the future, remove this temporary check. It has a small cost, but is useful while in development:
+    #     # print(type(transformer))
+    #     # print(type(output_data))
+    #     if self.uuid * transformer.uuid != output_data.uuid:
+    #         print("Error:", 4444444444444444, transformer)
+    #         print(
+    #             f"Expected UUID {self.uuid} * {transformer.uuid} = {self.uuid * transformer.uuid} "
+    #             f"doesn't match the output_data {output_data.uuid}"
+    #         )
+    #         print("Histories:")
+    #         print(self.history ^ "longname", self.history ^ "uuid")
+    #         print(output_data.history ^ "longname", output_data.history ^ "uuid")
+    #         # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("4ʊĘÓĹmրӐƉοÝѕȷg"))
+    #         # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("1ϺϽΖМȅÏОʌŨӬѓȤӟ"))
+    #         print(transformer.longname)
+    #         print()
+    #         raise Exception
+    #     return output_data
 
     @cached_property
     def Xy(self):
@@ -352,10 +270,6 @@ class Data(AbsData, withPrinting):
         return ','.join(self.matrix_names)
 
     @property
-    def isfrozen(self):
-        return self._frozen
-
-    @property
     def ishollow(self):
         return self._hollow
 
@@ -365,22 +279,25 @@ class Data(AbsData, withPrinting):
             raise Exception(f"There is no storage set to fetch: {id})!")
         return STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
 
-    def _remove_unsafe_prefix(self, item, component="undefined"):
+    def _remove_unsafe_prefix(self, item, transformer="undefined"):
         """Handle unsafe (i.e. frozen) fields."""
         if item.startswith('unsafe'):
             # User knows what they are doing.
             return item[6:]
 
-        if self.failure or self.isfrozen or self.ishollow:
-            raise Exception(f"Component {component} cannot access fields ({item}) from Data objects that come from a "
-                            f"failed/frozen/hollow pipeline! HINT: use unsafe{item}. \nHINT2: probably the model/enhance flags are not being used properly around a Predictor.\n"
-                            f"HINT3: To calculate training accuracy the 'train' Data should be inside the 'test' tuple; use Copy "
+        if self.failure or self.timeout or self.ishollow:
+            raise Exception(f"Transformer {transformer} cannot access fields ({item}) from Data objects that come from a "
+                            f"failed/timedout/hollow pipeline! HINT: use unsafe{item}. \n"
+                            f"HINT2: To calculate training accuracy the 'train' Data should be inside the 'test' tuple; use Copy "
                             f"for that."
                             )  # TODO: breakdown this msg for each case.
         return item
 
     def _uuid_(self):
         return self._uuid
+
+    def _inner_(self):
+        return self._inner
 
     @property
     def failure(self):
@@ -432,6 +349,9 @@ class Data(AbsData, withPrinting):
             print("Expected sizes:", len(Xt), "+", len(Yt))
             print("Real sizes:", len(self.X[0]), "+", len(self.Y[0].shape))
             exit(0)
+
+    def _jsonable_(self):
+        return self._jsonable
 
 
 class MissingField(Exception):

@@ -1,10 +1,10 @@
 import json
 
 from cruipto.uuid import UUID
-from transf.dataindependent import DataIndependent_
+from transf.ditransf import DITransf_
 
 
-class File_(DataIndependent_):
+class File_(DITransf_):
     def __init__(self, name, path, hashes):
         self._partial_config = {"name": name, "path": path}
         self.hashes = hashes
@@ -17,5 +17,5 @@ class File_(DataIndependent_):
         config["hashes"] = self.hashes
         return config
 
-    def _uuid_(self):  # override uuid to exclude file name/path from identity
+    def _uuid_(self):  # override [to exclude file name/path from identity]
         return UUID(json.dumps(self.hashes).encode())
