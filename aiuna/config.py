@@ -28,7 +28,7 @@ STORAGE_CONFIG["storages"] = {}
 CACHE = {}
 
 
-def globalcache(method):
+def globalcache(method):  # TODO: make it LRU
     def wrapper(transformer, data):
         # global CACHE
         key = transformer.id + data.id
