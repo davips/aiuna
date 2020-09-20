@@ -1,12 +1,10 @@
 # linalghelper
-
-import typing as t
-from typing import Dict, Tuple, Optional
+import json
+from typing import Optional
 
 import numpy as np  # type: ignore
 from numpy import ndarray
 
-from aiuna.compression import pack
 from cruipto.uuid import UUID
 
 
@@ -100,7 +98,7 @@ def evolve_id(uuid, uuids, transformers, matrices):
             muuid = uuids.get(name)
         else:  # fallback options:
             if uuid == UUID.identity:  # whole data creation
-                muuid = UUID(pack(value))
+                muuid = UUID(json.dumps(value, sort_keys=True, ensure_ascii=False).encode() if isinstance(value, list) else value.tobytes())
             else:  # only matrix creation (avoids packing for non birth transformations)
                 muuid = uuid * UUID(bytes(name, "latin1"))
 

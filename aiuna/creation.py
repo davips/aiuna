@@ -1,4 +1,6 @@
+import json
 import math
+from hashlib import md5
 
 import arff
 import numpy as np
@@ -63,8 +65,7 @@ def read_arff(filename):
 
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
-    uuids = {k: UUID(pack(v)) for k, v in matrices.items()}
-    original_hashes = {k: v.id for k, v in uuids.items()}
+    original_hashes = {k: md5(json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()).hexdigest() for k, v in matrices.items()}
 
     path = "/".join(name.split("/")[:-1])
     data = NoData.replace([File_(name, path, original_hashes)], **matrices)

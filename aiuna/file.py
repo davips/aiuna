@@ -18,4 +18,4 @@ class File_(DITransf_):
         return config
 
     def _uuid_(self):  # override [to exclude file name/path from identity]
-        return UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, sort_keys=True).encode())
+        return UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
