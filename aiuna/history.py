@@ -67,7 +67,7 @@ class History(withPrinting):
         for transformer in self:
 
             if not transformer.isnoop:
-                yield transformer.name
+                yield transformer.longname
 
     def __xor__(self, attrname):
         return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))  # TODO: memoize json?
