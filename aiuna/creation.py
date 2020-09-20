@@ -6,16 +6,11 @@ import arff
 import numpy as np
 import sklearn.datasets as ds
 
-from aiuna.compression import pack
-from aiuna.content.specialdata import NoData
-from aiuna.file import File_
-from cruipto.uuid import UUID
-
 
 # noinspection PyPep8Naming
 def read_arff(filename):
     """
-    Create Data from ARFF file.
+    Create  from ARFF file.
 
     Assume X,y classification task and last attribute as target.
     And that there were no transformations (history) on this Data.
@@ -66,10 +61,7 @@ def read_arff(filename):
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
     original_hashes = {k: md5(json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()).hexdigest() for k, v in matrices.items()}
-
-    path = "/".join(name.split("/")[:-1])
-    data = NoData.replace([File_(name, path, original_hashes)], **matrices)
-    return data, name, description
+    return name, description, matrices, original_hashes
 
 
 def translate_type(name):
