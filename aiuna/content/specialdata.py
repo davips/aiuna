@@ -11,7 +11,7 @@ class UUIDData(Data):
     def __init__(self, uuid):
         if isinstance(uuid, str):
             uuid = UUID(uuid)
-        super().__init__(uuid, {}, history=History([]), failure=None, frozen=False, hollow=True, stream=None)
+        super().__init__(uuid, {}, history=History([]), hollow=True)
 
     def _uuid_impl(self) -> UUID:
         return self._uuid
@@ -36,7 +36,6 @@ class NoData(type):
     failure: str = None
     time = None
     timeout = None
-    isfrozen = False
     ishollow = False
     storage_info = None
     inner = None

@@ -60,7 +60,7 @@ class Data(AbsData, withPrinting):
 
     def __init__(self, uuid, uuids, history, failure=None, time=None, timeout=False, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
         # target: Fields precedence when comparing which data is greater.
-        self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids}
+        self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids, "inner": inner, "failure":failure}
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
         self.target = target.split(",")
@@ -74,10 +74,11 @@ class Data(AbsData, withPrinting):
         self.storage_info = storage_info
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
-        self._inner =inner
+        self._inner = inner
 
     def replace(self, transformer: Union[Transformer, List[Transformer]],
                 time: Union[str, float] = "keep",
+                inner: Optional[AbsData] = "keep",
                 stream: Union[str, Iterator] = "keep",
                 **fields):
         """Recreate an updated Data object.
@@ -104,10 +105,11 @@ class Data(AbsData, withPrinting):
         :param stream:
         :param time:
         """
-        return self._replace(transformer, time=time, stream=stream, **fields)
+        return self._replace(transformer, time=time, inner=inner, stream=stream, **fields)
 
     # TODO:proibir mudança no inner, exceto por meio do transformer Inner
-    def _replace(self, transformer, failure="keep", time="keep", timeout: bool = "keep", hollow: bool = "keep", stream="keep", inner="keep", **fields):
+    def _replace(self, transformer, failure="keep", time="keep", timeout: bool = "keep",
+                 hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
         history = self.history or History([])
         transformer = transformer if isinstance(transformer, list) else [transformer]
         failure = self.failure if failure == "keep" else failure
@@ -280,7 +282,7 @@ class Data(AbsData, withPrinting):
         return STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
 
     def _remove_unsafe_prefix(self, item, transformer="undefined"):
-        """Handle unsafe (i.e. frozen) fields."""
+        """Handle unsafe (i.e. failed data with) fields."""
         if item.startswith('unsafe'):
             # User knows what they are doing.
             return item[6:]

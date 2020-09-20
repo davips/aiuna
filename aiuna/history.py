@@ -2,6 +2,8 @@ from functools import lru_cache
 
 from transf.mixin.printing import withPrinting
 
+SHORT_HISTORY = True
+
 
 class Leaf(withPrinting):
     isleaf = True
@@ -27,7 +29,10 @@ class History(withPrinting):
         return self._findlast(self)
 
     def _jsonable_(self):
-        return list(self.clean)
+        global SHORT_HISTORY
+        if SHORT_HISTORY:
+            return list(self.clean)
+        return list(self)
 
     def __add__(self, other):
         return History([], nested=[self, other])
