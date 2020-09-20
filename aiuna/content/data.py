@@ -8,7 +8,7 @@ import numpy as np
 
 from aiuna.config import STORAGE_CONFIG
 from aiuna.history import History
-from aiuna.mixin.linalghelper import fields2matrices, evolve_id
+from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
 from transf.mixin.printing import withPrinting
@@ -190,9 +190,9 @@ class Data(AbsData, withPrinting):
         if not name.islower():
             return m
         elif name in ["r", "s"]:
-            return li.mat2vec(m)
+            return mat2vec(m)
         elif name in ["y", "z"]:
-            return li.mat2vec(m)
+            return mat2vec(m)
         else:
             comp = context.name if "name" in dir(context) else context
             raise Exception("Unexpected lower letter:", m, "requested by", comp)
