@@ -24,3 +24,17 @@ except FileNotFoundError:
 STORAGE_CONFIG["default_dump"] = {"engine": "dump"}
 STORAGE_CONFIG["default_sqlite"] = {"engine": "sqlite"}
 STORAGE_CONFIG["storages"] = {}
+
+CACHE = {}
+
+
+def globalcache(method):
+    def wrapper(transformer, data):
+        # global CACHE
+        key = transformer.id + data.id
+        if key in CACHE:
+            return CACHE[key]
+        CACHE[key] = method(transformer, data)
+        return CACHE[key]
+
+    return wrapper
