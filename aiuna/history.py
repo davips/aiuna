@@ -1,9 +1,7 @@
 from functools import lru_cache
 
+from aiuna import config
 from transf.mixin.printing import withPrinting
-
-SHORT_HISTORY = True
-
 
 class Leaf(withPrinting):
     isleaf = True
@@ -29,8 +27,7 @@ class History(withPrinting):
         return self._findlast(self)
 
     def _jsonable_(self):
-        global SHORT_HISTORY
-        if SHORT_HISTORY:
+        if config.SHORT_HISTORY:
             return list(self.clean)
         return list(self)
 
@@ -66,7 +63,7 @@ class History(withPrinting):
         """Clean version of history. Only the names (of real transformations)."""
         for transformer in self:
 
-            if not transformer.isnoop:
+            # if not transformer.isnoop:
                 yield transformer.longname
 
     def __xor__(self, attrname):

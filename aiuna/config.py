@@ -38,3 +38,6 @@ def globalcache(method):  # TODO: make it LRU
         return CACHE[key]
 
     return wrapper
+
+
+SHORT_HISTORY = True
