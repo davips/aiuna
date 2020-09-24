@@ -1,10 +1,8 @@
-from aiuna.creation import read_arff
 import json
 from functools import cached_property
 
-from aiuna.content.data import Data
 from aiuna.content.specialdata import NoData
-from aiuna.history import History
+from aiuna.creation import read_arff
 from cruipto.uuid import UUID
 from transf.ditransf import DITransf_
 
@@ -31,8 +29,10 @@ class File(DITransf_):
         config["hashes"] = self.hashes
         return config
 
-    def _uuid_(self):  # override uuid to exclude file name/path from identity
-        return UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
+    def _uuid_(self):  # override uuid because default uuid is based on config, which includes file name/path
+        uuid = UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
+        # HINT: starting with f is reserved for File
+        return UUID("f" + uuid.id[1:])
 
     # TODO: check all json dumps
 
