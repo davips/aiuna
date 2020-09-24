@@ -31,8 +31,7 @@ class File(DITransf_):
 
     def _uuid_(self):  # override uuid because default uuid is based on config, which includes file name/path
         uuid = UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
-        # HINT: starting with f is reserved for File
-        return UUID("f" + uuid.id[1:])
+        return uuid
 
     # TODO: check all json dumps
 
