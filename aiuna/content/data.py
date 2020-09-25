@@ -5,6 +5,7 @@ from typing import Union, Iterator, List, Optional
 
 import arff
 import numpy as np
+from aiuna.compression import pack
 
 from aiuna.config import STORAGE_CONFIG
 from aiuna.history import History
@@ -264,7 +265,7 @@ class Data(AbsData, withPrinting):
     def field_dump(self, name):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache (e.g. more than one backend)."""
-        return com.pack(self.field(name))
+        return pack(self.field(name))
 
     @property
     @lru_cache()
@@ -345,7 +346,7 @@ class Data(AbsData, withPrinting):
             return arff.dumps(dic)
         except:
             traceback.print_exc()
-            print("Problems creating ARFF", self.filename)
+            print("Problems creating ARFF")
             print("Types:", Xt, Yt)
             print("Sample:", self.X[0], self.Y[0])
             print("Expected sizes:", len(Xt), "+", len(Yt))

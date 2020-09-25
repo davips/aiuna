@@ -88,7 +88,7 @@ def evolve_id(uuid, uuids, transformers, matrices):
 
         # TODO: UPDATED 10/jun
         #   Accessing fields just to calculate UUID defeats the purpose of lazy fields
-        #   (including lazy data from cururu and stream).
+        #   (including lazy data from tatu and stream).
         #   Vou colocar o cálculo rápido baseado em data.uuid*matrix_name,
         #   a desvantagem é não ter o início da matriz compatível com o início em File,
         #   mas talvez possamos mudar File pra ficar igual.

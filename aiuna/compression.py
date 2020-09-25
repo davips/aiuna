@@ -1,18 +1,16 @@
 import _pickle as pickle
 import json
+from functools import lru_cache
 
 import lz4.frame as lz
 import numpy as np
 import zstandard as zs
-from functools import lru_cache
-
-# TODO: make a permanent representative dictionary and check if it
-#  reduces compression time and size of textual info like transformations.
-from cruipto.encoders import integers2bytes, bytes2integers
-
 # Things that should be calculated only once.
 # ##################################################
 from aiuna.config import safety
+# TODO: make a permanent representative dictionary and check if it
+#  reduces compression time and size of textual info like transformations.
+from cruipto.encoders import integers2bytes, bytes2integers
 
 
 @lru_cache()
@@ -694,7 +692,7 @@ def pack(obj):
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
             h, w = obj.shape
             fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
-            header = integers2bytes(obj.shape)
+            header = integers2bytes(*obj.shape)
             return b"F" + header + cctx.compress(fast_reduced)
         elif isinstance(obj, (list, set, str, int, float, bytearray, bool)):
             js = json.dumps(obj, sort_keys=True, ensure_ascii=False)
