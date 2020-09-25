@@ -2,26 +2,26 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="67430135-7546-42f2-91bc-2c2e014d7885" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/pjdata/content/content.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pjdata/content/specialdata.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/abc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/content/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/aux/alphabets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/aux/alphabets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/aux/compression.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/aux/compression.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/aux/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/aux/encoders.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/aux/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/aux/util.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/aux/uuid.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/aux/uuid.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/collection.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/content/collection.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/content/collection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/content/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/content/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/data.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/mixin/identifiable.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/mixin/identifiable.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/mixin/identifyable.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/mixin/linalghelper.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/mixin/linalghelper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/mixin/printable.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/mixin/printable.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/specialdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/specialdata.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/step/transformation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/step/transformation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/types.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/types.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pjdata/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/pjdata/util.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aiuna/content/content.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aiuna/content/specialdata.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/abc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/content/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/aux/alphabets.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/aux/alphabets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/aux/compression.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/aux/compression.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/aux/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/aux/encoders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/aux/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/aux/util.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/aux/uuid.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/aux/uuid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/collection.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/content/collection.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/content/collection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/content/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/content/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/data.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/mixin/identifiable.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/mixin/identifiable.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/mixin/identifyable.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/mixin/linalghelper.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/mixin/linalghelper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/mixin/printable.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/mixin/printable.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/specialdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/specialdata.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/step/transformation.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/step/transformation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/types.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/types.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aiuna/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/aiuna/util.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

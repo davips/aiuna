@@ -1,7 +1,7 @@
 import json
 from functools import cached_property
 
-from aiuna.content.specialdata import NoData
+from aiuna.content.specialdata import Root
 from aiuna.creation import read_arff
 from cruipto.uuid import UUID
 from transf.ditransf import DITransf_
@@ -20,8 +20,8 @@ class File(DITransf_):
         self._hashes = hashes
 
     def _transform_(self, data):
-        if data not in [NoData, None]:
-            raise Exception(f"Transformer {self.name} only accepts NoData. Use Sink before it if needed.")
+        if data not in [Root, None]:
+            raise Exception(f"Transformer {self.name} only accepts Root. Use Sink before it if needed.", type(data))
         return self.data
 
     def _config_(self):
@@ -44,7 +44,7 @@ class File(DITransf_):
         else:
             self._hashes = original_hashes
 
-        return NoData.replace(self, **matrices)
+        return Root.replace(self, **matrices)
 
     @cached_property
     def dataset(self):

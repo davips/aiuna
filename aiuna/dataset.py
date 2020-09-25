@@ -18,9 +18,9 @@ class Dataset(Identifyable, Printable):
         return self.name
 
 
-class NoDataset(type):
-    name = 'NoDataset'
+class Rootset(type):
+    name = 'Rootset'
     from cruipto.encoders import int2tiny
     def __new__(cls, *args, **kwargs):
         raise Exception(
-            'NoDataset is a singleton and shouldn\'t be instantiated')
+            'Rootset is a singleton and shouldn\'t be instantiated')

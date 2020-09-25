@@ -204,7 +204,7 @@ class Data(AbsData, withPrinting):
     #
     #     Return itself if it is frozen or failed."""
     #     # REMINDER: It is preferable to have this method in Data instead of Transformer because of the different
-    #     # data handling depending on the type of content: Data, NoData.
+    #     # data handling depending on the type of content: Data, Root.
     #     if self.isfrozen or self.failure:
     #         transformer = transformer.pholder
     #         output_data = self.replace([transformer])  # TODO: check if Pholder here is what we want
@@ -323,10 +323,10 @@ class Data(AbsData, withPrinting):
 
     def __eq__(self, other):
         # Checks removed for speed (isinstance is said to be slow...)
-        # from aiuna.content.specialdata import NoData
-        # if other is not NoData or not isinstance(other, Data):  # TODO: <-- check for other types of Data?
+        # from aiuna.content.specialdata import Root
+        # if other is not Root or not isinstance(other, Data):  # TODO: <-- check for other types of Data?
         #     return False
-        return self.uuid == other.uuid
+        return other is not None and self.uuid == other.uuid
 
     def __hash__(self):
         return hash(self.uuid)

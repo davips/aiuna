@@ -92,7 +92,7 @@ def evolve_id(uuid, uuids, transformers, matrices):
         #   Vou colocar o cálculo rápido baseado em data.uuid*matrix_name,
         #   a desvantagem é não ter o início da matriz compatível com o início em File,
         #   mas talvez possamos mudar File pra ficar igual.
-        #   [19/set/20 : impossível fazer isso no File, pois todo Data vem de NoData, UUID=1]
+        #   [19/set/20 : impossível fazer isso no File, pois todo Data vem de Root, UUID=1]
 
         if name in uuids:
             muuid = uuids.get(name)
