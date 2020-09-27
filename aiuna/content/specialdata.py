@@ -41,33 +41,24 @@ class Root(type):
     inner = None
 
     @staticmethod
-    def hollow(transformer):
+    def hollow(step):
         """A light Data object, i.e. without matrices."""
         # noinspection PyCallByClass,PyTypeChecker
-        return Data.hollow(Root, transformer)
-
-    # @staticmethod
-    # def transformedby(transformer):
-    #     """Return this Data object transformed by func.
-    #
-    #     Return itself if it is frozen or failed.        """
-    #     result = transformer._transform_impl(Root)
-    #     if isinstance(result, dict):
-    #         return Root.replace(transformer=(transformer,), **result)
-    #     return result
+        return Data.hollow(Root, step)
 
     @staticmethod
-    def replace(transformer, **kwargs):
+    def replace(step, **kwargs):
         # noinspection PyCallByClass,PyTypeChecker
-        return Data.replace(Root, transformer, **kwargs)
+        return Data.replace(Root, step, **kwargs)
 
     @staticmethod
-    def _replace(transformer, **kwargs):
+    def _replace(step, **kwargs):
         # noinspection PyCallByClass,PyTypeChecker,PyProtectedMember
-        return Data._replace(Root, transformer, **kwargs)
+        return Data._replace(Root, step, **kwargs)
 
     def __new__(mcs, *args, **kwargs):
         raise Exception("Root is a singleton and shouldn't be instantiated")
 
     def __bool__(self):
         return False
+

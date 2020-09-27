@@ -61,13 +61,13 @@ def fields2matrices(fields):
     return matrices
 
 
-def evolve(uuid, transformers):
-    for transformer in transformers:
-        uuid *= transformer.uuid
+def evolve(uuid, steps):
+    for step in steps:
+        uuid *= step.uuid
     return uuid
 
 
-def evolve_id(uuid, uuids, transformers, matrices):
+def evolve_id(uuid, uuids, steps, matrices):
     """Return UUID/UUIDs after transformations."""
 
     # Update matrix UUIDs.
@@ -103,10 +103,10 @@ def evolve_id(uuid, uuids, transformers, matrices):
                 muuid = uuid * UUID(bytes(name, "latin1"))
 
         # Transform UUID.
-        muuid = evolve(muuid, transformers)
+        muuid = evolve(muuid, steps)
         uuids_[name] = muuid
 
     # Update UUID.
-    uuid = evolve(uuid, transformers)
+    uuid = evolve(uuid, steps)
 
     return uuid, uuids_

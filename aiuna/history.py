@@ -6,19 +6,19 @@ from transf.mixin.printing import withPrinting
 class Leaf(withPrinting):
     isleaf = True
 
-    def __init__(self, transformer):
-        self.transformer = transformer
+    def __init__(self, step):
+        self.step = step
 
     def _jsonable_(self):
-        return self.transformer.jsonable
+        return self.step.jsonable
 
 
 class History(withPrinting):
     isleaf = False
 
-    def __init__(self, transformers, nested=None):
+    def __init__(self, steps, nested=None):
         """Optimized iterable based on structural sharing."""
-        self.nested = nested or list(map(Leaf, transformers))
+        self.nested = nested or list(map(Leaf, steps))
         # if len(self.nested)==0:
         #     raise Exception
 
@@ -34,15 +34,15 @@ class History(withPrinting):
     def __add__(self, other):
         return History([], nested=[self, other])
 
-    def __lshift__(self, transformers):
-        if transformers:
-            return History([], nested=[self, History(transformers)])
+    def __lshift__(self, steps):
+        if steps:
+            return History([], nested=[self, History(steps)])
         return self
 
     def traverse(self, node):
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
-            yield node.transformer
+            yield node.step
         else:
             for tup in node.nested:
                 yield from self.traverse(tup)
@@ -50,7 +50,7 @@ class History(withPrinting):
     def _findlast(self, node) -> str:
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
-            return node.transformer
+            return node.step
         else:
             # print(node.nested)
             return self._findlast(node.nested[-1])
@@ -61,10 +61,10 @@ class History(withPrinting):
     @property
     def clean(self):
         """Clean version of history. Only the names (of real transformations)."""
-        for transformer in self:
+        for step in self:
 
-            # if not transformer.isnoop:
-                yield transformer.longname
+            # if not step.isnoop:
+                yield step.longname
 
     def __xor__(self, attrname):
         return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))  # TODO: memoize json?

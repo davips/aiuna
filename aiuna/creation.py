@@ -19,7 +19,7 @@ def read_arff(filename):
     Actually, the first collision is expected after 1M different datasets
     with the same name ( n = 2**(log(107**6, 2)/2) ).
     Since we already expect unique names like 'iris', and any transformed
-    dataset is expected to enter the system through a transformer,
+    dataset is expected to enter the system through a step,
     1M should be safe enough. Ideally, a single 'iris' be will stored.
     In practice, no more than a dozen are expected.
 
@@ -97,7 +97,7 @@ def translate_type(name):
 #     Actually, the first collision is expected after 12M different datasets
 #     with the same name ( n = 2**(log(107**7, 2)/2) ).
 #     Since we already expect unique names like 'iris', and any transformed
-#     dataset is expected to enter the system through a transformer,
+#     dataset is expected to enter the system through a step,
 #     12M should be safe enough. Ideally, a single 'iris' be will stored.
 #     In practice, no more than a dozen are expected.
 #
@@ -143,7 +143,7 @@ def translate_type(name):
 #     Actually, the first collision is expected after 12M different datasets
 #     with the same name ( n = 2**(log(107**7, 2)/2) ).
 #     Since we already expect unique names like 'iris', and any transformed
-#     dataset is expected to enter the system through a transformer,
+#     dataset is expected to enter the system through a step,
 #     12M should be safe enough. Ideally, a single 'iris' be will stored.
 #     In practice, no more than a dozen are expected.
 #

@@ -13,7 +13,7 @@ from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
 from transf.mixin.printing import withPrinting
-from transf.transformer import Transformer
+from transf.step import Step
 
 
 def new():
@@ -77,7 +77,7 @@ class Data(AbsData, withPrinting):
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
 
-    def replace(self, transformer: Union[Transformer, List[Transformer]],
+    def replace(self, step: Union[Step, List[Step]],
                 time: Union[str, float] = "keep",
                 inner: Optional[AbsData] = "keep",
                 stream: Union[str, Iterator] = "keep",
@@ -86,8 +86,8 @@ class Data(AbsData, withPrinting):
 
         Parameters
         ----------
-        transformers
-            List of Transformer objects that transforms this Data object.
+        steps
+            List of Step objects that transforms this Data object.
         failure
             Updated value for failure.
             'keep' (recommended, default) = 'keep this attribute unchanged'.
@@ -102,17 +102,17 @@ class Data(AbsData, withPrinting):
         -------
         New Content object (it keeps references to the old one for performance).
         :param inner:
-        :param transformer:
+        :param step:
         :param stream:
         :param time:
         """
-        return self._replace(transformer, time=time, inner=inner, stream=stream, **fields)
+        return self._replace(step, time=time, inner=inner, stream=stream, **fields)
 
-    # TODO:proibir mudança no inner, exceto por meio do transformer Inner
-    def _replace(self, transformer, failure="keep", time="keep", timeout: bool = "keep",
+    # TODO:proibir mudança no inner, exceto por meio do step Inner
+    def _replace(self, step, failure="keep", time="keep", timeout: bool = "keep",
                  hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
         history = self.history or History([])
-        transformer = transformer if isinstance(transformer, list) else [transformer]
+        step = step if isinstance(step, list) else [step]
         failure = self.failure if failure == "keep" else failure
         time = self.time if time == "keep" else time
         timeout = self.timeout if timeout == "keep" else timeout
@@ -122,25 +122,25 @@ class Data(AbsData, withPrinting):
         matrices = self.matrices.copy()
 
         matrices.update(fields2matrices(fields))
-        uuid, uuids = evolve_id(self.uuid, self.uuids, transformer, matrices)
+        uuid, uuids = evolve_id(self.uuid, self.uuids, step, matrices)
 
         kw = {"time": time, "timeout": timeout, "hollow": hollow, "stream": stream, "storage_info": self.storage_info}
-        return Data(uuid, uuids, history << transformer, failure, **kw, inner=inner, **matrices)
+        return Data(uuid, uuids, history << step, failure, **kw, inner=inner, **matrices)
 
     def timed(self, time):
         return self._replace([], time=time)
 
-    def timedout(self, transformer, time=None):
-        return self._replace(transformer, time=time, timeout=True)
+    def timedout(self, step, time=None):
+        return self._replace(step, time=time, timeout=True)
 
-    def failed(self, transformer, failure):
-        return self._replace(transformer, failure=failure)
+    def failed(self, step, failure):
+        return self._replace(step, failure=failure)
 
     @lru_cache()
-    def hollow(self, transformer):
+    def hollow(self, step):
         """Create a temporary hollow Data object (only Persistence can fill it).
         Notice: uuid is changed."""
-        return self._replace(transformer, hollow=True)
+        return self._replace(step, hollow=True)
 
     @lru_cache()
     def field(self, name, block=False, context="undefined"):
@@ -200,29 +200,29 @@ class Data(AbsData, withPrinting):
             comp = context.name if "name" in dir(context) else context
             raise Exception("Unexpected lower letter:", m, "requested by", comp)
 
-    # def transformedby(self, transformer):
+    # def transformedby(self, step):
     #     """Return this Data object transformed by func.
     #
     #     Return itself if it is frozen or failed."""
-    #     # REMINDER: It is preferable to have this method in Data instead of Transformer because of the different
+    #     # REMINDER: It is preferable to have this method in Data instead of Step because of the different
     #     # data handling depending on the type of content: Data, Root.
     #     if self.isfrozen or self.failure:
-    #         transformer = transformer.pholder
-    #         output_data = self.replace([transformer])  # TODO: check if Pholder here is what we want
+    #         step = step.pholder
+    #         output_data = self.replace([step])  # TODO: check if Pholder here is what we want
     #         # print(888777777777777777777777)
     #     else:
-    #         output_data = transformer._transform_impl(self)
+    #         output_data = step._transform_impl(self)
     #         if isinstance(output_data, dict):
-    #             output_data = self.replace(transformer=[transformer], **output_data)
+    #             output_data = self.replace(step=[step], **output_data)
     #         # print(888777777777777777777777999999999999999999999999)
     #
     #     # TODO: In the future, remove this temporary check. It has a small cost, but is useful while in development:
-    #     # print(type(transformer))
+    #     # print(type(step))
     #     # print(type(output_data))
-    #     if self.uuid * transformer.uuid != output_data.uuid:
-    #         print("Error:", 4444444444444444, transformer)
+    #     if self.uuid * step.uuid != output_data.uuid:
+    #         print("Error:", 4444444444444444, step)
     #         print(
-    #             f"Expected UUID {self.uuid} * {transformer.uuid} = {self.uuid * transformer.uuid} "
+    #             f"Expected UUID {self.uuid} * {step.uuid} = {self.uuid * step.uuid} "
     #             f"doesn't match the output_data {output_data.uuid}"
     #         )
     #         print("Histories:")
@@ -230,7 +230,7 @@ class Data(AbsData, withPrinting):
     #         print(output_data.history ^ "longname", output_data.history ^ "uuid")
     #         # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("4ʊĘÓĹmրӐƉοÝѕȷg"))
     #         # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("1ϺϽΖМȅÏОʌŨӬѓȤӟ"))
-    #         print(transformer.longname)
+    #         print(step.longname)
     #         print()
     #         raise Exception
     #     return output_data
@@ -282,14 +282,14 @@ class Data(AbsData, withPrinting):
             raise Exception(f"There is no storage set to fetch: {id})!")
         return STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
 
-    def _remove_unsafe_prefix(self, item, transformer="undefined"):
+    def _remove_unsafe_prefix(self, item, step="undefined"):
         """Handle unsafe (i.e. failed data with) fields."""
         if item.startswith('unsafe'):
             # User knows what they are doing.
             return item[6:]
 
         if self.failure or self.timeout or self.ishollow:
-            raise Exception(f"Transformer {transformer} cannot access fields ({item}) from Data objects that come from a "
+            raise Exception(f"Step {step} cannot access fields ({item}) from Data objects that come from a "
                             f"failed/timedout/hollow pipeline! HINT: use unsafe{item}. \n"
                             f"HINT2: To calculate training accuracy the 'train' Data should be inside the 'test' tuple; use Copy "
                             f"for that."

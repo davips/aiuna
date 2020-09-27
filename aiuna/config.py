@@ -29,12 +29,12 @@ CACHE = {}
 
 
 def globalcache(method):  # TODO: make it LRU
-    def wrapper(transformer, data):
+    def wrapper(step, data):
         # global CACHE
-        key = transformer.id + data.id
+        key = step.id + data.id
         if key in CACHE:
             return CACHE[key]
-        CACHE[key] = method(transformer, data)
+        CACHE[key] = method(step, data)
         return CACHE[key]
 
     return wrapper
