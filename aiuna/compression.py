@@ -692,7 +692,7 @@ def pack(obj):
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
             h, w = obj.shape
             fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
-            header = integers2bytes(*obj.shape)
+            header = integers2bytes(obj.shape)
             return b"F" + header + cctx.compress(fast_reduced)
         elif isinstance(obj, (list, set, str, int, float, bytearray, bool)):
             js = json.dumps(obj, sort_keys=True, ensure_ascii=False)
