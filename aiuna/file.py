@@ -19,13 +19,14 @@ class File(DIStep):
         else:
             raise Exception("Unrecognized file extension:", name)
         self._hashes = hashes
+        super().__init__(self._config)
 
     def _process_(self, data):
         if data is not Root:
             raise Exception(f"{self.name} only accepts Root as Data. Use File(...).data or Sink instead.", type(data))
         return self.data
 
-    def _config_(self):
+    def _config(self):
         config = self._partial_config
         config["hashes"] = self.hashes
         return config

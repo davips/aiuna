@@ -165,13 +165,17 @@ class Data(AbsData, withPrinting):
         mname = name.upper() if len(name) == 1 else name
 
         # Check existence of the field.
+        # for a in self.history:
+        #     print(a.name)
         if mname not in self.matrices:
             comp = context.name if "name" in dir(context) else context
-            raise MissingField(
-                f"\n\nLast transformation:\n{self.history.last} ... \n"
-                f" Data object <{self}>...last transformed by "
-                f"{self.history.last} does not "
-                f"provide field {name} needed by {comp} \n. Available matrices: {list(self.matrices.keys())}")
+            print(
+                # f"\n\nLast transformation:\n{self.history.last} ... \n"
+                f" Data object <{self.uuid}>...last transformed by "
+                f"\n{self.history ^ 'name'} does not "
+                f"provide field {name} needed by {comp} .\nAvailable matrices: {list(self.matrices.keys())}")
+            # raise MissingField
+            exit()
 
         m = self.matrices[mname]
 
@@ -265,7 +269,7 @@ class Data(AbsData, withPrinting):
     def field_dump(self, name):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache (e.g. more than one backend)."""
-        return pack(self.field(name))
+        return pack(self.field(name,context="[dump]"))
 
     @property
     @lru_cache()
@@ -319,7 +323,7 @@ class Data(AbsData, withPrinting):
     def __lt__(self, other):
         """Amenity to ease pipeline result comparisons. 'A > B' means A is better than B."""
         for name in self._target:
-            return self.field(name) < other.field(name, context="comparison between Data objects")
+            return self.field(name, context="[comparison between Data objects 1]") < other.field(name, context="[comparison between Data objects 2]")
         return Exception("Impossible to make comparisons. None of the target fields are available:", self.target)
 
     def __eq__(self, other):

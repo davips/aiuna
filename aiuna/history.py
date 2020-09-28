@@ -67,4 +67,6 @@ class History(withPrinting):
                 yield step.longname
 
     def __xor__(self, attrname):
+        # unveil properties?
+        [a.name for a in self.traverse(self)]
         return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))  # TODO: memoize json?
