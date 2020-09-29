@@ -32,8 +32,7 @@ class File(DIStep):
         return config
 
     def _uuid_(self):  # override uuid because default uuid is based on config, which includes file name/path
-        uuid = UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False,
-                               sort_keys=True).encode())
+        uuid = UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
         return uuid
 
     # TODO: check all json dumps
