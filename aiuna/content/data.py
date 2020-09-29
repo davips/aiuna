@@ -61,7 +61,7 @@ class Data(AbsData, withPrinting):
 
     def __init__(self, uuid, uuids, history, failure=None, time=None, timeout=False, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
         # target: Fields precedence when comparing which data is greater.
-        self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids, "inner": inner, "failure":failure}
+        self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids, "inner": inner, "failure": failure}
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
         self.target = target.split(",")
@@ -188,7 +188,7 @@ class Data(AbsData, withPrinting):
             self.matrices[mname] = m = self._fetch_matrix(m.id)
 
         # Fetch previously deferred value?...
-        if callable(m):
+        if callable(m):  # TODO: make all Steps lazy (to enable use with fields produced by and inside streams?
             if block:
                 raise NotImplementedError("Waiting of values not implemented yet!")
             self.matrices[mname] = m = m()
@@ -269,7 +269,7 @@ class Data(AbsData, withPrinting):
     def field_dump(self, name):
         """Lazily compressed matrix for a given field.
         Useful for optimized persistence backends for Cache (e.g. more than one backend)."""
-        return pack(self.field(name,context="[dump]"))
+        return pack(self.field(name, context="[dump]"))
 
     @property
     @lru_cache()
