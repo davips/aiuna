@@ -429,6 +429,7 @@ class Data(AbsData, withPrinting):
         for step in self.history:  # TODO: put serialization and recreation together
             steps.append(step.jsonable)
         history = json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
+        #TODO quebrar com stream logo que entrar no persistence.store pois indica stream nao tratado no cache; e parar de tratar automaticamente
         unpickable_parts.append({"stream": self.stream})
         if self.inner:
             inner, unpickable_parts = self.inner.picklable_(unpickable_parts)
