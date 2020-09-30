@@ -1,15 +1,13 @@
 # data
 import json
-import pickle
 import traceback
 from functools import lru_cache, cached_property
-from pprint import pprint
 from typing import Union, Iterator, List, Optional
 
 import arff
 import numpy as np
-from aiuna.compression import pack
 
+from aiuna.compression import pack
 from aiuna.config import STORAGE_CONFIG
 from aiuna.content.lazies import Lazies
 from aiuna.history import History
@@ -445,6 +443,9 @@ class Data(AbsData, withPrinting):
 
         History is desserialized, if given as str.
         """
+        # REMINDER: Persistence objects can be nested, so self can be already unpickable
+        if not isinstance(self, PickableData):
+            return self
         # make a copy, since we will change history and stream directly; and convert to right class
         stream = "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
         if not isinstance(self.history, str):

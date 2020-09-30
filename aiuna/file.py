@@ -66,3 +66,6 @@ class File(DIStep):
         if self._hashes is None:
             _ = self.data  # force calculation of hashes
         return self._hashes
+
+    def parameters(self):
+        return self._config()
