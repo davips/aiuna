@@ -1,6 +1,9 @@
 # data
+import json
+import pickle
 import traceback
 from functools import lru_cache, cached_property
+from pprint import pprint
 from typing import Union, Iterator, List, Optional
 
 import arff
@@ -8,10 +11,12 @@ import numpy as np
 from aiuna.compression import pack
 
 from aiuna.config import STORAGE_CONFIG
+from aiuna.content.lazies import Lazies
 from aiuna.history import History
 from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
+from transf.customjsonencoder import CustomJSONEncoder
 from transf.mixin.printing import withPrinting
 from transf.step import Step
 
@@ -61,10 +66,27 @@ class Data(AbsData, withPrinting):
 
     def __init__(self, uuid, uuids, history, failure=None, time=None, timeout=False, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
         # target: Fields precedence when comparing which data is greater.
-        self._jsonable = {"uuid": uuid, "history": history, "uuids": uuids, "inner": inner, "failure": failure}
+        self._jsonable = {"uuid": uuid, "uuids": uuids}
+        if failure:
+            self._jsonable["failure"] = failure
+        # if time:  # TODO: should we print volatile fields?
+        #     self._jsonable["time"] = time
+        if timeout:
+            self._jsonable["timeout"] = timeout
+        if hollow:
+            self._jsonable["hollow"] = hollow
+        if target:
+            self._jsonable["target"] = target
+        if storage_info:
+            self._jsonable["storage_info"] = storage_info
+        if inner:
+            self._jsonable["inner"] = inner
+        if matrices:
+            self._jsonable["matrices"] = ", ".join(matrices.keys())
+
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
-        self.target = target.split(",")
+        self.target = target.split(",") if isinstance(target, str) else target
         self.history = history
         self._failure = failure
         self.time = time
@@ -76,6 +98,7 @@ class Data(AbsData, withPrinting):
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
+        self.lazies_m = Lazies({mat: val for mat, val in matrices.items() if callable(val)})
 
     def replace(self, step: Union[Step, List[Step]],
                 time: Union[str, float] = "keep",
@@ -122,6 +145,7 @@ class Data(AbsData, withPrinting):
         matrices = self.matrices.copy()
 
         matrices.update(fields2matrices(fields))
+        self.lazies_m = Lazies({mat: val for mat, val in matrices.items() if callable(val)})
         uuid, uuids = evolve_id(self.uuid, self.uuids, step, matrices)
 
         kw = {"time": time, "timeout": timeout, "hollow": hollow, "stream": stream, "storage_info": self.storage_info}
@@ -135,6 +159,21 @@ class Data(AbsData, withPrinting):
 
     def failed(self, step, failure):
         return self._replace(step, failure=failure)
+
+    @cached_property
+    def nolazies(self):
+        """Touch every lazy field.
+
+        Stream is kept intact"""
+        touch = []
+        for k, v in self.lazies_m.items():
+            if not callable(v):
+                print(f"TODO: Fix -> Lazy field {k} was already nonlazy!")
+                # exit()
+            touch.append(k)
+        for m in touch:
+            self.field(m, context="nolazies")
+        return self
 
     @lru_cache()
     def hollow(self, step):
@@ -187,11 +226,14 @@ class Data(AbsData, withPrinting):
             print(">>>> fetching field:", name, m.id)
             self.matrices[mname] = m = self._fetch_matrix(m.id)
 
+        # TODO: make all Steps lazy (to enable use with fields produced by and inside streams?
         # Fetch previously deferred value?...
-        if callable(m):  # TODO: make all Steps lazy (to enable use with fields produced by and inside streams?
+        if callable(m):
             if block:
                 raise NotImplementedError("Waiting of values not implemented yet!")
             self.matrices[mname] = m = m()
+            del self.lazies_m[mname]
+            # pprint(self.__dict__, indent=2)  # HINT: list all content from an object
 
         # Just return formatted according to capitalization...
         if not name.islower():
@@ -293,11 +335,18 @@ class Data(AbsData, withPrinting):
             return item[6:]
 
         if self.failure or self.timeout or self.ishollow:
-            raise Exception(f"Step {step} cannot access fields ({item}) from Data objects that come from a "
-                            f"failed/timedout/hollow pipeline! HINT: use unsafe{item}. \n"
-                            f"HINT2: To calculate training accuracy the 'train' Data should be inside the 'test' tuple; use Copy "
-                            f"for that."
-                            )  # TODO: breakdown this msg for each case.
+            print(f"Step {step} cannot access fields ({item}) from Data objects that come from a "
+                  f"failed/timedout/hollow pipeline! HINT: use unsafe{item}. \n"
+                  f"HINT2: To calculate training accuracy the 'train' Data should be inside the 'test' tuple; use Copy "
+                  f"for that."
+                  )
+            if self.failure:
+                print("failed", self.failure)
+            if self.timeout:
+                print("timeout")
+            if self.ishollow:
+                print("hollow")
+
         return item
 
     def _uuid_(self):
@@ -360,6 +409,46 @@ class Data(AbsData, withPrinting):
     def _jsonable_(self):
         return self._jsonable
 
+    @cached_property
+    def picklable(self) -> AbsData:
+        """Remove unpickable parts."""
+        return self.picklable_()[0]
+
+    @cached_property
+    def unpicklable(self) -> AbsData:
+        """Restore unpickable parts."""
+        return self.unpicklable_([{}])
+
+    # noinspection PyDefaultArgument
+    def picklable_(self, unpickable_parts=[]):
+        """Remove unpickable parts, but return them together as a dict."""
+        unpickable_parts = unpickable_parts.copy()
+        # noinspection PyCallByClass
+        data = PickableData._replace(self.nolazies, [])
+        real_history, real_stream = data.history, data.stream
+        data.stream = None
+        steps = []
+        for step in data.history:  # TODO: put serialization and recreation together
+            steps.append(step.jsonable)
+        data.history = json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
+        unpickable_parts.append({"stream": real_stream})
+        if data.inner:
+            inner, unpickable_parts = data.inner.picklable_(unpickable_parts)
+            data = data.replace([], inner=inner)
+        return data, unpickable_parts
+
+    def unpicklable_(self, unpickable_parts):
+        """Rebuild an unpickable Data.
+
+        History is desserialized, if given as str.
+        """
+        # make a copy, since we will change history and stream directly; and convert to right class
+        stream = "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
+        if isinstance(self.history, str):
+            history = History(Step.recreate(*uuid_step) for uuid_step in json.loads(self.history))
+        inner = self.inner and self.inner.unpicklable_(unpickable_parts[1:])
+        return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.hollow, stream, self.target, self.storage_info, inner)
+
 
 class MissingField(Exception):
     pass
@@ -372,3 +461,13 @@ def untranslate_type(name):
         return "NUMERIC"
     else:
         raise Exception("Unknown type:", name)
+
+
+class PickableData(Data):
+    """This class avoid the problem of an unpickable Data and its unpickable incarnation having the same hash."""
+
+    def __hash__(self):
+        return -1 * self.uuid.n
+
+    def _uuid_(self):
+        return self.uuid.n * 2
