@@ -447,7 +447,7 @@ class Data(AbsData, withPrinting):
         if not isinstance(self, PickableData):
             return self
         # make a copy, since we will change history and stream directly; and convert to right class
-        stream = "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
+        stream = unpickable_parts and "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
         if not isinstance(self.history, str):
             raise Exception("Pickable Data should have a str history")
         history = History(Step.recreate(*uuid_step) for uuid_step in json.loads(self.history))

@@ -61,7 +61,7 @@ def read_arff(filename):
     # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
     matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
     original_hashes = {k: md5(json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()).hexdigest() for k, v in matrices.items()}
-    return name, description, matrices, original_hashes
+    return {"dataset": name, "description": description, "matrices": matrices, "original_hashes": original_hashes}
 
 
 def translate_type(name):

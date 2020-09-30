@@ -39,7 +39,8 @@ class File(DIStep):
 
     @cached_property
     def data(self):
-        self._dataset, self._description, matrices, original_hashes = read_arff(self.filename)
+        d = read_arff(self.filename)
+        self._dataset, self._description, matrices, original_hashes = d["dataset"], d["description"], d["matrices"], d["original_hashes"]
         if self._hashes:
             if self._hashes != original_hashes:
                 raise Exception(

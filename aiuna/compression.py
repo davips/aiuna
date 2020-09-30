@@ -70,7 +70,7 @@ def unpack(dump_with_header):
         elif header == b"J":
             return json.loads(cctxdec.decompress(dump).decode())
         else:
-            raise Exception("Unknown compression format:", header)
+            raise Exception("Unknown compression format:", header, dump[:300])
 
 # def pack_object(obj):  #blosc is buggy
 #     """
