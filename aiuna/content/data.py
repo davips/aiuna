@@ -149,7 +149,9 @@ class Data(AbsData, withPrinting):
         uuid, uuids = evolve_id(self.uuid, self.uuids, step, matrices)
 
         kw = {"time": time, "timeout": timeout, "hollow": hollow, "stream": stream, "storage_info": self.storage_info}
-        return Data(uuid, uuids, history << step, failure, **kw, inner=inner, **matrices)
+        from aiuna.content.specialdata import Root
+        klass = Data if self is Root else self.__class__
+        return klass(uuid, uuids, history << step, failure, **kw, inner=inner, **matrices)
 
     def timed(self, time):
         return self._replace([], time=time)
@@ -422,20 +424,21 @@ class Data(AbsData, withPrinting):
     # noinspection PyDefaultArgument
     def picklable_(self, unpickable_parts=[]):
         """Remove unpickable parts, but return them together as a dict."""
+        if isinstance(self, PickableData):
+            return self, unpickable_parts
         unpickable_parts = unpickable_parts.copy()
-        # noinspection PyCallByClass
-        data = PickableData._replace(self.nolazies, [])
-        real_history, real_stream = data.history, data.stream
-        data.stream = None
         steps = []
-        for step in data.history:  # TODO: put serialization and recreation together
+        for step in self.history:  # TODO: put serialization and recreation together
             steps.append(step.jsonable)
-        data.history = json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
-        unpickable_parts.append({"stream": real_stream})
-        if data.inner:
-            inner, unpickable_parts = data.inner.picklable_(unpickable_parts)
-            data = data.replace([], inner=inner)
-        return data, unpickable_parts
+        history = json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
+        unpickable_parts.append({"stream": self.stream})
+        if self.inner:
+            inner, unpickable_parts = self.inner.picklable_(unpickable_parts)
+        else:
+            inner = None
+        newdata = PickableData(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow,
+                               stream=None, target=self.target, storage_info=self.storage_info, inner=inner, **self.matrices)
+        return newdata.nolazies, unpickable_parts
 
     def unpicklable_(self, unpickable_parts):
         """Rebuild an unpickable Data.
@@ -444,10 +447,11 @@ class Data(AbsData, withPrinting):
         """
         # make a copy, since we will change history and stream directly; and convert to right class
         stream = "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
-        if isinstance(self.history, str):
-            history = History(Step.recreate(*uuid_step) for uuid_step in json.loads(self.history))
+        if not isinstance(self.history, str):
+            raise Exception("Pickable Data should have a str history")
+        history = History(Step.recreate(*uuid_step) for uuid_step in json.loads(self.history))
         inner = self.inner and self.inner.unpicklable_(unpickable_parts[1:])
-        return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.hollow, stream, self.target, self.storage_info, inner)
+        return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
 
 
 class MissingField(Exception):
@@ -468,6 +472,3 @@ class PickableData(Data):
 
     def __hash__(self):
         return -1 * self.uuid.n
-
-    def _uuid_(self):
-        return self.uuid.n * 2
