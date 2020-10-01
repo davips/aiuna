@@ -1,7 +1,6 @@
 # aiuna Scientific Data 
 
-<p><a href="https://commons.wikimedia.org/wiki/File:Bradypus.jpg#/media/Ficheiro:Bradypus.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/1/18/Bradypus.jpg" alt="Bradypus variegatus" width="360" height="480"></a><br>Por Stefan Laube (&lt;a href="https://de.wikipedia.org/wiki/Benutzer:Tauchgurke" class="extiw" title="de:Benutzer:Tauchgurke"&gt;Tauchgurke&lt;/a&gt;) - &lt;span class="int-own-work" lang="pt"&gt;Obra do próprio&lt;/span&gt; (Stefan Laube)
-Originally uploaded at de.wikipedia.org: 2004-10-02 02:26 by &lt;a href="https://de.wikipedia.org/wiki/Benutzer:Tauchgurke" class="extiw" title="de:Benutzer:Tauchgurke"&gt;Tauchgurke&lt;/a&gt; (658235 Byte) (Dreizehenfaultier (Bradypus infuscatus), Gatunsee, Republik Panama), Domínio público, <a href="https://commons.wikimedia.org/w/index.php?curid=61433">Hiperligação</a></p>
+<p><a href="https://commons.wikimedia.org/wiki/File:Bradypus.jpg#/media/Ficheiro:Bradypus.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/1/18/Bradypus.jpg" alt="Bradypus variegatus - By Stefan Laube - (Dreizehenfaultier (Bradypus infuscatus), Gatunsee, Republik Panama), Public Domain" width="180" height="240"></a></p>
 
 # Installation
 
