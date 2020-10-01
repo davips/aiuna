@@ -166,9 +166,11 @@ class Data(AbsData, withPrinting):
 
         Stream is kept intact"""
         touch = []
+        check = True
         for k, v in self.lazies_m.items():
-            if not callable(v):
-                print(f"TODO: Fix -> Lazy field {k} was already nonlazy!")
+            if check and not callable(v):
+                print(f"Warn: TODO: Fix -> Lazy field {k} was already nonlazy!")
+                check = False
                 # exit()
             touch.append(k)
         for m in touch:
