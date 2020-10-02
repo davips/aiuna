@@ -68,5 +68,5 @@ class History(withPrinting):
 
     def __xor__(self, attrname):
         # touch properties to avoid problems (really needed?)
-        void = [a.name for a in self.traverse(self)]
-        return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))  # TODO: memoize json?
+        void = [a.name + a.longname for a in self.traverse(self)]
+        return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))

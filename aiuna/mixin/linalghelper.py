@@ -13,7 +13,8 @@ def _as_vector(mat: ndarray) -> ndarray:
     try:
         return mat.reshape(size)
     except Exception as e:
-        raise Exception(f"Expecting a matrix {mat}, as a column or row vector...")
+        print(f"Expecting a matrix {mat}, with a single row or column, i.e. as a column-vector or a row-vector...")
+        exit()
 
 
 def _as_column_vector(vec: ndarray) -> ndarray:
