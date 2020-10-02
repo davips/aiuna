@@ -244,6 +244,8 @@ class Data(AbsData, withPrinting):
             return mat2vec(m)
         elif name in ["y", "z"]:
             return mat2vec(m)
+        elif name in ["p"]:
+            return mat2vec(m)
         else:
             comp = context.name if "name" in dir(context) else context
             raise Exception("Unexpected lower letter:", m, "requested by", comp)
