@@ -27,8 +27,6 @@ class History(withPrinting):
         return self._findlast(self)
 
     def _jsonable_(self):
-        if config.SHORT_HISTORY:
-            return list(self.clean)
         return list(self)
 
     def __add__(self, other):

@@ -308,7 +308,9 @@ class Data(AbsData, withPrinting):
     @property
     @lru_cache()
     def history_str(self):
-        return ",".join(transf.id for transf in self.history)
+        if isinstance(self.history, History):
+            return ",".join(transf.id for transf in self.history)
+        return ",".join(transf["id"] for transf in self.history)
 
     @lru_cache()
     def field_dump(self, name):
@@ -431,7 +433,7 @@ class Data(AbsData, withPrinting):
         steps = []
         for step in self.history:  # TODO: put serialization and recreation together
             steps.append(step.jsonable)
-        history = json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
+        history = steps  #json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
         # TODO quebrar com stream logo que entrar no persistence.store pois indica stream nao tratado no cache; e parar de tratar automaticamente
         unpickable_parts.append({"stream": self.stream})
         if self.inner:
@@ -447,14 +449,14 @@ class Data(AbsData, withPrinting):
 
         History is desserialized, if given as str.
         """
-        # REMINDER: Persistence objects can be nested, so self can be already unpickable
+        # REMINDER: Persistence/threading actions can be nested, so self can be already unpickable
         if not isinstance(self, PickableData):
             return self
         # make a copy, since we will change history and stream directly; and convert to right class
         stream = unpickable_parts and "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
-        if not isinstance(self.history, str):
-            raise Exception("Pickable Data should have a str history")
-        history = History(Step.recreate(*uuid_step) for uuid_step in json.loads(self.history))
+        if not isinstance(self.history, list):
+            raise Exception("Pickable Data should have a list instead of a History object.")
+        history = History(map(Step.recreate, self.history))
         inner = self.inner and self.inner.unpicklable_(unpickable_parts[1:])
         return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
 

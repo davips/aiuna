@@ -37,16 +37,19 @@ cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 def pack(obj):
     with safety():
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
+            # X, ...
             h, w = obj.shape
             fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
             header = integers2bytes(obj.shape)
             return b"F" + header + cctx.compress(fast_reduced)
         elif isinstance(obj, (list, set, str, int, float, bytearray, bool)):
+            # steps, ...
             js = json.dumps(obj, sort_keys=True, ensure_ascii=False)
             return b"J" + cctx.compress(js.encode())
         elif isinstance(obj, str):
             return b"T" + cctxdic.compress(obj.encode())  # b'T'+0s==1409286144
         else:
+            # categorical ndarrays, ...
             pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
             fast_reduced = lz.compress(pickled, compression_level=1)
             return b"P" + cctx.compress(fast_reduced)  # b'P'+0s==1342177280
