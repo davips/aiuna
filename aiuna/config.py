@@ -1,3 +1,4 @@
+import json
 from contextlib import contextmanager
 from multiprocessing import Lock as PLock
 from threading import Lock as TLock
@@ -13,17 +14,12 @@ def safety():
         yield
 
 
-# global provisorio
-import json
 
 try:
     with open("config.json", "r") as f:
-        STORAGE_CONFIG = json.load(f)
+        CONFIG = json.load(f)
 except FileNotFoundError:
-    STORAGE_CONFIG = {}
-STORAGE_CONFIG["default_dump"] = {"engine": "dump"}
-STORAGE_CONFIG["default_sqlite"] = {"engine": "sqlite"}
-STORAGE_CONFIG["storages"] = {}
+    CONFIG = {}
 
 CACHE = {}
 
@@ -38,6 +34,3 @@ def globalcache(method):  # TODO: make it LRU
         return CACHE[key]
 
     return wrapper
-
-
-SHORT_HISTORY = True

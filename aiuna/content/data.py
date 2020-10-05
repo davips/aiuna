@@ -1,5 +1,4 @@
 # data
-import json
 import traceback
 from functools import lru_cache, cached_property
 from typing import Union, Iterator, List, Optional
@@ -8,13 +7,11 @@ import arff
 import numpy as np
 
 from aiuna.compression import pack
-from aiuna.config import STORAGE_CONFIG
 from aiuna.content.lazies import Lazies
 from aiuna.history import History
 from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
-from transf.customjsonencoder import CustomJSONEncoder
 from transf.mixin.printing import withPrinting
 from transf.step import Step
 
@@ -416,48 +413,47 @@ class Data(AbsData, withPrinting):
 
     @cached_property
     def picklable(self) -> AbsData:
-        """Remove unpickable parts."""
+        """Remove unpicklable parts."""
         return self.picklable_()[0]
 
     @cached_property
     def unpicklable(self) -> AbsData:
-        """Restore unpickable parts."""
+        """Restore unpicklable parts."""
         return self.unpicklable_([{}])
 
     # noinspection PyDefaultArgument
-    def picklable_(self, unpickable_parts=[]):
-        """Remove unpickable parts, but return them together as a dict."""
-        if isinstance(self, PickableData):
-            return self, unpickable_parts
-        unpickable_parts = unpickable_parts.copy()
+    def picklable_(self, unpicklable_parts=[]):
+        """Remove unpicklable parts, but return them together as a dict."""
+        if isinstance(self, Picklable):
+            return self, unpicklable_parts
+        unpicklable_parts = unpicklable_parts.copy()
         steps = []
         for step in self.history:  # TODO: put serialization and recreation together
             steps.append(step.jsonable)
         history = steps  #json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
-        # TODO quebrar com stream logo que entrar no persistence.store pois indica stream nao tratado no cache; e parar de tratar automaticamente
-        unpickable_parts.append({"stream": self.stream})
+        unpicklable_parts.append({"stream": self.stream})
         if self.inner:
-            inner, unpickable_parts = self.inner.picklable_(unpickable_parts)
+            inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
         else:
             inner = None
-        newdata = PickableData(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow,
-                               stream=None, target=self.target, storage_info=self.storage_info, inner=inner, **self.matrices)
-        return newdata.nolazies, unpickable_parts
+        newdata = Picklable(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow,
+                            stream=None, target=self.target, storage_info=self.storage_info, inner=inner, **self.matrices)
+        return newdata.nolazies, unpicklable_parts
 
-    def unpicklable_(self, unpickable_parts):
-        """Rebuild an unpickable Data.
+    def unpicklable_(self, unpicklable_parts):
+        """Rebuild an unpicklable Data.
 
         History is desserialized, if given as str.
         """
-        # REMINDER: Persistence/threading actions can be nested, so self can be already unpickable
-        if not isinstance(self, PickableData):
+        # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
+        if not isinstance(self, Picklable):
             return self
         # make a copy, since we will change history and stream directly; and convert to right class
-        stream = unpickable_parts and "stream" in unpickable_parts[0] and unpickable_parts[0]["stream"]
+        stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
         if not isinstance(self.history, list):
             raise Exception("Pickable Data should have a list instead of a History object.")
         history = History(map(Step.recreate, self.history))
-        inner = self.inner and self.inner.unpicklable_(unpickable_parts[1:])
+        inner = self.inner and self.inner.unpicklable
         return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
 
 
@@ -474,8 +470,8 @@ def untranslate_type(name):
         raise Exception("Unknown type:", name)
 
 
-class PickableData(Data):
-    """This class avoid the problem of an unpickable Data and its unpickable incarnation having the same hash."""
+class Picklable(Data):
+    """This class avoid the problem of an unpicklable Data and its unpicklable incarnation having the same hash."""
 
     def __hash__(self):
         return -1 * self.uuid.n
