@@ -244,7 +244,8 @@ class Data(AbsData, withPrinting):
             if block:
                 raise NotImplementedError("Waiting of values not implemented yet!")
             self.matrices[mname] = m = m()
-            del self.lazies_m[mname]
+            if mname in self.lazies_m:  # TODO: check if this IF is needed
+                del self.lazies_m[mname]
             # pprint(self.__dict__, indent=2)  # HINT: list all content from an object
 
         # Just return formatted according to capitalization...
