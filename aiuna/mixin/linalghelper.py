@@ -96,7 +96,7 @@ def evolve_id(uuid, uuids, steps, matrices):
         #   [19/set/20 : impossível fazer isso no File, pois todo Data vem de Root, UUID=1]
 
         if name in uuids:
-            muuid = uuids.get(name)
+            muuid = uuids[name]
         else:  # fallback options:
             if uuid == UUID.identity:  # whole data creation
                 muuid = UUID(json.dumps(value, sort_keys=True, ensure_ascii=False).encode() if isinstance(value, list) else value.tobytes())

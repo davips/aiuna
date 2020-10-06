@@ -1,15 +1,17 @@
 import json
 from functools import cached_property
-
-from akangatu.distep import DIStep
-
 from aiuna.content.specialdata import Root
 from aiuna.creation import read_arff
 from cruipto.uuid import UUID
+from transf.dataindependentstep_ import DataIndependentStep_
 
 
-class File(DIStep):
+class File(DataIndependentStep_):
+    isclass = True
+    isoperator = False
+
     def __init__(self, name, path="./", hashes=None):
+        self.isclass = False
         if not path.endswith("/"):
             print(path)
             raise Exception("Path should end with '/'", path)

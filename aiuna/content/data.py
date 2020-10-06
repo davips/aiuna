@@ -1,4 +1,5 @@
 # data
+import json
 import traceback
 from functools import lru_cache, cached_property
 from typing import Union, Iterator, List, Optional
@@ -12,8 +13,10 @@ from aiuna.history import History
 from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
+from transf.customjson import CustomJSONEncoder, CustomJSONDecoder
 from transf.mixin.printing import withPrinting
 from transf.step import Step
+from transf.timeout import Timeout
 
 
 def new():
@@ -129,30 +132,41 @@ class Data(AbsData, withPrinting):
     # TODO:proibir mudança no inner, exceto por meio do step Inner
     def _replace(self, step, failure="keep", time="keep", timeout: bool = "keep",
                  hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
-        history = self.history or History([])
         step = step if isinstance(step, list) else [step]
+        if isinstance(self, Picklable) and step:
+            raise Exception("Picklable history cannot be updated!")
+        history = self.history or History([])
+        if step:
+            history = history << step
         failure = self.failure if failure == "keep" else failure
         time = self.time if time == "keep" else time
         timeout = self.timeout if timeout == "keep" else timeout
         hollow = self.ishollow if hollow == "keep" else hollow
         stream = self.stream if stream == "keep" else stream
-        inner = self.inner if isinstance(inner, str) else inner
-        matrices = self.matrices.copy()
+        inner = self.inner if isinstance(inner, str) and inner == "keep" else inner
 
-        matrices.update(fields2matrices(fields))
-        self.lazies_m = Lazies({mat: val for mat, val in matrices.items() if callable(val)})
-        uuid, uuids = evolve_id(self.uuid, self.uuids, step, matrices)
+        # Only update matrix uuids for the provided and changed ones!
+        matrices = self.matrices.copy()
+        changed_matrices = {}
+        for k, v in fields2matrices(fields).items():
+            if (k not in matrices) or matrices[k] is not v:
+                changed_matrices[k] = v
+        matrices.update(changed_matrices)
+        uuid, uuids = evolve_id(self.uuid, self.uuids, step, changed_matrices)
+
+        self.lazies_m = Lazies({mat: val for mat, val in changed_matrices.items() if callable(val)})
 
         kw = {"time": time, "timeout": timeout, "hollow": hollow, "stream": stream, "storage_info": self.storage_info}
         from aiuna.content.specialdata import Root
         klass = Data if self is Root else self.__class__
-        return klass(uuid, uuids, history << step, failure, **kw, inner=inner, **matrices)
+        return klass(uuid, uuids, history, failure, **kw, inner=inner, **matrices)
 
     def timed(self, time):
         return self._replace([], time=time)
 
     def timedout(self, step, time=None):
-        return self._replace(step, time=time, timeout=True)
+        data = self._replace(step, time=time, timeout=True)  # Temporary inconsistency...
+        return Timeout().process(data)  # ...inconsistency fixed!
 
     def failed(self, step, failure):
         return self._replace(step, failure=failure)
@@ -307,7 +321,7 @@ class Data(AbsData, withPrinting):
     def history_str(self):
         if isinstance(self.history, History):
             return ",".join(transf.id for transf in self.history)
-        return ",".join(transf["id"] for transf in self.history)
+        return ",".join(self.history.keys())
 
     @lru_cache()
     def field_dump(self, name):
@@ -328,7 +342,7 @@ class Data(AbsData, withPrinting):
     def _fetch_matrix(self, id):
         if self.storage_info is None:
             raise Exception(f"There is no storage set to fetch: {id})!")
-        return 22222222222 #STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
+        return 22222222222  # STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
 
     def _remove_unsafe_prefix(self, item, step="undefined"):
         """Handle unsafe (i.e. failed data with) fields."""
@@ -427,10 +441,7 @@ class Data(AbsData, withPrinting):
         if isinstance(self, Picklable):
             return self, unpicklable_parts
         unpicklable_parts = unpicklable_parts.copy()
-        steps = []
-        for step in self.history:  # TODO: put serialization and recreation together
-            steps.append(step.jsonable)
-        history = steps  #json.dumps(steps, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder)
+        history = {step.id: json.dumps(step, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder) for step in self.history}
         unpicklable_parts.append({"stream": self.stream})
         if self.inner:
             inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
@@ -450,9 +461,10 @@ class Data(AbsData, withPrinting):
             return self
         # make a copy, since we will change history and stream directly; and convert to right class
         stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
-        if not isinstance(self.history, list):
-            raise Exception("Pickable Data should have a list instead of a History object.")
-        history = History(map(Step.recreate, self.history))
+        if not isinstance(self.history, dict):
+            raise Exception("Pickable Data should have a dict instead of", type(self.history))
+        lst = [json.loads(stepstr, cls=CustomJSONDecoder) for stepstr in self.history.values()]
+        history = History(lst)
         inner = self.inner and self.inner.unpicklable
         return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
 
