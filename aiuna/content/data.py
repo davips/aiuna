@@ -8,7 +8,6 @@ import arff
 import numpy as np
 
 from aiuna.compression import pack
-from aiuna.content.lazies import Lazies
 from aiuna.history import History
 from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
 from cruipto.uuid import UUID
@@ -16,7 +15,6 @@ from transf.absdata import AbsData
 from transf.customjson import CustomJSONEncoder, CustomJSONDecoder
 from transf.mixin.printing import withPrinting
 from transf.step import Step
-from transf.timeout import Timeout
 
 
 def new():
@@ -58,19 +56,35 @@ class Data(AbsData, withPrinting):
         * -> A cathegorical/nominal type is given as a list of nominal values:
         Xt=['real', 'real', ['white', 'brown']]
         Yt=[['rabbit', 'mouse']]
+
+        Volatile fields, i.e., those that are not a deterministic result,
+        should be marked with the mutability suffix '_m' like in t_m (for time);
+        so they stay outside matrix, but still available as Data attributes.
     """
 
     _Xy = None
 
-    def __init__(self, uuid, uuids, history, failure=None, time=None, timeout=False, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
+    def __init__(self, uuid, uuids, history, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
         # target: Fields precedence when comparing which data is greater.
         self._jsonable = {"uuid": uuid, "uuids": uuids}
-        if failure:
-            self._jsonable["failure"] = failure
-        # if time:  # TODO: should we print volatile fields?
-        #     self._jsonable["time"] = time
-        if timeout:
-            self._jsonable["timeout"] = timeout
+
+        # Move mutable fields from matrices to self.
+        for k in list(matrices.keys()):
+            if k.endswith("_m"):
+                self.__dict__[k] = matrices.pop(k)
+
+        # Put interesting fields inside representation for printing; and mark them as None if needed.
+        if "failure" in matrices:
+            self.failure = self._jsonable["failure"] = matrices["failure"]
+        else:
+            self.failure = None
+        if "timeout" in matrices:
+            self.timeout = self._jsonable["timeout"] = matrices["timeout"]
+            if self.timeout and all(st.isntTimeout for st in step):
+                print("Cannot set timeout")
+        else:
+            self.timeout = None
+
         if hollow:
             self._jsonable["hollow"] = hollow
         if target:
@@ -86,9 +100,6 @@ class Data(AbsData, withPrinting):
         # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
         self.target = target.split(",") if isinstance(target, str) else target
         self.history = history
-        self._failure = failure
-        self.time = time
-        self.timeout = timeout
         self._hollow = hollow
         self.stream = stream
         self._target = [field for field in self.target if field.upper() in matrices]
@@ -96,13 +107,8 @@ class Data(AbsData, withPrinting):
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
-        self.lazies_m = Lazies({mat: val for mat, val in matrices.items() if callable(val)})
 
-    def replace(self, step: Union[Step, List[Step]],
-                time: Union[str, float] = "keep",
-                inner: Optional[AbsData] = "keep",
-                stream: Union[str, Iterator] = "keep",
-                **fields):
+    def replace(self, step: Union[Step, List[Step]], inner: Optional[AbsData] = "keep", stream: Union[str, Iterator] = "keep", **fields):
         """Recreate an updated Data object.
 
         Parameters
@@ -125,22 +131,17 @@ class Data(AbsData, withPrinting):
         :param inner:
         :param step:
         :param stream:
-        :param time:
         """
-        return self._replace(step, time=time, inner=inner, stream=stream, **fields)
+        return self._replace(step, inner=inner, stream=stream, **fields)
 
     # TODO:proibir mudança no inner, exceto por meio do step Inner
-    def _replace(self, step, failure="keep", time="keep", timeout: bool = "keep",
-                 hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
+    def _replace(self, step, hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
         step = step if isinstance(step, list) else [step]
         if isinstance(self, Picklable) and step:
             raise Exception("Picklable history cannot be updated!")
         history = self.history or History([])
         if step:
             history = history << step
-        failure = self.failure if failure == "keep" else failure
-        time = self.time if time == "keep" else time
-        timeout = self.timeout if timeout == "keep" else timeout
         hollow = self.ishollow if hollow == "keep" else hollow
         stream = self.stream if stream == "keep" else stream
         inner = self.inner if isinstance(inner, str) and inner == "keep" else inner
@@ -154,38 +155,25 @@ class Data(AbsData, withPrinting):
         matrices.update(changed_matrices)
         uuid, uuids = evolve_id(self.uuid, self.uuids, step, changed_matrices)
 
-        self.lazies_m = Lazies({mat: val for mat, val in changed_matrices.items() if callable(val)})
-
-        kw = {"time": time, "timeout": timeout, "hollow": hollow, "stream": stream, "storage_info": self.storage_info}
+        kw = {"hollow": hollow, "stream": stream, "storage_info": self.storage_info}
         from aiuna.content.specialdata import Root
         klass = Data if self is Root else self.__class__
-        return klass(uuid, uuids, history, failure, **kw, inner=inner, **matrices)
+        return klass(uuid, uuids, history, **kw, inner=inner, **matrices)
 
-    def timed(self, time):
-        return self._replace([], time=time)
-
-    def timedout(self, step, time=None):
-        data = self._replace(step, time=time, timeout=True)  # Temporary inconsistency...
-        return Timeout().process(data)  # ...inconsistency fixed!
+    def timed(self, t):
+        return self._replace([], t_m=t)
 
     def failed(self, step, failure):
         return self._replace(step, failure=failure)
 
     @cached_property
-    def nolazies(self):
+    def eager(self):
         """Touch every lazy field.
 
         Stream is kept intact"""
-        touch = []
-        check = True
-        for k, v in self.lazies_m.items():
-            if check and not callable(v):
-                print(f"Warn: TODO: Fix -> Lazy field {k} was already nonlazy!")
-                check = False
-                # exit()
-            touch.append(k)
-        for m in touch:
-            self.field(m, context="nolazies")
+        for k, v in self.matrices.items():
+            if callable(v):
+                self.matrices[k] = v()
         return self
 
     @lru_cache()
@@ -244,8 +232,6 @@ class Data(AbsData, withPrinting):
             if block:
                 raise NotImplementedError("Waiting of values not implemented yet!")
             self.matrices[mname] = m = m()
-            if mname in self.lazies_m:  # TODO: check if this IF is needed
-                del self.lazies_m[mname]
             # pprint(self.__dict__, indent=2)  # HINT: list all content from an object
 
         # Just return formatted according to capitalization...
@@ -260,41 +246,6 @@ class Data(AbsData, withPrinting):
         else:
             comp = context.name if "name" in dir(context) else context
             raise Exception("Unexpected lower letter:", m, "requested by", comp)
-
-    # def transformedby(self, step):
-    #     """Return this Data object transformed by func.
-    #
-    #     Return itself if it is frozen or failed."""
-    #     # REMINDER: It is preferable to have this method in Data instead of Step because of the different
-    #     # data handling depending on the type of content: Data, Root.
-    #     if self.isfrozen or self.failure:
-    #         step = step.pholder
-    #         output_data = self.replace([step])  # TODO: check if Pholder here is what we want
-    #         # print(888777777777777777777777)
-    #     else:
-    #         output_data = step._transform_impl(self)
-    #         if isinstance(output_data, dict):
-    #             output_data = self.replace(step=[step], **output_data)
-    #         # print(888777777777777777777777999999999999999999999999)
-    #
-    #     # TODO: In the future, remove this temporary check. It has a small cost, but is useful while in development:
-    #     # print(type(step))
-    #     # print(type(output_data))
-    #     if self.uuid * step.uuid != output_data.uuid:
-    #         print("Error:", 4444444444444444, step)
-    #         print(
-    #             f"Expected UUID {self.uuid} * {step.uuid} = {self.uuid * step.uuid} "
-    #             f"doesn't match the output_data {output_data.uuid}"
-    #         )
-    #         print("Histories:")
-    #         print(self.history ^ "longname", self.history ^ "uuid")
-    #         print(output_data.history ^ "longname", output_data.history ^ "uuid")
-    #         # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("4ʊĘÓĹmրӐƉοÝѕȷg"))
-    #         # print(u.UUID("ýϔȚźцŠлʉWÚΉїͷó") * u.UUID("1ϺϽΖМȅÏОʌŨӬѓȤӟ"))
-    #         print(step.longname)
-    #         print()
-    #         raise Exception
-    #     return output_data
 
     @cached_property
     def Xy(self):
@@ -326,7 +277,7 @@ class Data(AbsData, withPrinting):
 
     @lru_cache()
     def field_dump(self, name):
-        """Lazily compressed matrix for a given field.
+        """Cached compressed matrix for a given field.
         Useful for optimized persistence backends for Cache (e.g. more than one backend)."""
         return pack(self.field(name, context="[dump]"))
 
@@ -371,10 +322,6 @@ class Data(AbsData, withPrinting):
 
     def _inner_(self):
         return self._inner
-
-    @property
-    def failure(self):
-        return self._failure
 
     def __getattr__(self, item):
         """Create shortcuts to fields, still passing through sanity check."""
@@ -449,9 +396,9 @@ class Data(AbsData, withPrinting):
             inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
         else:
             inner = None
-        newdata = Picklable(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow,
+        newdata = Picklable(self.uuid, self.uuids, history, self.ishollow,
                             stream=None, target=self.target, storage_info=self.storage_info, inner=inner, **self.matrices)
-        return newdata.nolazies, unpicklable_parts
+        return newdata.eager, unpicklable_parts
 
     def unpicklable_(self, unpicklable_parts):
         """Rebuild an unpicklable Data.
@@ -470,7 +417,7 @@ class Data(AbsData, withPrinting):
         lst = [json.loads(stepstr, cls=CustomJSONDecoder) for stepstr in self.history.values()]
         history = History(lst)
         inner = self.inner and self.inner.unpicklable
-        return Data(self.uuid, self.uuids, history, self.failure, self.time, self.timeout, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
+        return Data(self.uuid, self.uuids, history, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
 
 
 class MissingField(Exception):

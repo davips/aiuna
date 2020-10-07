@@ -3,27 +3,6 @@ from aiuna.history import History
 from cruipto.uuid import UUID
 
 
-class UUIDData(Data):
-    """Exactly like Data, but without matrices and infos.
-
-     The only available information is the UUID."""
-
-    def __init__(self, uuid):
-        if isinstance(uuid, str):
-            uuid = UUID(uuid)
-        super().__init__(uuid, {}, history=History([]), hollow=True)
-
-    def _uuid_impl(self) -> UUID:
-        return self._uuid
-
-    def __getattr__(self, item):
-        if item not in ["id"]:
-            raise Exception("This a UUIDData object. It has no fields!")
-
-    # else:
-    #     return self.__getattribute__(item)
-
-
 class Root(type):
     """Singleton to feed Data iterators."""
 

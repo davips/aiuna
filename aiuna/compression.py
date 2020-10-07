@@ -48,7 +48,11 @@ def pack(obj):
             return b"J" + cctx.compress(js.encode())
         elif isinstance(obj, str):
             return b"T" + cctxdic.compress(obj.encode())  # b'T'+0s==1409286144
+        elif isinstance(obj, bytes):
+            fast_reduced = lz.compress(obj, compression_level=1)
+            return b"B" + cctx.compress(fast_reduced)
         else:
+            # print(f"Unknown type {type(obj)}{'-' + str(obj.dtype) if 'ndarray' in str(type(obj)) else ''} to compress, using pickle...")
             # categorical ndarrays, ...
             pickled = pickle.dumps(obj)  # 1169_airlines explodes here with RAM < ?
             fast_reduced = lz.compress(pickled, compression_level=1)
@@ -64,6 +68,8 @@ def unpack(dump_with_header):
             return pickle.loads(decompressed)
         elif header == b"T":
             return cctxdicdec.decompress(dump).decode()
+        elif header == b"B":
+            return lz.decompress(cctxdec.decompress(dump))
         elif header == b"F":
             header = dump_with_header[1:9]
             dump = dump_with_header[9:]

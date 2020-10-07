@@ -58,7 +58,7 @@ def fields2matrices(fields):
     for name, value in fields.items():
         if len(name) == 1:
             name = name.upper()
-        matrices[name] = field_as_matrix(value)
+        matrices[name] = None if value is None else field_as_matrix(value)
     return matrices
 
 
