@@ -438,7 +438,7 @@ class Data(AbsData, withPrinting):
 
     # noinspection PyDefaultArgument
     def picklable_(self, unpicklable_parts=[]):
-        """Remove unpicklable parts, but return them together as a dict."""
+        """Remove unpicklable parts, but return them together as a list of dicts, one dict for each nested inner objects."""
         if isinstance(self, Picklable):
             return self, unpicklable_parts
         unpicklable_parts = unpicklable_parts.copy()
@@ -461,6 +461,8 @@ class Data(AbsData, withPrinting):
         # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
         if not isinstance(self, Picklable):
             return self
+        if self.stream:
+            raise Exception("Inconsistency: this picklable Data object contains a stream!")
         # make a copy, since we will change history and stream directly; and convert to right class
         stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
         if not isinstance(self.history, dict):
