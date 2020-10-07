@@ -80,8 +80,6 @@ class Data(AbsData, withPrinting):
             self.failure = None
         if "timeout" in matrices:
             self.timeout = self._jsonable["timeout"] = matrices["timeout"]
-            if self.timeout and all(st.isntTimeout for st in step):
-                print("Cannot set timeout")
         else:
             self.timeout = None
 
@@ -136,6 +134,11 @@ class Data(AbsData, withPrinting):
 
     # TODO:proibir mudança no inner, exceto por meio do step Inner
     def _replace(self, step, hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
+        if "timeout" in fields:
+            if step.isntTimeout:
+                print("Only Timeout step can set timeout, not", step.longname)
+                exit()
+
         step = step if isinstance(step, list) else [step]
         if isinstance(self, Picklable) and step:
             raise Exception("Picklable history cannot be updated!")
