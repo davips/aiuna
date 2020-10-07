@@ -434,7 +434,8 @@ def untranslate_type(name):
 
 
 class Picklable(Data):
-    """This class avoid the problem of an unpicklable Data and its unpicklable incarnation having the same hash."""
+    """This class avoid the problem of an unpicklable Data and its picklable incarnation having the same hash.
+    [Despite being _eq_uals]."""
 
     def __hash__(self):
-        return -1 * self.uuid.n
+        return -1 * self.uuid.n  # TODO check if this is correct, and if it is really needed

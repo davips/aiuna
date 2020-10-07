@@ -8,7 +8,7 @@ import numpy as np
 import zstandard as zs
 # Things that should be calculated only once.
 # ##################################################
-from aiuna.config import safety
+from transf.config import safety
 # TODO: make a permanent representative dictionary and check if it
 #  reduces compression time and size of textual info like transformations.
 from cruipto.encoders import integers2bytes, bytes2integers

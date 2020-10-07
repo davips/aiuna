@@ -1,6 +1,3 @@
-from functools import lru_cache
-
-from aiuna import config
 from transf.mixin.printing import withPrinting
 
 class Leaf(withPrinting):
