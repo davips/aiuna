@@ -442,6 +442,7 @@ class Data(AbsData, withPrinting):
         if isinstance(self, Picklable):
             return self, unpicklable_parts
         unpicklable_parts = unpicklable_parts.copy()
+        # REMINDER: use json here because it traverse into internal steps, and the str form will be needed anyway by SQL storages
         history = {step.id: json.dumps(step, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder) for step in self.history}
         unpicklable_parts.append({"stream": self.stream})
         if self.inner:
