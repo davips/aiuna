@@ -1,4 +1,3 @@
-# data
 import json
 import traceback
 from functools import lru_cache, cached_property
@@ -153,10 +152,9 @@ class Data(AbsData, withPrinting):
         matrices.update(changed_matrices)
         uuid, uuids = evolve_id(self.uuid, self.uuids, step, changed_matrices)
 
-        kw = {"stream": stream, "storage_info": self.storage_info}
         from aiuna.content.root import Root
         klass = Data if self is Root else self.__class__
-        return klass(uuid, uuids, history, **kw, inner=inner, **matrices)
+        return klass(uuid, uuids, history, stream=stream, storage_info=self.storage_info, inner=inner, **matrices)
 
     @cached_property
     def eager(self):
@@ -410,6 +408,23 @@ class Data(AbsData, withPrinting):
         # Assume que haver matrizes extra não altera resultado de um step (o que é sensato, pois step não deve fazer "inspection")
         # se foi misto,
         raise Exception("Not implemented: should solve conflicts to merge history of two data objects.")
+
+    def __delitem__(self, key):
+        # record destruction where needed
+        from aiuna.delete import Del
+        d = Del(field=key) << self
+        self._uuid = d.uuid
+        self.history = d.history
+
+        # make destruction
+        del self.uuids[key]
+        del self.matrices[key]
+
+        # REMINDER: invalidation not needed according to tests, I guess it is per instance
+        # # invalidate all caches
+        # for method in self.__dict__.values():
+        #     if callable(method) and hasattr(method, "cacheclear"):
+        #         method.cacheclear()
 
     # * ** - @
     # & | ^ // %
