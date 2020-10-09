@@ -60,6 +60,7 @@ class Data(AbsData, withPrinting):
     """
 
     _Xy = None
+    metafields = ["failure", "timeout", "comparable"]
 
     def __init__(self, uuid, uuids, history, stream=None, storage_info=None, inner=None, **matrices):
         # comparable: Fields precedence when comparing which data is greater.
@@ -280,7 +281,7 @@ class Data(AbsData, withPrinting):
         """Create shortcuts to fields, still passing through sanity check."""
         # if item == "Xy":
         #     return self.Xy
-        if 0 < (len(item) < 3 or item.startswith('unsafe')):
+        if len(item) < 3 or item in self.metafields:
             return self.field(item, context="[direct access through shortcut]")
 
         # print('getting attribute...', item)
