@@ -292,6 +292,19 @@ class Data(AbsData, withPrinting):
         if len(item) < 3 or item in self.metafields:
             return self.field(item, context="[direct access through shortcut]")
 
+        if item.endswith("_pd"):
+            name = item[:-3]
+            if name.upper() not in self.matrices:
+                print(f"Field {name} not found when trying to convert it to pandas. Available ones:", self.matrix_names)
+                exit()
+            name = name.upper()
+            from pandas import DataFrame
+            desc = name + "d"
+            if desc in self.matrices:
+                return DataFrame(self.matrices[name], columns=self.matrices[desc])
+            else:
+                return DataFrame(self.matrices[name])
+
         # print('getting attribute...', item)
         return super().__getattribute__(item)
 
@@ -390,6 +403,17 @@ class Data(AbsData, withPrinting):
             other = other()
         return other.process(self)
 
+    def __add__(self, other):
+        # se mexeram na mesma matriz, vale a segunda.
+        # Dá pra emendar com o histórico da segunda, desde que o uuid final seja recalculado e que
+        # operações de ajuste (Copy) preservem as matrizes pedidas pela segunda no inicio da divergencia (normalmente após File/New).
+        # Assume que haver matrizes extra não altera resultado de um step (o que é sensato, pois step não deve fazer "inspection")
+        # se foi misto,
+        raise Exception("Not implemented: should solve conflicts to merge history of two data objects.")
+
+    # * ** - @
+    # & | ^ // %
+    # -d +d ~
     # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
     # def plan(self, step):
     #     step = step if isinstance(step, list) else [step]
