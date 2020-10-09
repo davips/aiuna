@@ -74,21 +74,16 @@ class Data(AbsData, withPrinting):
                 self.__dict__[k] = matrices.pop(k)
 
         # Put interesting fields inside representation for printing; and mark them as None if needed.
+        self.failure = None
         if "failure" in matrices:
             self.failure = self._jsonable["failure"] = matrices["failure"]
-        else:
-            self.failure = None
+            self.timeout = None
         if "timeout" in matrices:
             self.timeout = self._jsonable["timeout"] = matrices["timeout"]
-        else:
-            self.timeout = None
-
         self.comparable = ""
         if "comparable" in matrices:
             self.comparable = matrices["comparable"]
             self._jsonable["comparable"] = self.comparable
-        self.comparable = self.comparable.split(",")
-
         if storage_info:
             self._jsonable["storage_info"] = storage_info
         if inner:
@@ -365,7 +360,7 @@ class Data(AbsData, withPrinting):
             inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
         else:
             inner = None
-        newdata = Picklable(self.uuid, self.uuids, history, stream=None, comparable=",".join(self.comparable), storage_info=self.storage_info, inner=inner, **self.matrices)
+        newdata = Picklable(self.uuid, self.uuids, history, stream=None, storage_info=self.storage_info, inner=inner, **self.matrices)
         return newdata.eager, unpicklable_parts
 
     def unpicklable_(self, unpicklable_parts):
@@ -385,7 +380,7 @@ class Data(AbsData, withPrinting):
         lst = [json.loads(stepstr, cls=CustomJSONDecoder) for stepstr in self.history.values()]
         history = History(lst)
         inner = self.inner and self.inner.unpicklable
-        return Data(self.uuid, self.uuids, history, stream, self.comparable, self.storage_info, inner, **self.matrices)
+        return Data(self.uuid, self.uuids, history, stream, self.storage_info, inner, **self.matrices)
 
     def __rlshift__(self, other):
         return other.process(self)
