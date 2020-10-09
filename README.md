@@ -7,6 +7,7 @@
 # Examples
 
 **Creating data from numpy arrays**
+
 Code
 ```python3
 import aiuna  # <- auto import numpy as np and helper function new()
@@ -39,5 +40,5 @@ Output
 # Grants
 
 # History
-The novel ideias presented here are a result of a years-long process of drafts, thinking, trial/error and rewrittings from scratch in several languages from Delphi, passing through Haskell, Java and Scala to Python. The fundamental concepts were lightly borrowed from basic category theory concepts like algebraic data structures that permeate many recent tendencies in programming language design, data flow specification, among others. 
-For more details, refer to https://github.com/davips/kururu
+The novel ideias presented here are a result of a years-long process of drafts, thinking, trial/error and rewrittings from scratch in several languages from Delphi, passing through Haskell, Java and Scala to Python. The fundamental concepts were lightly borrowed from basic category theory like algebraic data structures that permeate many recent tendencies in programming language design, data flow specification, Spark, among others. 
+For more historical details, refer to https://github.com/davips/kururu
