@@ -10,7 +10,6 @@ import numpy as np
 from aiuna.compression import pack
 from aiuna.history import History
 from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
-from cruipto.util import _
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
 from transf.customjson import CustomJSONEncoder, CustomJSONDecoder
@@ -30,8 +29,6 @@ class Data(AbsData, withPrinting):
     ----------
     history
         A History objects that represents a sequence of Transformations objects.
-    failure
-        The reason why the workflow that generated this Data object failed.
     storage_info
         An alias to a global Storage object for lazy matrix fetching.
     matrices
@@ -108,11 +105,6 @@ class Data(AbsData, withPrinting):
         ----------
         steps
             List of Step objects that transforms this Data object.
-        failure
-            Updated value for failure.
-            'keep' (recommended, default) = 'keep this attribute unchanged'.
-            None (unusual) = 'no failure', possibly overriding previous
-             failures
         fields
             Matrices or vector/scalar shortcuts to them.
         stream
@@ -158,9 +150,6 @@ class Data(AbsData, withPrinting):
         from aiuna.content.root import Root
         klass = Data if self is Root else self.__class__
         return klass(uuid, uuids, history, **kw, inner=inner, **matrices)
-
-    def failed(self, step, failure):
-        return self._replace(step, failure=failure)
 
     @cached_property
     def eager(self):
@@ -383,9 +372,13 @@ class Data(AbsData, withPrinting):
         return Data(self.uuid, self.uuids, history, stream, self.storage_info, inner, **self.matrices)
 
     def __rlshift__(self, other):
+        if other.isclass:
+            other = other()
         return other.process(self)
 
     def __rshift__(self, other):
+        if other.isclass:
+            other = other()
         return other.process(self)
 
     # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
