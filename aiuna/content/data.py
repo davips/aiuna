@@ -17,11 +17,7 @@ from transf.mixin.printing import withPrinting
 from transf.step import Step
 
 
-def new():
-    # TODO: create Data from matrices
-    raise NotImplementedError
-
-
+# TODO: iterable data like dict
 class Data(AbsData, withPrinting):
     """Immutable lazy data for most machine learning scenarios.
 
@@ -93,7 +89,7 @@ class Data(AbsData, withPrinting):
             matrices["timeout"] = None
 
         if "comparable" in matrices:
-            self.comparable = self._jsonable["comparable"] =matrices["comparable"]
+            self.comparable = self._jsonable["comparable"] = matrices["comparable"]
         else:
             self.comparable = ""
             uuids["comparable"] = UUID()
