@@ -6,35 +6,58 @@
 
 # Examples
 
+**Creating data from ARFF file**
+
+Code
+```python3
+import aiuna  # <- auto import File
+d = File("iris.arff").data
+print(d.Xd)
+# Output:
+# ['sepallength', 'sepalwidth', 'petallength', 'petalwidth']
+
+print(d.X[:5])
+# Output:
+# [[5.1 3.5 1.4 0.2]
+#  [4.9 3.  1.4 0.2]
+#  [4.7 3.2 1.3 0.2]
+#  [4.6 3.1 1.5 0.2]
+#  [5.  3.6 1.4 0.2]]
+
+print(d.y[:5])
+# Output:
+# ['Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa']
+
+print(set(d.y))
+# Output:
+# {'Iris-setosa', 'Iris-virginica', 'Iris-versicolor'}
+```
+
+
+**Acessing data fields as pandas DataFrames**
+
+TODO
+
+
 **Creating data from numpy arrays**
 
 Code
 ```python3
 import aiuna  # <- auto import numpy as np and helper function new()
-
-
-X = np.array([[1, 2, 3],
-              [4, 5, 6],
-              [7, 8, 9]])
-y = np.array([0,
-              1,
-              1])
+X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+y = np.array([0, 1, 1])
 d = new(X=X, y=y)
-
 print(d)
+# Output
+# {
+#     "uuid": "ëЪʁŝкçӖχƿȭōʎǴE",
+#     "uuids": {
+#         "X": "ĘQӕΘƵǔџĊȥοӳЀvý",
+#         "Y": "ĘȡǏů8χίMЙһɵҪǐǒ"
+#     },
+#     "matrices": "X,Y"
+# }
 ```
-Output
-
-    {
-        "uuid": "ëЪʁŝкçӖχƿȭōʎǴE",
-        "uuids": {
-            "X": "ĘQӕΘƵǔџĊȥοӳЀvý",
-            "Y": "ĘȡǏů8χίMЙһɵҪǐǒ"
-        },
-          "comparable": "",
-          "matrices": "X,Y"
-    }
-
 
 
 # Grants
