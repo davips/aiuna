@@ -1,6 +1,6 @@
 import numpy
 
-from aiuna.creation import new
+from .creation import new
 from ._version import __version__  # noqa: ignore
 from .content.root import Root
 from .file import File
