@@ -1,6 +1,6 @@
 import json
 from functools import cached_property
-from aiuna.content.specialdata import Root
+from aiuna.content.root import Root
 from aiuna.creation import read_arff
 from cruipto.uuid import UUID
 from transf.dataindependentstep_ import DataIndependentStep_

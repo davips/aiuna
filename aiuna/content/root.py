@@ -20,12 +20,6 @@ class Root(type):
     inner = None
 
     @staticmethod
-    def hollow(step):
-        """A light Data object, i.e. without matrices."""
-        # noinspection PyCallByClass,PyTypeChecker
-        return Data.hollow(Root, step)
-
-    @staticmethod
     def replace(step, **kwargs):
         # noinspection PyCallByClass,PyTypeChecker
         return Data.replace(Root, step, **kwargs)

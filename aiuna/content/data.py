@@ -10,6 +10,7 @@ import numpy as np
 from aiuna.compression import pack
 from aiuna.history import History
 from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
+from cruipto.util import _
 from cruipto.uuid import UUID
 from transf.absdata import AbsData
 from transf.customjson import CustomJSONEncoder, CustomJSONDecoder
@@ -31,9 +32,6 @@ class Data(AbsData, withPrinting):
         A History objects that represents a sequence of Transformations objects.
     failure
         The reason why the workflow that generated this Data object failed.
-    hollow
-        Indicate whether this is a Data object intended to be filled by
-        Storage.
     storage_info
         An alias to a global Storage object for lazy matrix fetching.
     matrices
@@ -57,15 +55,17 @@ class Data(AbsData, withPrinting):
         Xt=['real', 'real', ['white', 'brown']]
         Yt=[['rabbit', 'mouse']]
 
-        Volatile fields, i.e., those that are not a deterministic result,
-        should be marked with the mutability suffix '_m' like in t_m (for time);
+        Volatile fields, i.e., those that can be lost due to their nondeterministic nature,
+        should be marked with the mutability suffix '_m' like in 't_m' (for time) or 'step_m' (for current step);
         so they stay outside matrix, but still available as Data attributes.
+        They are not stored by conventional storages.
+        User-content enabled ones like OkaSt may provide that.
     """
 
     _Xy = None
 
-    def __init__(self, uuid, uuids, history, hollow=False, stream=None, target="s,r", storage_info=None, inner=None, **matrices):
-        # target: Fields precedence when comparing which data is greater.
+    def __init__(self, uuid, uuids, history, stream=None, storage_info=None, inner=None, **matrices):
+        # comparable: Fields precedence when comparing which data is greater.
         self._jsonable = {"uuid": uuid, "uuids": uuids}
 
         # Move mutable fields from matrices to self.
@@ -83,24 +83,24 @@ class Data(AbsData, withPrinting):
         else:
             self.timeout = None
 
-        if hollow:
-            self._jsonable["hollow"] = hollow
-        if target:
-            self._jsonable["target"] = target
+        self.comparable = ""
+        if "comparable" in matrices:
+            self.comparable = matrices["comparable"]
+            self._jsonable["comparable"] = self.comparable
+        self.comparable = self.comparable.split(",")
+
         if storage_info:
             self._jsonable["storage_info"] = storage_info
         if inner:
             self._jsonable["inner"] = inner
         if matrices:
-            self._jsonable["matrices"] = ", ".join(matrices.keys())
+            self._jsonable["matrices"] = ",".join(matrices.keys())
 
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
-        self.target = target.split(",") if isinstance(target, str) else target
         self.history = history
-        self._hollow = hollow
         self.stream = stream
-        self._target = [field for field in self.target if field.upper() in matrices]
+        self._comparable = [field for field in self.comparable if field.upper() in matrices]
         self.storage_info = storage_info
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
@@ -133,19 +133,20 @@ class Data(AbsData, withPrinting):
         return self._replace(step, inner=inner, stream=stream, **fields)
 
     # TODO:proibir mudança no inner, exceto por meio do step Inner
-    def _replace(self, step, hollow: bool = "keep", stream="keep", inner: Optional[AbsData] = "keep", **fields):
+    def _replace(self, step, stream="keep", inner: Optional[AbsData] = "keep", **fields):
         if "timeout" in fields:
             if step.isntTimeout:
                 print("Only Timeout step can set timeout, not", step.longname)
                 exit()
-
         step = step if isinstance(step, list) else [step]
+        if len(step) == 0 and any(not s.endswith("_m") for s in step):
+            print("Empty list of steps is not allowed when nonvolatile (i.e. immutable) fields are present:", list(fields.keys()))
+            exit()
         if isinstance(self, Picklable) and step:
             raise Exception("Picklable history cannot be updated!")
         history = self.history or History([])
         if step:
             history = history << step
-        hollow = self.ishollow if hollow == "keep" else hollow
         stream = self.stream if stream == "keep" else stream
         inner = self.inner if isinstance(inner, str) and inner == "keep" else inner
 
@@ -158,13 +159,10 @@ class Data(AbsData, withPrinting):
         matrices.update(changed_matrices)
         uuid, uuids = evolve_id(self.uuid, self.uuids, step, changed_matrices)
 
-        kw = {"hollow": hollow, "stream": stream, "storage_info": self.storage_info}
-        from aiuna.content.specialdata import Root
+        kw = {"stream": stream, "storage_info": self.storage_info}
+        from aiuna.content.root import Root
         klass = Data if self is Root else self.__class__
         return klass(uuid, uuids, history, **kw, inner=inner, **matrices)
-
-    def timed(self, t):
-        return self._replace([], t_m=t)
 
     def failed(self, step, failure):
         return self._replace(step, failure=failure)
@@ -178,12 +176,6 @@ class Data(AbsData, withPrinting):
             if callable(v):
                 self.matrices[k] = v()
         return self
-
-    @lru_cache()
-    def hollow(self, step):
-        """Create a temporary hollow Data object (only Persistence can fill it).
-        Notice: uuid is changed."""
-        return self._replace(step, hollow=True)
 
     @lru_cache()
     def field(self, name, block=False, context="undefined"):
@@ -204,7 +196,6 @@ class Data(AbsData, withPrinting):
         Matrix, vector or scalar
         """
         # TODO: better organize this code
-        name = self._remove_unsafe_prefix(name, context)
         mname = name.upper() if len(name) == 1 else name
 
         # Check existence of the field.
@@ -289,36 +280,11 @@ class Data(AbsData, withPrinting):
     def matrix_names_str(self):
         return ','.join(self.matrix_names)
 
-    @property
-    def ishollow(self):
-        return self._hollow
-
     @lru_cache()
     def _fetch_matrix(self, id):
         if self.storage_info is None:
             raise Exception(f"There is no storage set to fetch: {id})!")
         return 22222222222  # STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)
-
-    def _remove_unsafe_prefix(self, item, step="undefined"):
-        """Handle unsafe (i.e. failed data with) fields."""
-        if item.startswith('unsafe'):
-            # User knows what they are doing.
-            return item[6:]
-
-        if self.failure or self.timeout or self.ishollow:
-            print(f"Step {step} cannot access fields ({item}) from Data objects that come from a "
-                  f"failed/timedout/hollow pipeline! HINT: use unsafe{item}. \n"
-                  f"HINT2: To calculate training accuracy the 'train' Data should be inside the 'test' tuple; use Copy "
-                  f"for that."
-                  )
-            if self.failure:
-                print("failed", self.failure)
-            if self.timeout:
-                print("timeout")
-            if self.ishollow:
-                print("hollow")
-
-        return item
 
     def _uuid_(self):
         return self._uuid
@@ -338,9 +304,9 @@ class Data(AbsData, withPrinting):
 
     def __lt__(self, other):
         """Amenity to ease pipeline result comparisons. 'A > B' means A is better than B."""
-        for name in self._target:
+        for name in self._comparable:
             return self.field(name, context="[comparison between Data objects 1]") < other.field(name, context="[comparison between Data objects 2]")
-        return Exception("Impossible to make comparisons. None of the target fields are available:", self.target)
+        return Exception("Impossible to make comparisons. None of the comparable fields are available:", self.comparable)
 
     def __eq__(self, other):
         # Checks removed for speed (isinstance is said to be slow...)
@@ -399,8 +365,7 @@ class Data(AbsData, withPrinting):
             inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
         else:
             inner = None
-        newdata = Picklable(self.uuid, self.uuids, history, self.ishollow,
-                            stream=None, target=self.target, storage_info=self.storage_info, inner=inner, **self.matrices)
+        newdata = Picklable(self.uuid, self.uuids, history, stream=None, comparable=",".join(self.comparable), storage_info=self.storage_info, inner=inner, **self.matrices)
         return newdata.eager, unpicklable_parts
 
     def unpicklable_(self, unpicklable_parts):
@@ -420,7 +385,17 @@ class Data(AbsData, withPrinting):
         lst = [json.loads(stepstr, cls=CustomJSONDecoder) for stepstr in self.history.values()]
         history = History(lst)
         inner = self.inner and self.inner.unpicklable
-        return Data(self.uuid, self.uuids, history, self.ishollow, stream, self.target, self.storage_info, inner, **self.matrices)
+        return Data(self.uuid, self.uuids, history, stream, self.comparable, self.storage_info, inner, **self.matrices)
+
+    def __rlshift__(self, other):
+        return other.process(self)
+
+    def __rshift__(self, other):
+        return other.process(self)
+
+    # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
+    # def plan(self, step):
+    #     step = step if isinstance(step, list) else [step]
 
 
 class MissingField(Exception):
