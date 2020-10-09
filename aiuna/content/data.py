@@ -72,24 +72,34 @@ class Data(AbsData, withPrinting):
                 self.__dict__[k] = matrices.pop(k)
 
         # Put interesting fields inside representation for printing; and mark them as None if needed.
-        self.failure = None
-        if "failure" in matrices:
-            self.failure = self._jsonable["failure"] = matrices["failure"]
-            self.timeout = None
-        if "timeout" in matrices:
-            self.timeout = self._jsonable["timeout"] = matrices["timeout"]
-        self.comparable = ""
-        if "comparable" in matrices:
-            self.comparable = matrices["comparable"]
-            self._jsonable["comparable"] = self.comparable
         if storage_info:
             self._jsonable["storage_info"] = storage_info
         if inner:
             self._jsonable["inner"] = inner
         if matrices:
             self._jsonable["matrices"] = ",".join(matrices.keys())
+        if "failure" in matrices:
+            self.failure = self._jsonable["failure"] = matrices["failure"]
+        else:
+            self.failure = None
+            uuids["failure"] = UUID()
+            matrices["failure"] = None  # TODO: None significa semfalha, então objeto Error() significaria nãoobtido nesse e em outros campos
 
-        # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
+        if "timeout" in matrices:
+            self.timeout = self._jsonable["timeout"] = matrices["timeout"]
+        else:
+            self.timeout = None
+            uuids["timeout"] = UUID()
+            matrices["timeout"] = None
+
+        if "comparable" in matrices:
+            self.comparable = self._jsonable["comparable"] =matrices["comparable"]
+        else:
+            self.comparable = ""
+            uuids["comparable"] = UUID()
+            matrices["comparable"] = []
+
+            # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
         self.history = history
         self.stream = stream
@@ -181,6 +191,8 @@ class Data(AbsData, withPrinting):
         Matrix, vector or scalar
         """
         # TODO: better organize this code
+        if name in self.metafields:
+            return self.matrices[name]
         mname = name.upper() if len(name) == 1 else name
 
         # Check existence of the field.
@@ -224,7 +236,7 @@ class Data(AbsData, withPrinting):
             return mat2vec(m)
         else:
             comp = context.name if "name" in dir(context) else context
-            raise Exception("Unexpected lower letter:", m, "requested by", comp)
+            raise Exception("Unexpected lower letter:", name, "requested by", comp)
 
     @cached_property
     def Xy(self):
