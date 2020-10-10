@@ -4,6 +4,7 @@ from .creation import new
 from ._version import __version__  # noqa: ignore
 from .content.root import Root
 from .file import File
+from .content.data import Data
 
 # noinspection PyUnusedName
 PRETTY_PRINTING = True
@@ -14,13 +15,13 @@ PRETTY_PRINTING = True
 #       d << File(...) << d
 
 # vars
-__builtins__["d"] = __builtins__["data"] = Root
+__builtins__["Root"] = __builtins__["d"] = __builtins__["data"] = Root
 
 # modules
 __builtins__["np"] = numpy
 
 # helper functions and classes
-autoimport = [new, File, Root]
+autoimport = [new, Data, File]
 
 # autoimporting...
 for item in autoimport:
