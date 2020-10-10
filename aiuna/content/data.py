@@ -104,7 +104,7 @@ class Data(AbsData, withPrinting):
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
 
-    def replace(self, step: Union[Step, List[Step]], inner: Optional[AbsData] = "keep", stream: Union[str, Iterator] = "keep", **fields):
+    def update(self, step: Union[Step, List[Step]], inner: Optional[AbsData] = "keep", stream: Union[str, Iterator] = "keep", **fields):
         """Recreate an updated Data object.
 
         Parameters
@@ -123,10 +123,10 @@ class Data(AbsData, withPrinting):
         :param step:
         :param stream:
         """
-        return self._replace(step, inner=inner, stream=stream, **fields)
+        return self._update(step, inner=inner, stream=stream, **fields)
 
     # TODO:proibir mudança no inner, exceto por meio do step Inner
-    def _replace(self, step, stream="keep", inner: Optional[AbsData] = "keep", **fields):
+    def _update(self, step, stream="keep", inner: Optional[AbsData] = "keep", **fields):
         if "timeout" in fields:
             if step.isntTimeout:
                 print("Only Timeout step can set timeout, not", step.longname)

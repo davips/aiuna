@@ -11,6 +11,6 @@ class Del(DataIndependentStep_):
         self.field = field
 
     def _process_(self, data: AbsData):
-        d = data.replace([])  # just a copy
+        d = data.update([])  # just a copy
         del d.matrices[self.field]
-        return d.replace(self)
+        return d.update(self)

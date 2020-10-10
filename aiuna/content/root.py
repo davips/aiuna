@@ -20,14 +20,14 @@ class Root(type):
     inner = None
 
     @staticmethod
-    def replace(step, **kwargs):
+    def update(step, **kwargs):
         # noinspection PyCallByClass,PyTypeChecker
-        return Data.replace(Root, step, **kwargs)
+        return Data.update(Root, step, **kwargs)
 
     @staticmethod
-    def _replace(step, **kwargs):
+    def _update(step, **kwargs):
         # noinspection PyCallByClass,PyTypeChecker,PyProtectedMember
-        return Data._replace(Root, step, **kwargs)
+        return Data._update(Root, step, **kwargs)
 
     def __new__(mcs, *args, **kwargs):
         raise Exception("Root is a singleton and shouldn't be instantiated")
