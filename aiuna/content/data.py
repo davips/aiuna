@@ -103,6 +103,8 @@ class Data(AbsData, withPrinting):
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
+        self.parentuuid = uuid / history.last.uuid if isinstance(history, History) else uuid / UUID(list(history.keys())[-1])
+        # TODO criar picklable history p/ evitar esses castings; ou fazer picklable steps??? nao vale a pena pq o json jah cuida deles ( e pode expor
 
     def replace(self, step: Union[Step, List[Step]], inner: Optional[AbsData] = "keep", stream: Union[str, Iterator] = "keep", **fields):
         """Recreate an updated Data object.
@@ -362,7 +364,7 @@ class Data(AbsData, withPrinting):
         if isinstance(self, Picklable):
             return self, unpicklable_parts
         unpicklable_parts = unpicklable_parts.copy()
-        # REMINDER: use json here because it traverse into internal steps, and the str form will be needed anyway by SQL storages
+        # REMINDER: use json here because it traverse into internal steps (and turn argsteps jsonable?), and the str form will be needed anyway by SQL storages
         history = {step.id: json.dumps(step, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder) for step in self.history}
         unpicklable_parts.append({"stream": self.stream})
         if self.inner:
