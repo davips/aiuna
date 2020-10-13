@@ -135,7 +135,7 @@ class Data(AbsData, withPrinting):
         if len(step) == 0 and any(not s.endswith("_m") for s in step):
             print("Empty list of steps is not allowed when nonvolatile (i.e. immutable) fields are present:", list(fields.keys()))
             exit()
-        if isinstance(self, Picklable) and step:
+        if isinstance(self, Picklable) and step: # TODO why not?
             raise Exception("Picklable history cannot be updated!")
         history = self.history or History([])
         if step:
