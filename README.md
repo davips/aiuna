@@ -17,7 +17,7 @@ d = File("iris.arff").data
 print(d.Xd)
 ```
 
-```bash
+```
 ['sepallength', 'sepalwidth', 'petallength', 'petalwidth']
 ```
 ```python3
@@ -25,7 +25,7 @@ print(d.Xd)
 print(d.X[:5])
 ```
 
-```bash
+```
 [[5.1 3.5 1.4 0.2]
  [4.9 3.  1.4 0.2]
  [4.7 3.2 1.3 0.2]
@@ -37,7 +37,7 @@ print(d.X[:5])
 print(d.y[:5])
 ```
 
-```bash
+```
 ['Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa']
 ```
 ```python3
@@ -45,7 +45,7 @@ print(d.y[:5])
 print(sorted(set(d.y)))
 ```
 
-```bash
+```
 ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
 ```
 
@@ -64,7 +64,7 @@ df = d.X_pd
 print(df.head())
 ```
 
-```bash
+```
    sepallength  sepalwidth  petallength  petalwidth
 0          5.1         3.5          1.4         0.2
 1          4.9         3.0          1.4         0.2
@@ -78,7 +78,7 @@ mycol = d.X_pd["petallength"]
 print(mycol[:5])
 ```
 
-```bash
+```
 0    1.4
 1    1.4
 2    1.3
@@ -103,7 +103,7 @@ d = new(X=X, y=y)
 print(d)
 ```
 
-```bash
+```
 {
     "uuid": "2BKAfUOnmjvdGlHo75rEdEM",
     "uuids": {
@@ -133,7 +133,7 @@ d = new(X=X, y=y)
 print(d.history)
 ```
 
-```bash
+```
 [
     {
         "id": "06o5LroHNEoS3NVwXptGF1G",
@@ -156,7 +156,7 @@ del d["X"]
 print(d.history)
 ```
 
-```bash
+```
 [
     {
         "id": "06o5LroHNEoS3NVwXptGF1G",
@@ -189,7 +189,7 @@ d["Z"] = 42
 print(d.Z, type(d.Z))
 ```
 
-```bash
+```
 [[42]] <class 'numpy.ndarray'>
 ```
 ```python3
@@ -197,7 +197,7 @@ print(d.Z, type(d.Z))
 print(d.history)
 ```
 
-```bash
+```
 [
     {
         "id": "06o5LroHNEoS3NVwXptGF1G",
