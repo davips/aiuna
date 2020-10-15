@@ -156,7 +156,7 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
             print("Empty list of steps is not allowed when nonvolatile (i.e. immutable) fields are present:",
                   list(fields.keys()))
             exit()
-        if isinstance(self, Picklable) and step:
+        if isinstance(self, Picklable) and step: # TODO why not?
             raise Exception("Picklable history cannot be updated!")
         history = self.history or History([])
         if step:
@@ -470,18 +470,36 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
     def __len__(self):
         return len(self._matrices)
 
-        # REMINDER: invalidation not needed according to tests, I guess it is per instance
-        # # invalidate all caches
-        # for method in self.__dict__.values():
-        #     if callable(method) and hasattr(method, "cacheclear"):
-        #         method.cacheclear()
+        # REMINDER: invalidation seems not needed according to tests, doing it anyway...
+        # invalidate all caches
+        for method in self.__dict__.values():
+            if callable(method) and hasattr(method, "cacheclear"):
+                method.cacheclear()
 
-    # * ** - @
+    def __setitem__(self, key, value):
+        # process mutation
+        from aiuna.let import Let
+        d = Let(field=key, value=value) << self
+
+        # put mutation here
+        self._uuid = d.uuid
+        self.history = d.history
+        self.uuids[key] = d.uuids[key]
+        self.matrices[key] = d.matrices[key]
+
+        # REMINDER: invalidation seems not needed according to tests, doing it anyway...
+        # invalidate all caches
+        for method in self.__dict__.values():
+            if callable(method) and hasattr(method, "cacheclear"):
+                method.cacheclear()
+
+    # * ** -
+    # @ cache
     # & | ^ // %
-    # -d +d ~
+    # -d +d
+    # ~ sample
     # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
     # def plan(self, step):
-    #     step = step if isinstance(step, list) else [step]
 
     def _name_(self):
         return self._uuid
