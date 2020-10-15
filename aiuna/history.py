@@ -1,30 +1,20 @@
+from aiuna.leaf import Leaf
 from transf.mixin.printing import withPrinting
-
-class Leaf(withPrinting):
-    isleaf = True
-
-    def __init__(self, step):
-        self.step = step
-
-    def _asdict_(self):
-        return self.step.asdict
 
 
 class History(withPrinting):
     isleaf = False
 
     def __init__(self, steps, nested=None):
-        """Optimized iterable based on structural sharing."""
+        """Optimized iterable "list" of Leafs (wrapper for a step or a dict) based on structural sharing."""
         self.nested = nested or list(map(Leaf, steps))
-        # if len(self.nested)==0:
-        #     raise Exception
 
     @property
     def last(self):
         return self._findlast(self)
 
     def _asdict_(self):
-        return list(self)
+        return {step.id: step.desc for step in self}
 
     def __add__(self, other):
         return History([], nested=[self, other])
@@ -53,15 +43,8 @@ class History(withPrinting):
     def __iter__(self):
         yield from self.traverse(self)
 
-    @property
-    def clean(self):
-        """Clean version of history. Only the names (of real transformations)."""
-        for step in self:
-
-            # if not step.isnoop:
-                yield step.longname
-
     def __xor__(self, attrname):
-        # touch properties to avoid problems (really needed?)
+        """Shortcut ^ to get an attribute along all steps."""
+        # touch properties to avoid problems (is this really needed?)
         void = [a.name + a.longname for a in self.traverse(self)]
-        return list(map(lambda x: x.__dict__[attrname], self.traverse(self)))
+        return list(map(lambda x: getattr(x, attrname), self.traverse(self)))

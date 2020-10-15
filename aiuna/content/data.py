@@ -23,10 +23,10 @@ class Data(AbsData, withPrinting):
     Parameters
     ----------
     history
-        A History objects that represents a sequence of Transformations objects.
+        A History objects that represents a sequence of steps.
     storage_info
         An alias to a global Storage object for lazy matrix fetching.
-    matrices
+    matrices  TODO trocar pra fields
         A dictionary like {X: <numpy array>, Y: <numpy array>}.
         Matrix names should have a single uppercase character, e.g.:
         X=[
@@ -64,7 +64,8 @@ class Data(AbsData, withPrinting):
         # Move mutable fields from matrices to self.
         for k in list(matrices.keys()):
             if k.endswith("_m"):
-                self.__dict__[k] = matrices.pop(k)
+                # self.__dict__[k] = matrices.pop(k)
+                setattr(self, k, matrices.pop(k))
 
         # Put interesting fields inside representation for printing; and mark them as None if needed.
         if storage_info:
@@ -103,8 +104,7 @@ class Data(AbsData, withPrinting):
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
-        self.parentuuid = uuid / history.last.uuid if isinstance(history, History) else uuid / UUID(list(history.keys())[-1])
-        # TODO criar picklable history p/ evitar esses castings; ou fazer picklable steps??? nao vale a pena pq o json jah cuida deles ( e pode expor
+        self.parent_uuid = uuid / history.last.uuid
 
     def replace(self, step: Union[Step, List[Step]], inner: Optional[AbsData] = "keep", stream: Union[str, Iterator] = "keep", **fields):
         """Recreate an updated Data object.
@@ -137,8 +137,6 @@ class Data(AbsData, withPrinting):
         if len(step) == 0 and any(not s.endswith("_m") for s in step):
             print("Empty list of steps is not allowed when nonvolatile (i.e. immutable) fields are present:", list(fields.keys()))
             exit()
-        if isinstance(self, Picklable) and step: # TODO why not?
-            raise Exception("Picklable history cannot be updated!")
         history = self.history or History([])
         if step:
             history = history << step
@@ -192,12 +190,9 @@ class Data(AbsData, withPrinting):
         mname = name.upper() if len(name) == 1 else name
 
         # Check existence of the field.
-        # for a in self.history:
-        #     print(a.name)
         if mname not in self.matrices:
             comp = context.name if "name" in dir(context) else context
             print(
-                # f"\n\nLast transformation:\n{self.history.last} ... \n"
                 f" Data object <{self.uuid}>...last transformed by "
                 f"\n{self.history ^ 'longname'}\n does not provide field {name} needed by {comp} .\nAvailable matrices: {list(self.matrices.keys())}")
             # raise MissingField
@@ -254,13 +249,6 @@ class Data(AbsData, withPrinting):
     @lru_cache()
     def ids_str(self):
         return ','.join(self.ids_lst)
-
-    @property
-    @lru_cache()
-    def history_str(self):
-        if isinstance(self.history, History):
-            return ",".join(transf.id for transf in self.history)
-        return ",".join(self.history.keys())
 
     @lru_cache()
     def field_dump(self, name):
@@ -364,8 +352,7 @@ class Data(AbsData, withPrinting):
         if isinstance(self, Picklable):
             return self, unpicklable_parts
         unpicklable_parts = unpicklable_parts.copy()
-        # REMINDER: use json here because it traverse into internal steps (and turn argsteps jsonable?), and the str form will be needed anyway by SQL storages
-        history = {step.id: json.dumps(step, sort_keys=True, ensure_ascii=False, cls=CustomJSONEncoder) for step in self.history}
+        history = self.history.aslist
         unpicklable_parts.append({"stream": self.stream})
         if self.inner:
             inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
@@ -386,12 +373,10 @@ class Data(AbsData, withPrinting):
             raise Exception("Inconsistency: this picklable Data object contains a stream!")
         # make a copy, since we will change history and stream directly; and convert to right class
         stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
-        if not isinstance(self.history, dict):
-            raise Exception("Pickable Data should have a dict instead of", type(self.history))
-        lst = [json.loads(stepstr, cls=CustomJSONDecoder) for stepstr in self.history.values()]
-        history = History(lst)
+        if not isinstance(self.history[0], dict):
+            raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
         inner = self.inner and self.inner.unpicklable
-        return Data(self.uuid, self.uuids, history, stream, self.storage_info, inner, **self.matrices)
+        return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self.matrices)
 
     def __rlshift__(self, other):
         if other.isclass:
@@ -424,9 +409,9 @@ class Data(AbsData, withPrinting):
 
         # REMINDER: invalidation seems not needed according to tests, doing it anyway...
         # invalidate all caches
-        for method in self.__dict__.values():
-            if callable(method) and hasattr(method, "cacheclear"):
-                method.cacheclear()
+        for attr in self.__dict__.values():
+            if callable(attr) and hasattr(attr, "cacheclear"):
+                attr.cacheclear()
 
     def __setitem__(self, key, value):
         # process mutation
@@ -441,9 +426,9 @@ class Data(AbsData, withPrinting):
 
         # REMINDER: invalidation seems not needed according to tests, doing it anyway...
         # invalidate all caches
-        for method in self.__dict__.values():
-            if callable(method) and hasattr(method, "cacheclear"):
-                method.cacheclear()
+        for attr in self.__dict__.values():
+            if callable(attr) and hasattr(attr, "cacheclear"):
+                attr.cacheclear()
 
     # * ** -
     # @ cache
