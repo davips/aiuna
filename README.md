@@ -39,7 +39,7 @@ print(set(d.y))
 ```
 
 ```bash
-{'Iris-setosa', 'Iris-versicolor', 'Iris-virginica'}
+{'Iris-versicolor', 'Iris-virginica', 'Iris-setosa'}
 ```
 ```python3
 
