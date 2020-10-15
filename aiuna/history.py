@@ -6,8 +6,8 @@ class Leaf(withPrinting):
     def __init__(self, step):
         self.step = step
 
-    def _jsonable_(self):
-        return self.step.jsonable
+    def _asdict_(self):
+        return self.step.asdict
 
 
 class History(withPrinting):
@@ -23,7 +23,7 @@ class History(withPrinting):
     def last(self):
         return self._findlast(self)
 
-    def _jsonable_(self):
+    def _asdict_(self):
         return list(self)
 
     def __add__(self, other):

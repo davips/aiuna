@@ -345,7 +345,7 @@ class Data(AbsData, withPrinting):
             print("Real sizes:", len(self.X[0]), "+", len(self.Y[0].shape))
             exit(0)
 
-    def _jsonable_(self):
+    def _asdict_(self):
         return self._jsonable
 
     @cached_property
