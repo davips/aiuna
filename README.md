@@ -7,7 +7,7 @@
 # Examples
 
 <details>
-<summary>port aiuna.pack</summary>
+<summary>Creating data from ARFF file</summary>
 <p>
 
 ```python3
@@ -53,7 +53,7 @@ print(sorted(set(d.y)))
 </details>
 
 <details>
-<summary>port aiuna.pack</summary>
+<summary>Acessing a data field as a pandas DataFrame</summary>
 <p>
 
 ```python3
@@ -91,7 +91,7 @@ Name: petallength, dtype: float64
 </details>
 
 <details>
-<summary>port aiuna.pack</summary>
+<summary>Creating data from numpy arrays</summary>
 <p>
 
 ```python3
@@ -121,7 +121,7 @@ print(d)
 </details>
 
 <details>
-<summary>port aiuna.pack</summary>
+<summary>Checking history</summary>
 <p>
 
 ```python3
