@@ -13,9 +13,9 @@ class MetaRoot(type):
         if mcs.root is None:
             from cruipto.uuid import UUID
             from aiuna.history import History
-            mcs.root = Root(UUID(), {}, History([]))
+            mcs.root = Root(uuid=UUID(), uuids={}, history=History([]))
         return mcs.root
-
+TODO adotar Root simples do StOverfl
 
 # Scala-like companion object for the instantiable class Root at the beginning of this file.
 # noinspection PyRedeclaration
