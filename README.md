@@ -4,7 +4,7 @@
 
 ```python3
 # Creating data from ARFF file
-import aiuna  # <- auto import File
+import aiuna.pack
 
 d = File("iris.arff").data
 print(d.Xd)
@@ -39,7 +39,7 @@ print(set(d.y))
 ```
 
 ```bash
-{'Iris-versicolor', 'Iris-virginica', 'Iris-setosa'}
+{'Iris-setosa', 'Iris-virginica', 'Iris-versicolor'}
 ```
 ```python3
 
@@ -56,27 +56,11 @@ print(set(d.y))
 
 ```python3
 # Acessing a data field as a pandas DataFrame
-import aiuna  # <- auto import File
+import aiuna.pack
+
 d = File("iris.arff").data
 df = d.X_pd
 print(df.head())
-# Output:
-# sepallength  sepalwidth  petallength  petalwidth
-# 0          5.1         3.5          1.4         0.2
-# 1          4.9         3.0          1.4         0.2
-# 2          4.7         3.2          1.3         0.2
-# 3          4.6         3.1          1.5         0.2
-# 4          5.0         3.6          1.4         0.2
-
-mycol = d.X_pd["petallength"]
-print(mycol[:5])
-# Output:
-# 0    1.4
-# 1    1.4
-# 2    1.3
-# 3    1.5
-# 4    1.4
-# Name: petallength, dtype: float64
 ```
 
 ```bash
@@ -86,12 +70,26 @@ print(mycol[:5])
 2          4.7         3.2          1.3         0.2
 3          4.6         3.1          1.5         0.2
 4          5.0         3.6          1.4         0.2
+```
+```python3
+
+mycol = d.X_pd["petallength"]
+print(mycol[:5])
+```
+
+```bash
 0    1.4
 1    1.4
 2    1.3
 3    1.5
 4    1.4
 Name: petallength, dtype: float64
+```
+```python3
+
+```
+
+```bash
 ```
 
 </p>
@@ -102,21 +100,12 @@ Name: petallength, dtype: float64
 
 ```python3
 # Creating data from numpy arrays
-import aiuna  # <- auto import numpy as np and helper function new()
+import aiuna.pack
+
 X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 y = np.array([0, 1, 1])
 d = new(X=X, y=y)
 print(d)
-# Output
-# {
-#     "uuid": "ëЪʁŝкçӖχƿȭōʎǴE",
-#     "uuids": {
-#         "X": "ĘQӕΘƵǔџĊȥοӳЀvý",
-#         "Y": "ĘȡǏů8χίMЙһɵҪǐǒ"
-#     },
-#     "matrices": "X,Y"
-# }
-
 ```
 
 ```bash
@@ -132,6 +121,12 @@ print(d)
     "matrices": "X,Y"
 }
 ```
+```python3
+
+```
+
+```bash
+```
 
 </p>
 </details>
@@ -141,7 +136,8 @@ print(d)
 
 ```python3
 # Checking history
-import aiuna.pack  # <- auto import new()
+import aiuna.pack
+
 X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 y = np.array([0, 1, 1])
 d = new(X=X, y=y)
