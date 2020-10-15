@@ -11,5 +11,5 @@ print(d.X[:5])
 print(d.y[:5])
 # ...
 
-print(set(d.y))
+print(sorted(set(d.y)))
 # ...

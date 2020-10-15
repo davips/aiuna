@@ -7,11 +7,10 @@
 # Examples
 
 <details>
-<summary>Creating data from ARFF file</summary>
+<summary>port aiuna.pack</summary>
 <p>
 
 ```python3
-# Creating data from ARFF file
 import aiuna.pack
 
 d = File("iris.arff").data
@@ -43,22 +42,21 @@ print(d.y[:5])
 ```
 ```python3
 
-print(set(d.y))
+print(sorted(set(d.y)))
 ```
 
 ```bash
-{'Iris-versicolor', 'Iris-virginica', 'Iris-setosa'}
+['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
 ```
 
 </p>
 </details>
 
 <details>
-<summary>Acessing a data field as a pandas DataFrame</summary>
+<summary>port aiuna.pack</summary>
 <p>
 
 ```python3
-# Acessing a data field as a pandas DataFrame
 import aiuna.pack
 
 d = File("iris.arff").data
@@ -93,11 +91,10 @@ Name: petallength, dtype: float64
 </details>
 
 <details>
-<summary>Creating data from numpy arrays</summary>
+<summary>port aiuna.pack</summary>
 <p>
 
 ```python3
-# Creating data from numpy arrays
 import aiuna.pack
 
 X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -124,11 +121,10 @@ print(d)
 </details>
 
 <details>
-<summary>Checking history</summary>
+<summary>port aiuna.pack</summary>
 <p>
 
 ```python3
-# Checking history
 import aiuna.pack
 
 X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
