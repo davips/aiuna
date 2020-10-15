@@ -47,13 +47,7 @@ print(set(d.y))
 ```
 
 ```bash
-{'Iris-versicolor', 'Iris-setosa', 'Iris-virginica'}
-```
-```python3
-
-```
-
-```bash
+{'Iris-versicolor', 'Iris-virginica', 'Iris-setosa'}
 ```
 
 </p>
@@ -94,12 +88,6 @@ print(mycol[:5])
 4    1.4
 Name: petallength, dtype: float64
 ```
-```python3
-
-```
-
-```bash
-```
 
 </p>
 </details>
@@ -130,12 +118,6 @@ print(d)
     },
     "matrices": "X,Y"
 }
-```
-```python3
-
-```
-
-```bash
 ```
 
 </p>
@@ -256,12 +238,6 @@ print(d.history)
         }
     }
 ]
-```
-```python3
-
-```
-
-```bash
 ```
 
 </p>
