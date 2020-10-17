@@ -1,37 +1,23 @@
 from aiuna.content.data import Data
-from aiuna.history import History
-from cruipto.uuid import UUID
 
 
-class Root(type):
-    """Singleton to feed Data iterators."""
+class Root(Data):
+    def __call__(self, *args, **kwargs):
+        raise Exception("Root data is a singleton and cannot be instantiated!")
 
-    history: History = History([])
-    uuid = UUID()
-    id = uuid.id
-    uuids: dict = {}
-    stream = None
-    matrices = {}
-    failure: str = None
-    time = None
-    timeout = None
-    ishollow = False
-    storage_info = None
-    inner = None
 
-    @staticmethod
-    def replace(step, **kwargs):
-        # noinspection PyCallByClass,PyTypeChecker
-        return Data.replace(Root, step, **kwargs)
-
-    @staticmethod
-    def _replace(step, **kwargs):
-        # noinspection PyCallByClass,PyTypeChecker,PyProtectedMember
-        return Data._replace(Root, step, **kwargs)
+class MetaRoot(type):
+    root = None
 
     def __new__(mcs, *args, **kwargs):
-        raise Exception("Root is a singleton and shouldn't be instantiated")
+        if mcs.root is None:
+            from cruipto.uuid import UUID
+            from aiuna.history import History
+            mcs.root = Root(uuid=UUID(), uuids={}, history=History([]))
+        return mcs.root
+TODO adotar Root simples do StOverfl
 
-    def __bool__(self):
-        return False
-
+# Scala-like companion object for the instantiable class Root at the beginning of this file.
+# noinspection PyRedeclaration
+class Root(metaclass=MetaRoot):
+    """Singleton to feed Data processors."""

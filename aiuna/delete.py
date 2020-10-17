@@ -1,4 +1,3 @@
-from transf.absdata import AbsData
 from transf.dataindependentstep_ import DataIndependentStep_
 
 
@@ -10,7 +9,10 @@ class Del(DataIndependentStep_):
         super().__init__({"field": field})
         self.field = field
 
-    def _process_(self, data: AbsData):
-        d = data.replace([])  # just a copy
-        del d.matrices[self.field]
-        return d.replace(self)
+    def _process_(self, data):
+        #TODO: mixin withUpdate inside transf, implemented by Data
+        não lembro o motivo do todo acima, ler papeis
+
+        d = data.update([])  # just a copy
+        del d[self.field]
+        return d.update(self)

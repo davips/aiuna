@@ -50,7 +50,7 @@ class File(DataIndependentStep_):
         else:
             self._hashes = original_hashes
 
-        return Root.replace(self, **matrices)
+        return Root.update(self, **matrices)
 
     @cached_property
     def dataset(self):

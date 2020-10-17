@@ -11,7 +11,7 @@ class New(DataIndependentStep_):
         self.isclass = False
         self.hashes = hashes
         self.matrices = matrices
-        self.data = Root.replace(self, **self.matrices)
+        self.data = Root.update(self, **self.matrices)
 
     def _process_(self, data):
         if data is not Root:
