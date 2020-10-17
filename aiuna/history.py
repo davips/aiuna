@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from aiuna.leaf import Leaf
 from transf.mixin.printing import withPrinting
 
@@ -9,9 +11,12 @@ class History(withPrinting):
         """Optimized iterable "list" of Leafs (wrapper for a step or a dict) based on structural sharing."""
         self.nested = nested or list(map(Leaf, steps))
 
-    @property
+    @cached_property
     def last(self):
         return self._findlast(self)
+
+    def aslist(self):
+        return [step.asdict for step in self]
 
     def _asdict_(self):
         return {step.id: step.desc for step in self}
@@ -35,7 +40,7 @@ class History(withPrinting):
     def _findlast(self, node) -> str:
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
-            return node.step
+            return node
         else:
             # print(node.nested)
             return self._findlast(node.nested[-1])

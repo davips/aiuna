@@ -57,7 +57,8 @@ class Data(AbsData, withPrinting):
     _Xy = None
     metafields = ["failure", "timeout", "comparable"]
 
-    def __init__(self, uuid, uuids, history, stream=None, storage_info=None, inner=None, **matrices):
+    # TODO qual é o criterio p/ o campo ser explicito ou ficar no matrices? consultar branch lazy
+    def __init__(self, uuid, uuids, history, parent_uuid, stream=None, storage_info=None, inner=None, **matrices):
         # comparable: Fields precedence when comparing which data is greater.
         self._jsonable = {"uuid": uuid, "uuids": uuids}
 
@@ -104,7 +105,7 @@ class Data(AbsData, withPrinting):
         self.matrices = matrices
         self._uuid, self.uuids = uuid, uuids
         self._inner = inner
-        self.parent_uuid = uuid / history.last.uuid
+        self.parent_uuid = parent_uuid
 
     def replace(self, step: Union[Step, List[Step]], inner: Optional[AbsData] = "keep", stream: Union[str, Iterator] = "keep", **fields):
         """Recreate an updated Data object.
@@ -140,7 +141,6 @@ class Data(AbsData, withPrinting):
         history = self.history or History([])
         if step:
             history = history << step
-        stream = self.stream if stream == "keep" else stream
         inner = self.inner if isinstance(inner, str) and inner == "keep" else inner
 
         # Only update matrix uuids for the provided and changed ones!
@@ -154,7 +154,7 @@ class Data(AbsData, withPrinting):
 
         from aiuna.content.root import Root
         klass = Data if self is Root else self.__class__
-        return klass(uuid, uuids, history, stream=stream, storage_info=self.storage_info, inner=inner, **matrices)
+        return klass(uuid, uuids, history, self.uuid, stream=stream, storage_info=self.storage_info, inner=inner, **matrices)
 
     @cached_property
     def eager(self):
@@ -309,7 +309,7 @@ class Data(AbsData, withPrinting):
         #     return False
         return other is not None and self.uuid == other.uuid
 
-    def __hash__(self):
+    def __hash__(self): # overrides because Data is mutable in rare occasions: setitem/delitem/
         return hash(self.uuid)
 
     @lru_cache
@@ -352,7 +352,7 @@ class Data(AbsData, withPrinting):
         if isinstance(self, Picklable):
             return self, unpicklable_parts
         unpicklable_parts = unpicklable_parts.copy()
-        history = self.history.aslist
+        history = History(self.history.aslist)
         unpicklable_parts.append({"stream": self.stream})
         if self.inner:
             inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
@@ -361,22 +361,22 @@ class Data(AbsData, withPrinting):
         newdata = Picklable(self.uuid, self.uuids, history, stream=None, storage_info=self.storage_info, inner=inner, **self.matrices)
         return newdata.eager, unpicklable_parts
 
-    def unpicklable_(self, unpicklable_parts):
-        """Rebuild an unpicklable Data.
-
-        History is desserialized, if given as str.
-        """
-        # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
-        if not isinstance(self, Picklable):
-            return self
-        if self.stream:
-            raise Exception("Inconsistency: this picklable Data object contains a stream!")
-        # make a copy, since we will change history and stream directly; and convert to right class
-        stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
-        if not isinstance(self.history[0], dict):
-            raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
-        inner = self.inner and self.inner.unpicklable
-        return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self.matrices)
+    # def unpicklable_(self, unpicklable_parts):
+    #     """Rebuild an unpicklable Data.
+    #
+    #     History is desserialized, if given as str.
+    #     """
+    #     # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
+    #     if not isinstance(self, Picklable):
+    #         return self
+    #     if self.stream:
+    #         raise Exception("Inconsistency: this picklable Data object contains a stream!")
+    #     # make a copy, since we will change history and stream directly; and convert to right class
+    #     stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
+    #     if not isinstance(self.history[0], dict):
+    #         raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
+    #     inner = self.inner and self.inner.unpicklable
+    #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self.matrices)
 
     def __rlshift__(self, other):
         if other.isclass:
@@ -451,10 +451,3 @@ def untranslate_type(name):
     else:
         raise Exception("Unknown type:", name)
 
-
-class Picklable(Data):
-    """This class avoid the problem of an unpicklable Data and its picklable incarnation having the same hash.
-    [Despite being _eq_uals]."""
-
-    def __hash__(self):
-        return -1 * self.uuid.n  # TODO check if this is correct, and if it is really needed
