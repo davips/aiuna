@@ -59,28 +59,40 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
     _Xy = None
 
     # todos fields (stream, inner e matrices) aparecem como atributo
-    # Os metafields são subconjunto das matrices e sempre existem, mesmo sem serem providos.
+    # Os metafields são subconjunto das matrices e sempre existem, mesmo sem serem providos;
+    # ou seja, são arg explicito na assinatura do metodo (se forem mexiveis).
     #  tipos de metafields:
+
+    # muda em                           update  update  update  update  update  step.new()      update
+    #           Let         Let                 c/ Tim.                         vários  map,cache,summ
+    #           time_limit  comparable  changed failure timeout elapsed parntid inner   stream  storage
+    # updatekwargs:x        x
+    # protegid/automat:                 x       x       x       x       x                       x
+    # transfor. x           x                                                   x       x
+    # initargs                          x       x       x       x       calculado               x
+    # _fields_m:                                                x
+    # attribute:x           x           x       x       x       x       x       x       x       x
+    # updtargs:                                                                 x       x
+    # armazen:  x           x           x       x       x       oka     col     col     bool
+    # não lazy: x           x           [dispara lazies?              ] x               it/dblz x
+
 
     # nunca lazy
     #       não alteráveis externamente
-    internal = ["changed"]  # <- TODO implementar changed (=onde step mexeu)
+    protected = ["changed", "failure", "timeout", "elapsed", "parent_uuid", "storage"]
+    # TODO implementar changed (=onde step mexeu)
 
-    #       usuário os define, e o self[] depende deles pra começar:
-    strict = ["limit", "comparable"]
+    #    gatilhos que dependem de outros campos rodarem (e por isso lazies(?), ou erro se acessados antes da hora(?), ou com estado que indica espera(?)):
+    reserved = ["changed", "failure", "timeout", "elapsed"]
 
-    # ??????
-    #       não alteráveis externamente e dependem de outros campos rodarem (e por isso lazies(?), ou erro se acessados antes da hora(?), ou com estado que indica espera(?)):
-    reserved = ["failure", "timeout", "elapsed"]
-
-    metafields = reserved + strict
-
-    # aparecem na impressão... inner e metafields (quando não None).
+    # aparecem na impressão (quando não None). jsonable precisa ser tardio e mutavel pois aguarda alguns evals
+    printable = ["time_limit",  "comparable",  "changed", "failure", "timeout", "elapsed", "parntid", "inner", "stream",  "storage"]
+    iniciam em estado de espera : ["changed", "failure", "timeout", "elapsed"]
 
     _matrices_m = {}
 
-    # TODO qual é o criterio p/ o campo ser explicito ou ficar no matrices? consultar branch lazy
-    def __init__(self, uuid, uuids, history, parent_uuid, stream=None, storage_info=None, inner=None, **matrices):
+    #TODO picklealizar storage?
+    def __init__(self, uuid, uuids, history, parent_uuid, stream=None, storage=None, inner=None, **matrices):
         # comparable: Fields precedence when comparing which data is greater.
         self._jsonable = {"uuid": uuid, "uuids": uuids}
 
