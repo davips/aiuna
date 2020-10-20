@@ -7,7 +7,7 @@ class New(DataIndependentStep_):
     isoperator = False
 
     def __init__(self, hashes, **matrices):
-        super().__init__({"hashes": hashes})
+        super().__init__(hashes=hashes)
         self.isclass = False
         self.hashes = hashes
         self.matrices = matrices

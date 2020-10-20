@@ -13,6 +13,7 @@ from aiuna.new import New
 
 def new(**fields):
     matrices = dict(fields2matrices(fields).items())
+    # TODO dumps() de ndarray pode ser incompleto e gerar md5 errado; usar pack?
     hashes = {k: md5(json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()).hexdigest() for k, v in matrices.items()}
     return New(hashes, **matrices).data
 

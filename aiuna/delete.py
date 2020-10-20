@@ -6,7 +6,7 @@ class Del(DataIndependentStep_):
     isoperator = False
 
     def __init__(self, field):
-        super().__init__({"field": field})
+        super().__init__(field=field)
         self.field = field
 
     def _process_(self, data):

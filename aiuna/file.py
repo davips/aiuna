@@ -21,7 +21,7 @@ class File(DataIndependentStep_):
         else:
             raise Exception("Unrecognized file extension:", name)
         self._hashes = hashes
-        super().__init__(self._config)
+        super().__init__(config_func=self._config)
 
     def _process_(self, data):
         if data is not Root:

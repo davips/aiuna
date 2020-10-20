@@ -1,4 +1,3 @@
-import json
 import traceback
 from functools import lru_cache, cached_property
 from typing import Union, Iterator
@@ -7,22 +6,21 @@ import arff
 import numpy as np
 
 from aiuna.compression import pack
-from aiuna.history import History
-from aiuna.mixin.exceptionhandling import asExceptionHandler
-from aiuna.mixin.linalghelper import fields2matrices, evolve_id, mat2vec
-from aiuna.mixin.timing import withTiming
+from aiuna.mixin.linalghelper import evolve_id, mat2vec, field_as_matrix
+from aiuna.mixin.timing import withTiming, TimeoutException
 from cruipto.uuid import UUID
-from transf.customjson import CustomJSONEncoder, CustomJSONDecoder
+from transf._ins import Ins
 from transf.mixin.identification import withIdentification
 from transf.mixin.printing import withPrinting
 
 
 # TODO: iterable data like dict
+from transf.timeout import Timeout
 
 
-class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
+class Data(withIdentification, withPrinting, withTiming):
     """Immutable lazy data for most machine learning scenarios.
-
+# comparable: Fields precedence when comparing which data is greater.
     Parameters
     ----------
     history
@@ -51,92 +49,82 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
         Yt=[['rabbit', 'mouse']]
 
         Volatile fields, i.e., those that can be lost due to their nondeterministic nature,
-        should be marked with the mutability suffix '_' like in 'elapsed_';
+        should be marked with the mutability suffix '_' like in 'duration_';
         so they stay outside matrix, but still available as Data attributes.
         They are not stored by conventional storages.
         User-content enabled ones like OkaSt may provide that.
     """
-    _Xy = None
 
     # todos fields (stream, inner e matrices) aparecem como atributo
     # Os metafields são subconjunto das matrices e sempre existem, mesmo sem serem providos;
     # ou seja, são arg explicito na assinatura do metodo (se forem mexiveis).
-    #  tipos de metafields:
 
-    # muda em                           update  update  update  update  update  step.new()      update
+    #  todos atributos:
+
+    # muda em                           update  iniget  iniget  iniget  init    step.new()      get     update
     #           Let         Let                 c/ Tim.                         vários  map,cache,summ
-    #           time_limit  comparable  changed failure timeout elapsed parntid inner   stream  storage
+    #           maxtime  comparable  changed failure timeout duratio parntid inner   stream  storage step    history
     # updatekwargs:x        x
-    # protegid/automat:                 x       x       x       x       x                       x
-    # transfor. x           x                                                   x       x
-    # initargs                          x       x       x       x       calculado               x
+    # protegid/automat:                 x       x       x       x       x                       x       nonkw   x
+    # transformavel x       x                                                   x       x
+    # ____________________________________________________________________________________________________________________
+    # initargs                          x       x       x       x       calculado               x       x
     # _fields_m:                                                x
-    # attribute:x           x           x       x       x       x       x       x       x       x
-    # updtargs:                                                                 x       x
-    # armazen:  x           x           x       x       x       oka     col     col     bool
-    # não lazy: x           x           [dispara lazies?              ] x               it/dblz x
+    # ____________________________________________________________________________________________________________________
+    # updtargs:                                                                 x       x               x
+    # armazen:  field       f           f       f       f       run     col     col     s+bool          x
+    # não lazy: x           x           [dispara lazies?              ] x               it/dblz x       x
 
+    # REMINDER todos fields entram obrig lazy no update() porque odem ativar o consumo de stream antes da hora.
+    # REMINDER tudo lazy adotado inicialmente pq ajuda o cache a saber o que vai ser feito (e usuario a puxar do DB) sem precisar mexer com uuid
+    # REMINDER changed precisa vir do update() pq não sabemos se algum lazy veio do step anterior
+    triggers = ["failure","timeout","duration"]
+    def __init__(self, uuid, uuids, step, inner=None, stream=None, storage=None, **fields):
+        if "changed" not in fields:
+            raise Exception("Field 'changed' is mandatory as a kwarg, alongside its UUID inside uuids.")
 
-    # nunca lazy
-    #       não alteráveis externamente
-    protected = ["changed", "failure", "timeout", "elapsed", "parent_uuid", "storage"]
-    # TODO implementar changed (=onde step mexeu)
+        # Add trigger fields. Each trigger first touch all fields in 'changed' (which are necessarily lazy), and only then return its current value.
+        def trigger_func(field):
+            def func():
+                for lazy_field in fields["changed"]:
+                    lazy_field()
+                return self[field]
+            return func
 
-    #    gatilhos que dependem de outros campos rodarem (e por isso lazies(?), ou erro se acessados antes da hora(?), ou com estado que indica espera(?)):
-    reserved = ["changed", "failure", "timeout", "elapsed"]
+        for trigger in self.triggers:
+            if trigger in fields:
+                raise Exception("Cannot manually set field",trigger)
+            fields[trigger] =trigger_func(trigger)
+            # TODO precisam aparecer em uuids?
 
-    # aparecem na impressão (quando não None). jsonable precisa ser tardio e mutavel pois aguarda alguns evals
-    printable = ["time_limit",  "comparable",  "changed", "failure", "timeout", "elapsed", "parntid", "inner", "stream",  "storage"]
-    iniciam em estado de espera : ["changed", "failure", "timeout", "elapsed"]
-
-    _matrices_m = {}
-
-    #TODO picklealizar storage?
-    def __init__(self, uuid, uuids, history, parent_uuid, stream=None, storage=None, inner=None, **matrices):
-        # comparable: Fields precedence when comparing which data is greater.
-        self._jsonable = {"uuid": uuid, "uuids": uuids}
-
-        # Move mutable fields from matrices to self.
-        for k in list(matrices.keys()):
-            if k.endswith("_m"):
-                vai só pra mutable? escolher uma linha:
-                1 self._matrices_m[k] = self.__dict__[k] = matrices.pop(k)
-                # self.__dict__[k] = matrices.pop(k)
-                2 setattr(self, k, matrices.pop(k))
-
-        # Put interesting fields inside representation for printing; and mark them as None if needed.
-        if storage_info:
-            self._jsonable["storage_info"] = storage_info
-        if inner:
-            self._jsonable["inner"] = inner
-        if matrices:
-            self._jsonable["matrices"] = ",".join(matrices.keys())
-
-        # TODO jsonable precisa acordar lazies se contiver fields lazy
-        #  (inviavel, pois o usuario nao quer rodar nada, apenas imprimir e ver algum campo);;
-        #  ou ser mutante (poderia ser mutante, só preciso verificar se algo imutavel depende dele):
-        #  mostra failure=unknown enquanto não é requisitado tudo;
-        #  ou (msms coisa? : ) recusar impressão enquanto estiver pendente e alertar usuario.
-        for field in self.metafields:
-            if field in matrices:
-                self.__dict__[field] = self._jsonable[field] = matrices[field]
-            else:
-                uuids[field] = UUID()
-                matrices[field] = None
-
-            # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
-        # TODO:        #  2- mark volatile fields?        #  3- dna property?        #  4- task?
-        self.history = history
-        self.stream = stream
-        self.storage_info = storage_info
-        self._matrices = matrices
-        self._uuid, self.uuids = uuid, uuids
+        # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         self.inner = inner
-        self.parent_uuid = parent_uuid
+        self.stream = stream
+        self.storage = storage
+        self.fields = fields
+        self._uuid, self.uuids = uuid, uuids
+        self.step=step
+        self.parent_uuid = uuid/step.uuid
 
-    @cached_property
-    def comparable(self):
-        return [field for field in self["comparable"] if field.upper() in self.fields]
+        #TODO lembrar por que concluí que "stream and inner shold also be lazy"
+
+    def _asdict_(self):
+        raise Exception("Should not be accessed. Use asdict() instead!")
+
+    # TODO  verificar se algo imutavel depende do asdict (que vai ser mutavel)
+    def asdict(self):  # overriding because there are lazy fields in Data, so asdict is mutable and noncached
+        dic = {            "uuid": self.uuid, "uuids": self.uuids, "step":self.step        }
+        if self.inner:
+            dic["inner"]=self.inner.id
+        if self.stream:
+            dic["stream"]="cached" if isinstance(self.stream,bool) else "iterator"
+        if self.storage:
+            dic["storage"]=self.storage.name
+        dic.update(self.fields)
+        return dic
+
+    def history(self):
+        raise NotImplementedError
 
     def update(self, step, inner="keep", stream: Union[str, Iterator] = "keep", **fields):
         """Recreate an updated Data object.
@@ -157,39 +145,36 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
         :param step:
         :param stream:
         """
+        changed=[]
         for field in fields:
-            if field in self.reserved:
-                raise Exception(f"Field {field} cannot be externally set!")
-        return self._update(step, inner=inner, stream=stream, **fields)
+            if field in self.triggers + ["changed", "storage"]:
+                raise Exception(f"Field '{field}' cannot be externally set! Step:"+step.longname)
+            changed.append(field)
 
-    # TODO:proibir mudança no inner, exceto por meio do step Inner
-    def _update(self, step, stream="keep", inner="keep", **fields):
-        if "timeout" in fields:
-            if step.isntTimeout:
-                print("Only Timeout step can set timeout, not", step.longname)
-                exit()
-        step = step if isinstance(step, list) else [step]
-        if len(step) == 0 and any(not s.endswith("_m") for s in step):
-            print("Empty list of steps is not allowed when nonvolatile (i.e. immutable) fields are present:",
-                  list(fields.keys()))
-            exit()
-        history = self.history or History([])
-        if step:
-            history = history << step
-        inner = self.inner if isinstance(inner, str) and inner == "keep" else inner
+        if "inner" !="keep":
+            if not isinstance(step, Ins):
+                raise Exception(f"Field 'inner' cannot be set except by step Ins! Step:"+step.longname)
+            changed.append("inner")
+        else:
+            inner = self.inner
 
-        # Only update matrix uuids for the provided and changed ones!
-        matrices = self._matrices.copy()
-        changed_matrices = {}
+        if "stream" !="keep":
+            changed.append("stream")
+        else:
+            stream = self.stream
+
+        # Only update field uuids for the provided and changed ones!
+        fields = self.fields.copy()
+        changed_fields = {}
         # REMINDER: conversão saiu de _update() para self[] (que é o novo .field()) para conciliar laziness e aceitação de vetores e escalares
         for k, v in fields.items():
             kup = k.upper()
-            if (kup not in matrices) or matrices[kup] is not v:
-                changed_matrices[kup] = v
-        matrices.update(changed_matrices)
-        uuid, uuids = evolve_id(self.uuid, self.uuids, step, changed_matrices)
+            if (kup not in fields) or fields[kup] is not v:
+                changed_fields[kup] = v
+        fields.update(changed_fields)
+        uuid, uuids = evolve_id(self.uuid, self.uuids, step, changed_fields)
 
-        return Data(uuid, uuids, history, self.uuid, stream=stream, storage_info=self.storage_info, inner=inner, **matrices)
+        return Data(uuid, uuids, step, inner, stream, **fields)
 
     @cached_property
     def eager(self):
@@ -197,65 +182,30 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
 
         Stream is kept intact"""
         for f in self:
-            void = f[f]
+            void = self[f]
         return self
 
     @cached_property
     def Xy(self):
-        if self._Xy is None:
-            self._Xy = self["X"], self["y"]
-        return self._Xy
-
-    @property
-    @lru_cache()
-    def fields(self):
-        # REMINDER fields se dividem entre _matrices e _matrices_m
-        return list(self._matrices.keys() + self._matrices_m.keys())
-
-    @property
-    @lru_cache()
-    def ids_lst(self):
-        return [self.uuids[name].id for name in self.matrix_names]
-
-    @property
-    @lru_cache()
-    def ids_str(self):
-        return ','.join(self.ids_lst)
-
-    @lru_cache()
-    def field_dump(self, name):
-        """Cached compressed matrix for a given field.
-        Useful for optimized persistence backends for Cache (e.g. more than one backend)."""
-        return pack(self.field(name, context="[dump]"))
-
-    @property
-    @lru_cache()
-    def matrix_names_str(self):
-        return ','.join(self.matrix_names)
-
-    @lru_cache()
-    def _fetch_matrix(self, id):
-        if self.storage_info is None:
-            raise Exception(f"There is no storage set to fetch: {id})!")
-        return 22222222222  # STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)  #TODO
+            return self["X"], self["y"]
 
     def _uuid_(self):
         return self._uuid
 
     def __lt__(self, other):
         """Amenity to ease pipeline result comparisons. 'A > B' means A is better than B."""
-        if self._comparable is None:
+        if self.comparable is None:
             return Exception("Impossible to make comparisons. No comparable field was defined!")
-        for name in self._comparable:
-            return self[name] < other[name]
+        for name in self.comparable:
+            if name in self.fields:
+                return self[name] < other[name]
         return Exception("Impossible to make comparisons. None of the comparable fields are available:", self.comparable)
 
     def __eq__(self, other):
         # TODO benchmark presence of isinstance here, can be disabled in production version
         return isinstance(other, Data) and self.uuid == other.uuid
 
-    def __hash__(self): # overrides because Data is mutable in rare occasions: setitem/delitem/
-        return hash(self.uuid)
+    # REMINDER Data is mutable in rare occasions: setitem/delitem/
 
     @lru_cache
     def arff(self, relation, description):
@@ -278,60 +228,6 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
             print("Real sizes:", len(self.X[0]), "+", len(self.Y[0].shape))
             exit(0)
 
-    def _asdict_(self):
-        raise Exception("Should not be accessed. Use jsonable() instead!")
-
-    def jsonable(self):  # overriding because there are lazy fields in Data, so jsonable is mutable/noncached
-        # TODO é possível impedir acesso a estado nao definitivo?
-        #   ...e marcar como fresco após itemsetter?
-        return self._jsonable
-
-    @cached_property
-    def picklable(self):
-        """Remove unpicklable parts."""
-        return self.picklable_()[0]
-
-    @cached_property
-    def unpicklable(self):
-        """Restore unpicklable parts."""
-        return self.unpicklable_([{}])
-
-    # noinspection PyDefaultArgument
-    def picklable_(self, unpicklable_parts=[]):
-        """Remove unpicklable parts, but return them together as a list of dicts, one dict for each nested inner objects."""
-        if isinstance(self, Picklable):
-            return self, unpicklable_parts
-        unpicklable_parts = unpicklable_parts.copy()
-        history = History(self.history.aslist)
-        unpicklable_parts.append({"stream": self.stream})
-        if self.inner:
-            inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
-        else:
-            inner = None
-        newdata = Picklable(self.uuid, self.uuids, history, stream=None, storage_info=self.storage_info, inner=inner, **self._matrices)
-        # TODO: como ficam os lazies antes de picklear?
-        #  no fetch blz, só falta usar a lista de unpicklables
-        #  pra recuperar após passar pela thread.
-        #  Mas proibe dar store? ou store tenta ativar todos?
-        return newdata.eager, unpicklable_parts
-
-    # def unpicklable_(self, unpicklable_parts):
-    #     """Rebuild an unpicklable Data.
-    #
-    #     History is desserialized, if given as str.
-    #     """
-    #     # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
-    #     if not isinstance(self, Picklable):
-    #         return self
-    #     if self.stream:
-    #         raise Exception("Inconsistency: this picklable Data object contains a stream!")
-    #     # make a copy, since we will change history and stream directly; and convert to right class
-    #     stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
-    #     if not isinstance(self.history[0], dict):
-    #         raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
-    #     inner = self.inner and self.inner.unpicklable
-    #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self._matrices)
-
     def __rlshift__(self, other):
         if other.isclass:
             other = other()
@@ -343,6 +239,7 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
         return other.process(self)
 
     def __add__(self, other):
+        """Merge two Data objects"""
         # se mexeram na mesma matriz, vale a segunda.
         # Dá pra emendar com o histórico da segunda, desde que o uuid final seja recalculado e que
         # operações de ajuste (Copy) preservem as matrizes pedidas pela segunda no inicio da divergencia (normalmente após File/New).
@@ -350,16 +247,24 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
         # se foi misto,
         raise Exception("Not implemented: should solve conflicts to merge history of two data objects.")
 
-    def __delitem__(self, key):
-        # record destruction where needed
-        from aiuna.delete import Del
-        d = Del(field=key) << self
-        self._uuid = d.uuid
-        self.history = d.history
 
-        # make destruction
-        del self.uuids[key]
-        del self._matrices[key]
+    def mutate(self, newdata):
+        """Inplace swapping of this Data object by another
+
+        UUID and __hash__ will change."""
+        self._uuid = newdata.uuid
+        self.uuids = newdata.uuids
+        self.step = newdata.step
+        self.inner = newdata.inner
+        self.stream = newdata.stream
+        self.storage = newdata.storage
+        self.parent_uuid = newdata.parent_uuid
+        self.fields = newdata.fields
+
+        # REMINDER: cache invalidation seems unneeded according to tests, but we will do it anyway...
+        for attr in self.__dict__.values():
+            if callable(attr) and hasattr(attr, "cacheclear"):
+                attr.cacheclear()
 
     @lru_cache()
     def __getitem__(self, key):
@@ -374,64 +279,38 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
         -------
         Matrix, vector or scalar
         """
-        #   TODO: vai ter? =>    block     Whether to wait for the value or to raise FieldNotReady exception if it is not readily available.
 
-        # setar: failure timeout elapsed
-        # consultar: limit
-        # for k, v in fields2matrices(fields).items():
-        em andamento esse metodo inteiro
+        # Is it a lazy field from storage?
+        if isinstance(self.fields[key], UUID):
+            if self.storage is None:
+                raise Exception(f"Storage not set! Unable to fetch {key}/{self.fields[key]} generated by", self.step)
+            print(">>>> fetching field:", key, self.fields[key])
+            return self.storage.getfield(key)
+
+        # Is it an already evaluated field?
+        if not callable(self.fields[key]):
+            if len(key)>1:
+                return self.fields[key]
+
+            # Format single-letter field according to capitalization.
+            if key.islower():
+                return mat2vec(self.fields[key.upper()])
+            return self.fields[key]
+
+        # It is a lazy field yet to be processed.
         try:
-            with self.time_limit(maxtime), self.time() as t:
-                outdata = self.checked(f, exit_on_error)(marked_data)
-            outdata = outdata.update([], elapsed=t)
-        except TimeoutException:  # TODO: isso vai sair daqui
-            outdata = Timeout(maxtime).process(marked_data)
-
-        # Metafields are always present, at least as a None value.
-        if key in self.metafields:
-            return self.matrices[key]
-
-        # Check existence of the field.
-        matrix_name = key.upper() if len(key) == 1 else key
-        if matrix_name not in self.matrices:
-            comp = context.name if "name" in dir(context) else context
-            print(
-                # f"\n\nLast transformation:\n{self.history.last} ... \n"
-                f" Data object <{self.uuid}>...last transformed by "
-                f"\n{self.history ^ 'longname'}\n does not provide field {name} needed by {comp} .\nAvailable matrices: {list(self.matrices.keys())}")
-            # raise MissingField
-            exit()
-
-        m = self.matrices[mname]
-
-        # Fetch from storage?...
-        if isinstance(m, UUID):
-            if self.storage_info is None:
-                comp = context.name if "name" in dir(context) else context
-                raise Exception("Storage not set! Unable to fetch " + m.id, "requested by", comp)
-            print(">>>> fetching field:", name, m.id)
-            self.matrices[mname] = m = self._fetch_matrix(m.id)
-
-        # TODO: make all Steps lazy (to enable use with fields produced by and inside streams?
-        # Fetch previously deferred value?...
-        if callable(m):
-            if block:
-                raise NotImplementedError("Waiting of values not implemented yet!")
-            self.matrices[mname] = m = m()
-            # pprint(self.__dict__, indent=2)  # HINT: list all content from an object
-
-        # Just return formatted according to capitalization...
-        if not name.islower():
-            return m
-        elif name in ["r", "s"]:
-            return mat2vec(m)
-        elif name in ["y", "z"]:
-            return mat2vec(m)
-        elif name in ["p"]:
-            return mat2vec(m)
-        else:
-            comp = context.name if "name" in dir(context) else context
-            raise Exception("Unexpected lower letter:", name, "requested by", comp)
+            with self.time_limit(self.maxtime), self.time() as elapsed:
+                key = key.upper() if len(key) == 1 else key
+                value = field_as_matrix(self.fields[key]())
+            if key not in self.triggers:
+                self.duration+=elapsed
+            self.fields[key]=value
+            return value
+        except TimeoutException:
+            self.mutate(Timeout(self.maxtime) <<self) #REMINDER None means interrupted
+        except Exception as e:
+            self.failure=self.step.translate(e)
+            self.fields[key]=None#REMINDER None means interrupted
 
     def __getattr__(self, item):
         """Create shortcuts to fields."""
@@ -464,15 +343,103 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
         # Fallback to methods and other attributes.
         return super().__getattribute__(item)
 
-    def __setitem__(self, key, value):
-        print(f"Setting fields directly is not allowed.")
-        print(f"HINT: use update(step, {key}=value) providing the accountable step for the change.\nValue:{value}")
-
     def __iter__(self):
-        return iter(self._matrices)
+        return iter(self.fields)  # TODO quais ficam de fora mesmo?
 
     def __len__(self):
-        return len(self._matrices)
+        return len(self.fields)
+
+
+    def _name_(self):
+        return self._uuid
+
+    def _context_(self):
+        return self.history ^ "names"
+
+    @property
+    @lru_cache()
+    def ids_lst(self):  #TODO ainda precisa?
+        return [self.uuids[name].id for name in self.names]
+
+    @property
+    @lru_cache()
+    def ids_str(self):  #TODO ainda precisa?
+        return ','.join(self.ids_lst)
+
+    @lru_cache()
+    def field_dump(self, name):  #TODO ainda precisa?
+        """Cached compressed matrix for a given field.
+        Useful for optimized persistence backends for Cache (e.g. more than one backend)."""
+        return pack(self[name])
+
+    @property
+    @lru_cache()
+    def names_str(self):  #TODO ainda precisa?
+        return ','.join(self.names)
+
+    @lru_cache()
+    def _fetch_matrix(self, id):
+        if self.storage_info is None:
+            raise Exception(f"There is no storage set to fetch: {id})!")
+        return 22222222222  # STORAGE_CONFIG['storages'][self.storage_info].fetch_matrix(id)  #TODO
+
+
+    @cached_property
+    def picklable(self):
+        """Remove unpicklable parts."""
+        return self.picklable_()[0]
+
+    @cached_property
+    def unpicklable(self):
+        """Restore unpicklable parts."""
+        return self.unpicklable_([{}])
+
+    # # noinspection PyDefaultArgument
+    # def picklable_(self, unpicklable_parts=[]):
+    #     """Remove unpicklable parts, but return them together as a list of dicts, one dict for each nested inner objects."""
+    #     if isinstance(self, Picklable):
+    #         return self, unpicklable_parts
+    #     unpicklable_parts = unpicklable_parts.copy()
+    #     history = History(self.history.aslist)
+    #     unpicklable_parts.append({"stream": self.stream})
+    #     if self.inner:
+    #         inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
+    #     else:
+    #         inner = None
+    #     newdata = Picklable(self.uuid, self.uuids, history, stream=None, storage_info=self.storage_info, inner=inner, **self._matrices)
+    #     # TODO: como ficam os lazies antes de picklear?
+    #     #  no fetch blz, só falta usar a lista de unpicklables
+    #     #  pra recuperar após passar pela thread.
+    #     #  Mas proibe dar store? ou store tenta ativar todos?
+    #     return newdata.eager, unpicklable_parts
+
+    # def unpicklable_(self, unpicklable_parts):
+    #     """Rebuild an unpicklable Data.
+    #
+    #     History is desserialized, if given as str.
+    #     """
+    #     # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
+    #     if not isinstance(self, Picklable):
+    #         return self
+    #     if self.stream:
+    #         raise Exception("Inconsistency: this picklable Data object contains a stream!")
+    #     # make a copy, since we will change history and stream directly; and convert to right class
+    #     stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
+    #     if not isinstance(self.history[0], dict):
+    #         raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
+    #     inner = self.inner and self.inner.unpicklable
+    #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self._matrices)
+
+    def __delitem__(self, key):
+        # record destruction where needed
+        from aiuna.delete import Del
+        d = Del(field=key) << self
+        self._uuid = d.uuid
+        self.history = d.history
+
+        # make destruction
+        del self.uuids[key]
+        del self._matrices[key]
 
         # REMINDER: invalidation seems not needed according to tests, doing it anyway...
         # invalidate all caches
@@ -504,12 +471,6 @@ class Data(asExceptionHandler, withIdentification, withPrinting, withTiming):
     # ~ sample
     # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
     # def plan(self, step):
-
-    def _name_(self):
-        return self._uuid
-
-    def _context_(self):
-        return self.history ^ "names"
 
 
 class MissingField(Exception):
