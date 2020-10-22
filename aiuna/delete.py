@@ -1,4 +1,5 @@
 from transf.dataindependentstep_ import DataIndependentStep_
+from transf.noop import NoOp
 
 
 class Del(DataIndependentStep_):
@@ -10,9 +11,6 @@ class Del(DataIndependentStep_):
         self.field = field
 
     def _process_(self, data):
-        #TODO: mixin withUpdate inside transf, implemented by Data
-        não lembro o motivo do todo acima, ler papeis
-
-        d = data.update([])  # just a copy
+        d = data.update(NoOp())  # just a copy
         del d[self.field]
         return d.update(self)

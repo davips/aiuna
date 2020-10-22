@@ -62,18 +62,18 @@ def fields2matrices(fields):
     return matrices
 
 
-def evolve(uuid, steps):
-    for step in steps:
-        uuid *= step.uuid
-    return uuid
+# def evolve(uuid, steps):
+#     for step in steps:
+#         uuid *= step.uuid
+#     return uuid
 
 
-def evolve_id(uuid, uuids, steps, matrices):
+def evolve_id(uuid, uuids, step, fields):
     """Return UUID/UUIDs after transformations."""
 
     # Update matrix UUIDs.
     uuids_ = uuids.copy()
-    for name, value in matrices.items():
+    for name, value in fields.items():
         # If it is a new matrix, assign a UUID for its birth.
         # TODO:
         #  Perform benchmark to evaluate if using pack(X) as identity here is too
@@ -95,19 +95,21 @@ def evolve_id(uuid, uuids, steps, matrices):
         #   mas talvez possamos mudar File pra ficar igual.
         #   [19/set/20 : impossível fazer isso no File, pois todo Data vem de Root, UUID=1]
 
+
         if name in uuids:
             muuid = uuids[name]
         else:  # fallback options:
-            if uuid == UUID.identity:  # whole data creation
+            if uuid == UUID():  # whole data creation
+                value = value()
                 muuid = UUID(json.dumps(value, sort_keys=True, ensure_ascii=False).encode() if isinstance(value, list) else value.tobytes())
             else:  # only matrix creation (avoids packing for non birth transformations)
                 muuid = uuid * UUID(bytes(name, "latin1"))
 
         # Transform UUID.
-        muuid = evolve(muuid, steps)
+        muuid *= step.uuid
         uuids_[name] = muuid
 
     # Update UUID.
-    uuid = evolve(uuid, steps)
+    uuid *= step.uuid
 
     return uuid, uuids_

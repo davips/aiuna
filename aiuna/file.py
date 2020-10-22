@@ -37,8 +37,7 @@ class File(DataIndependentStep_):
         uuid = UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
         return uuid
 
-    # TODO: check all json dumps
-
+    # REMINDER File cannot be lazy, since it depends on file content to know the uuid which will be used to generate the lazy Data object.
     @cached_property
     def data(self):
         d = read_arff(self.filename)
@@ -50,7 +49,9 @@ class File(DataIndependentStep_):
         else:
             self._hashes = original_hashes
 
-        return Root.update(self, **matrices)
+        # REMINDER we have to grab the state of v inside an outer lambda; otherwise all matrices would be equal to the last one
+        matrix_funcs = {k: (lambda v: lambda: v)(v) for k, v in matrices.items()}
+        return Root.update(self, **matrix_funcs)
 
     @cached_property
     def dataset(self):

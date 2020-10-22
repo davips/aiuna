@@ -19,7 +19,6 @@
 #      along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from transf.absdata import AbsData
 from transf.dataindependentstep_ import DataIndependentStep_
 import numpy as np
 
@@ -37,6 +36,6 @@ class Let(DataIndependentStep_):
     # TODO if it is not jsonable or it is larger than 250 (utf8) chars,
     #        raises exception saying to use Set instead, which will md5-hash it
 
-    def _process_(self, data: AbsData):
+    def _process_(self, data):
         dic = {self.field: self.value}
         return data.replace(self, **dic)

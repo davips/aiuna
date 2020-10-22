@@ -19,12 +19,11 @@ class withTiming:
         return t[0] + t[1] + t[2] + t[3]
 
     @staticmethod
-    @contextmanager
-    def time():
+    def time(f):
         start = withTiming.cpu()
-        yield
+        ret = f()
         end = withTiming.cpu()
-        return end - start
+        return end - start, ret
 
     @staticmethod
     def clock():
