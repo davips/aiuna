@@ -51,6 +51,8 @@ def pack(obj):
         elif isinstance(obj, bytes):
             fast_reduced = lz.compress(obj, compression_level=1)
             return b"B" + cctx.compress(fast_reduced)
+        elif callable(obj):
+            raise Exception("Cannot compress callable", type(obj))
         else:
             # print(f"Unknown type {type(obj)}{'-' + str(obj.dtype) if 'ndarray' in str(type(obj)) else ''} to compress, using pickle...")
             # categorical ndarrays, ...

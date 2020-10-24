@@ -7,13 +7,10 @@ from transf.mixin.printing import withPrinting
 class History(withPrinting):
     isleaf = False
 
-    def __init__(self, steps, nested=None):
+    def __init__(self, step=None, nested=None):
         """Optimized iterable "list" of Leafs (wrapper for a step or a dict) based on structural sharing."""
-        self.nested = nested or list(map(Leaf, steps))
-
-    @cached_property
-    def last(self):
-        return self._findlast(self)
+        self.nested = nested or [Leaf(step)]
+        self.last = step if step else nested[-1].last
 
     def aslist(self):
         return [step.asdict for step in self]
@@ -22,10 +19,10 @@ class History(withPrinting):
         return {step.id: step.desc for step in self}
 
     def __add__(self, other):
-        return History([], nested=[self, other])
+        return History(nested=[self, other])
 
     def __lshift__(self, step):
-        return History([], nested=[self, History([step])])
+        return History(nested=[self, History(step)])
 
     def traverse(self, node):
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
@@ -34,14 +31,6 @@ class History(withPrinting):
         else:
             for tup in node.nested:
                 yield from self.traverse(tup)
-
-    def _findlast(self, node) -> str:
-        # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
-        if node.isleaf:
-            return node
-        else:
-            # print(node.nested)
-            return self._findlast(node.nested[-1])
 
     def __iter__(self):
         yield from self.traverse(self)

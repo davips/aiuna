@@ -23,9 +23,6 @@ from transf.dataindependentstep_ import DataIndependentStep_
 import numpy as np
 
 class Let(DataIndependentStep_):
-    isclass = True
-    isoperator = False
-
     def __init__(self, field, value):
         super().__init__(field=field, value=value)
         self.field = field

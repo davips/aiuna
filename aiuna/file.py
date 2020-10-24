@@ -7,9 +7,6 @@ from transf.dataindependentstep_ import DataIndependentStep_
 
 
 class File(DataIndependentStep_):
-    isclass = True
-    isoperator = False
-
     def __init__(self, name, path="./", hashes=None):
         self.isclass = False
         if not path.endswith("/"):

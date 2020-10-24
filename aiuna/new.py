@@ -3,9 +3,6 @@ from transf.dataindependentstep_ import DataIndependentStep_
 
 
 class New(DataIndependentStep_):
-    isclass = True
-    isoperator = False
-
     def __init__(self, hashes, **matrices):
         super().__init__(hashes=hashes)
         self.isclass = False
