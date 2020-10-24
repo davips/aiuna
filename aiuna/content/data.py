@@ -6,7 +6,7 @@ import numpy as np
 
 from aiuna.compression import pack
 from aiuna.history import History
-from linalghelper import evolve_id, mat2vec, field_as_matrix, lazy
+from linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from aiuna.mixin.timing import withTiming, TimeoutException
 from cruipto.uuid import UUID
 from transf.mixin.identification import withIdentification
@@ -94,7 +94,7 @@ class Data(withIdentification, withPrinting, withTiming):
 
     @property
     def step(self):
-        if lazy(self.step_func_m):
+        if islazy(self.step_func_m):
             self.step_func_m = self.step_func_m()
         return self.step_func_m
 
@@ -135,9 +135,9 @@ class Data(withIdentification, withPrinting, withTiming):
     # TODO  verificar se algo imutavel depende do asdict (que vai ser mutavel)
     @property
     def asdict(self):  # overriding because there are lazy fields in Data, so asdict is mutable and noncached
-        dic = {"uuid": self.uuid, "uuids": self.uuids, "step": self.step_func_m.name if lazy(self.step_func_m) else self.step_func_m.asdict}
+        dic = {"uuid": self.uuid, "uuids": self.uuids, "step": self.step_func_m.name if islazy(self.step_func_m) else self.step_func_m.asdict}
         if self.hasinner:
-            dic["inner"] = self.field_funcs_m["inner"].__name__ if lazy(self.inner) else self.inner.asdict
+            dic["inner"] = self.field_funcs_m["inner"].__name__ if islazy(self.inner) else self.inner.asdict
         if self.hasstream:
             dic["stream"] = "iterator"
         dic.update(self.field_funcs_m)
@@ -174,7 +174,7 @@ class Data(withIdentification, withPrinting, withTiming):
             from aiuna.file import File
             changed = []
             for field, value in fields.items():
-                if not lazy(value) and not isinstance(step, File):
+                if not islazy(value) and not isinstance(step, File):
                     raise Exception(f"{field} should be callable! Not:", type(value))
                 if field in self.triggers + ["changed"]:
                     raise Exception(f"'{field}' cannot be externally set! Step:" + step.longname)
@@ -304,7 +304,7 @@ class Data(withIdentification, withPrinting, withTiming):
         #     return self.storage.getfield(kup)
 
         # Is it an already evaluated field?
-        if not lazy(self.field_funcs_m[kup]):
+        if not islazy(self.field_funcs_m[kup]):
             if len(kup) > 1:
                 return self.field_funcs_m[kup]
 

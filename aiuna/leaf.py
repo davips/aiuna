@@ -1,4 +1,4 @@
-from linalghelper import lazy
+from linalghelper import islazy
 from transf.step import Step
 
 
