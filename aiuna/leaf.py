@@ -1,3 +1,4 @@
+from linalghelper import lazy
 from transf.step import Step
 
 
@@ -15,6 +16,7 @@ class Leaf:
     def asstep(self):
         if self._step is None:
             self._step = Step.fromdict(self._dict)
+        # self._step = self._step() if lazy(self._step) else self._step
         return self._step
 
     @property
@@ -24,7 +26,9 @@ class Leaf:
         return self._dict
 
     def __getattr__(self, item):
-        return getattr(self._step, item)
+        if item in ["asstep", "asdict"]:
+            return super().__getattribute__(item)
+        return getattr(self.asstep, item)
 
     def __getitem__(self, item):
         return self.asdict[item]

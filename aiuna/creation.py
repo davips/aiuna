@@ -7,7 +7,7 @@ import arff
 import numpy as np
 import sklearn.datasets as ds
 
-from aiuna.mixin.linalghelper import fields2matrices
+from linalghelper import fields2matrices
 from aiuna.new import New
 
 

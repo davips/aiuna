@@ -24,15 +24,13 @@ class History(withPrinting):
     def __add__(self, other):
         return History([], nested=[self, other])
 
-    def __lshift__(self, steps):
-        if steps:
-            return History([], nested=[self, History(steps)])
-        return self
+    def __lshift__(self, step):
+        return History([], nested=[self, History([step])])
 
     def traverse(self, node):
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
         if node.isleaf:
-            yield node.step
+            yield node.asstep
         else:
             for tup in node.nested:
                 yield from self.traverse(tup)
@@ -51,5 +49,5 @@ class History(withPrinting):
     def __xor__(self, attrname):
         """Shortcut ^ to get an attribute along all steps."""
         # touch properties to avoid problems (is this really needed?)
-        void = [a.name + a.longname for a in self.traverse(self)]
+        # void = [a.name + a.longname for a in self.traverse(self)]   #TODO voltar essa linha?
         return list(map(lambda x: getattr(x, attrname), self.traverse(self)))

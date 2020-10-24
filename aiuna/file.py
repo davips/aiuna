@@ -49,9 +49,7 @@ class File(DataIndependentStep_):
         else:
             self._hashes = original_hashes
 
-        # REMINDER we have to grab the state of v inside an outer lambda; otherwise all matrices would be equal to the last one
-        matrix_funcs = {k: (lambda v: lambda: v)(v) for k, v in matrices.items()}
-        return Root.update(self, **matrix_funcs)
+        return Root.update(self, **matrices)
 
     @cached_property
     def dataset(self):

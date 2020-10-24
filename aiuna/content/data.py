@@ -5,7 +5,8 @@ import arff
 import numpy as np
 
 from aiuna.compression import pack
-from aiuna.mixin.linalghelper import evolve_id, mat2vec, field_as_matrix
+from aiuna.history import History
+from linalghelper import evolve_id, mat2vec, field_as_matrix, lazy
 from aiuna.mixin.timing import withTiming, TimeoutException
 from cruipto.uuid import UUID
 from transf.mixin.identification import withIdentification
@@ -84,15 +85,16 @@ class Data(withIdentification, withPrinting, withTiming):
         self._uuid, self.uuids = uuid, uuids
         self.step_func_m = step
         # lazy lambda name format: "_stepuuid..._from_storage_storageuuid..."
-        self.step_uuid = step.uuid if isinstance(step, Step) else UUID(step.__name__[1:24])
+        self.step_uuid = step.uuid if isinstance(step, Step) else UUID(step.name[1:24])
         self.parent_uuid = uuid / self.step_uuid
+        self.history = History([step])
 
         # TODO: Check if types (e.g. Mt) are compatible with values (e.g. M).
         # TODO lembrar por que concluí que "stream and inner shold also be lazy"
 
     @property
     def step(self):
-        if callable(self.step_func_m):
+        if lazy(self.step_func_m):
             self.step_func_m = self.step_func_m()
         return self.step_func_m
 
@@ -128,20 +130,26 @@ class Data(withIdentification, withPrinting, withTiming):
         return "stream" in self.field_funcs_m
 
     def _asdict_(self):
-        raise Exception("Should not be accessed. Use asdict() instead!")
+        raise Exception("Should not be accessed. Use asdict property instead!")
 
     # TODO  verificar se algo imutavel depende do asdict (que vai ser mutavel)
+    @property
     def asdict(self):  # overriding because there are lazy fields in Data, so asdict is mutable and noncached
-        dic = {"uuid": self.uuid, "uuids": self.uuids, "step": self.step_func_m.__name__ if callable(self.step_func_m) else self.step_func_m.asdict()}
+        dic = {"uuid": self.uuid, "uuids": self.uuids, "step": self.step_func_m.name if lazy(self.step_func_m) else self.step_func_m.asdict}
         if self.hasinner:
-            dic["inner"] = self.field_funcs_m["inner"].__name__ if callable(self.inner) else self.inner.asdict()
+            dic["inner"] = self.field_funcs_m["inner"].__name__ if lazy(self.inner) else self.inner.asdict
         if self.hasstream:
             dic["stream"] = "iterator"
         dic.update(self.field_funcs_m)
         return dic
 
-    def history(self):
-        raise Exception(245235)
+    def inners(self):
+        data = self
+        while True:
+            yield data
+            if not data.hasinner:
+                break
+            data = data.inner
 
     def update(self, step, **fields):
         """Recreate an updated Data object.
@@ -158,12 +166,15 @@ class Data(withIdentification, withPrinting, withTiming):
         New Content object (it keeps references to the old one for performance).
         :param step:
         """
+        if not isinstance(step, Step):
+            raise Exception("Step cannot be of type", type(step))
         if isinstance(step, Timeout):
             changed = ["timeout", "duration"]
         else:
+            from aiuna.file import File
             changed = []
             for field, value in fields.items():
-                if not callable(value):
+                if not lazy(value) and not isinstance(step, File):
                     raise Exception(f"{field} should be callable! Not:", type(value))
                 if field in self.triggers + ["changed"]:
                     raise Exception(f"'{field}' cannot be externally set! Step:" + step.longname)
@@ -180,7 +191,9 @@ class Data(withIdentification, withPrinting, withTiming):
 
         newfields = self.field_funcs_m.copy()
         newfields.update(updated_fields)
-        return Data(uuid, uuids, step, **newfields)
+        d = Data(uuid, uuids, step, **newfields)
+        d.history = self.history << step
+        return d
 
     # @cached_property
     # def eager(self):
@@ -291,7 +304,7 @@ class Data(withIdentification, withPrinting, withTiming):
         #     return self.storage.getfield(kup)
 
         # Is it an already evaluated field?
-        if not callable(self.field_funcs_m[kup]):
+        if not lazy(self.field_funcs_m[kup]):
             if len(kup) > 1:
                 return self.field_funcs_m[kup]
 
