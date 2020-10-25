@@ -82,6 +82,8 @@ class Data(withIdentification, withPrinting, withTiming):
 
     def __init__(self, uuid, uuids, history, **fields):
         if "changed" not in fields:
+            print(uuids.keys())
+            print(fields.keys())
             raise Exception("Field 'changed' is mandatory as a kwarg, alongside its UUID inside uuids.")
         self.changed = fields["changed"]
         self.field_funcs_m = fields
@@ -139,7 +141,8 @@ class Data(withIdentification, withPrinting, withTiming):
     # TODO  verificar se algo imutavel depende do asdict (que vai ser mutavel)
     @property
     def asdict(self):  # overriding because there are lazy fields in Data, so asdict is mutable and noncached
-        dic = {"uuid": self.uuid, "uuids": self.uuids, "step": self.step_func_m.name if islazy(self.step_func_m) else self.step_func_m.asdict}
+        dic = {"uuid": self.uuid, "uuids": self.uuids,
+               "step": self.step_func_m.name if islazy(self.step_func_m) else self.step_func_m.asdict}
         if self.hasinner:
             dic["inner"] = self.field_funcs_m["inner"].__name__ if islazy(self.inner) else self.inner.asdict
         if self.hasstream:
@@ -220,7 +223,8 @@ class Data(withIdentification, withPrinting, withTiming):
         for name in self.comparable:
             if name in self.field_funcs_m:
                 return self[name] < other[name]
-        return Exception("Impossible to make comparisons. None of the comparable fields are available:", self.comparable)
+        return Exception("Impossible to make comparisons. None of the comparable fields are available:",
+                         self.comparable)
 
     def __eq__(self, other):
         # TODO benchmark presence of isinstance here, can be disabled in production version
@@ -338,7 +342,8 @@ class Data(withIdentification, withPrinting, withTiming):
         if item.endswith("_pd"):
             name = item[:-3]
             if name.upper() not in self.field_funcs_m:
-                print(f"Field {name} not found when trying to convert it to pandas. Available ones:", self.field_funcs_m)
+                print(f"Field {name} not found when trying to convert it to pandas. Available ones:",
+                      self.field_funcs_m)
                 exit()
             name = name.upper()
             from pandas import DataFrame
@@ -379,7 +384,9 @@ class Data(withIdentification, withPrinting, withTiming):
     # def plan(self, step):
 
     def __iter__(self):
-        return iter(self.field_funcs_m)  # TODO quais ficam de fora de fields? são importantes pra iterar?
+        # TODO quais ficam de fora de fields? são importantes pra iterar?
+        for k, v in self.field_funcs_m.items():
+            yield k, v() if islazy(v) else v
 
     def __len__(self):
         return len(self.field_funcs_m)  # TODO idem
