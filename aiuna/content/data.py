@@ -126,6 +126,7 @@ class Data(withIdentification, withPrinting, withTiming):
         """First touch all fields in 'changed' (which are necessarily lazy), and only then return duration value."""
         _ = self.changed_asdict
         return self._duration
+        # TODO como duration viria do storage?
 
     @property
     def hasinner(self):
@@ -314,6 +315,7 @@ class Data(withIdentification, withPrinting, withTiming):
             return self.field_funcs_m[kup]
 
         # Is it a lazy field...
+
         #   ...from storage? Just call it, without timing or catching exceptions as failures.
         if "_from_storage_" in self.field_funcs_m[kup].__name__:
             self.field_funcs_m[kup] = field_as_matrix(self.field_funcs_m[kup]())
@@ -322,14 +324,11 @@ class Data(withIdentification, withPrinting, withTiming):
         #   ...yet to be processed?
         try:
             with self.time_limit(self.maxtime):
-                def f():
-                    return field_as_matrix(self.field_funcs_m[kup]())
-
-                t, value = self.time(f)
+                t, value = self.time(lambda: field_as_matrix(self.field_funcs_m[kup]()))
                 self._duration += t
                 self.field_funcs_m[kup] = value
         except TimeoutException:
-            self.mutate(Timeout(self.maxtime) << self)  # REMINDER None means interrupted
+            self.mutate(Timeout(self.maxtime) << self)
         except Exception as e:
             self._failure = self.step.translate(e, self)
             self.field_funcs_m[kup] = None  # REMINDER None means interrupted
@@ -337,6 +336,7 @@ class Data(withIdentification, withPrinting, withTiming):
 
     def __getattr__(self, item):
         """Create shortcuts to fields."""
+        # TODO y não funciona
 
         # Handle pandas suffix.
         if item.endswith("_pd"):
@@ -383,10 +383,13 @@ class Data(withIdentification, withPrinting, withTiming):
     # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
     # def plan(self, step):
 
-    def __iter__(self):
+    def items(self):
         # TODO quais ficam de fora de fields? são importantes pra iterar?
-        for k, v in self.field_funcs_m.items():
-            yield k, v() if islazy(v) else v
+        for k in self:
+            yield k, self[k]
+
+    def __iter__(self):
+        yield from self.field_funcs_m
 
     def __len__(self):
         return len(self.field_funcs_m)  # TODO idem
