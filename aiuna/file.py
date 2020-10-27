@@ -1,3 +1,4 @@
+import inspect
 import json
 from functools import cached_property
 from aiuna.content.root import Root
@@ -68,3 +69,6 @@ class File(DataIndependentStep_):
 
     def parameters(self):
         return self._config()
+
+    def _context_(self):
+        return "aiuna.file"
