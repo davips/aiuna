@@ -12,7 +12,7 @@ from cruipto.uuid import UUID
 from transf.mixin.identification import withIdentification
 from transf.mixin.printing import withPrinting
 # TODO: iterable data like dict
-from transf.step import Step
+from transf.step import Step, MissingField
 from transf.timeout import Timeout
 
 
@@ -302,7 +302,7 @@ class Data(withIdentification, withPrinting, withTiming):
         Matrix, vector or scalar
         """
         kup = key.upper() if len(key) == 1 else key
-        # print("GET", key, " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", islazy(self.field_funcs_m[kup]) and self.field_funcs_m[kup].__name__)
+        # print("GET", key, " <<<<<<<<<<<<<<<<<<<<<<", self.field_funcs_m[kup], islazy(self.field_funcs_m[kup]) and self.field_funcs_m[kup].__name__)
 
         # Is it an already evaluated field?
         if not islazy(self.field_funcs_m[kup]):
@@ -362,6 +362,10 @@ class Data(withIdentification, withPrinting, withTiming):
         # Handle field access
         if item in self.field_funcs_m:
             return self[item]
+
+        # Handle missing known fields
+        if item in ["inner", "stream"]:
+            raise MissingField(f"Field '{item}' not provided by steps" + str(self.history ^ "name"), self, item)
 
         # Fallback to methods and other attributes.
         return super().__getattribute__(item)
@@ -467,10 +471,6 @@ class Data(withIdentification, withPrinting, withTiming):
     #         raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
     #     inner = self.inner and self.inner.unpicklable
     #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self._matrices)
-
-
-class MissingField(Exception):
-    pass
 
 
 def untranslate_type(name):
