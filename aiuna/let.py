@@ -18,7 +18,6 @@
 #      You should have received a copy of the GNU General Public License
 #      along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 from transf.dataindependentstep_ import DataIndependentStep_
 import numpy as np
 

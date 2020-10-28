@@ -1,24 +1,25 @@
 """
-``aiuna`` is a ...
+``aiuna`` is a data (science) library
 """
-# Based on NiLearn package
-# License: simplified BSD
+#  Copyright (c) 2020. Davi Pereira dos Santos
+#      This file is part of the aiuna project.
+#      Please respect the license. Removing authorship by any means
+#      (by code make up or closing the sources) or ignoring property rights
+#      is a crime and is unethical regarding the effort and time spent here.
+#      Relevant employers or funding agencies will be notified accordingly.
 #
-# PEP0440 compatible formatted version, see:
-# https://www.python.org/dev/peps/pep-0440/
+#      aiuna is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-# Generic release markers:
-# X.Y
-# X.Y.Z # For bugfix releases
+#      aiuna is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU General Public License for more details.
 #
-# Admissible pre-release markers:
-# X.YaN # Alpha release
-# X.YbN # Beta release
-# X.YrcN # Release Candidate
-# X.Y # Final release
+#      You should have received a copy of the GNU General Public License
+#      along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Dev branch marker is: 'X.Y.dev' or 'X.Y.devN' where N is an integer.
-# 'X.Y.dev0' is the canonical version of 'X.Y.dev'
 
-
-__version__ = '0.0.0'
+__version__ = '0.0.1'

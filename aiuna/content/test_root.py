@@ -18,5 +18,16 @@
 #      You should have received a copy of the GNU General Public License
 #      along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
 #
+from unittest import TestCase
+
+from aiuna.content.root import Root, SingletonException
+from aiuna.history import History
+from cruipto.uuid import UUID
+from transf.noop import NoOp
 
 
+class Test(TestCase):
+    def test_storage(self):
+        self.assertTrue(Root >> NoOp == Root)
+        self.assertRaises(SingletonException, lambda: Root({}, UUID(), History(NoOp)))
+        self.assertTrue(Root >> NoOp == Root)
