@@ -324,7 +324,7 @@ class Data(withIdentification, withPrinting, withTiming):
         #   ...yet to be processed?
         try:
             with self.time_limit(self.maxtime):
-                t, value = self.time(lambda: field_as_matrix(self.field_funcs_m[kup]()))
+                t, value = self.time(lambda: field_as_matrix(key, self.field_funcs_m[kup]()))
                 self._duration += t
                 self.field_funcs_m[kup] = value
         except TimeoutException:
