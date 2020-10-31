@@ -1,23 +1,25 @@
 #  Copyright (c) 2020. Davi Pereira dos Santos
-#      This file is part of the aiuna project.
-#      Please respect the license. Removing authorship by any means
-#      (by code make up or closing the sources) or ignoring property rights
-#      is a crime and is unethical regarding the effort and time spent here.
-#      Relevant employers or funding agencies will be notified accordingly.
+#  This file is part of the aiuna project.
+#  Please respect the license - more about this in the section (*) below.
 #
-#      aiuna is free software: you can redistribute it and/or modify
-#      it under the terms of the GNU General Public License as published by
-#      the Free Software Foundation, either version 3 of the License, or
-#      (at your option) any later version.
+#  aiuna is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
 #
-#      aiuna is distributed in the hope that it will be useful,
-#      but WITHOUT ANY WARRANTY; without even the implied warranty of
-#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#      GNU General Public License for more details.
+#  aiuna is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-#      You should have received a copy of the GNU General Public License
-#      along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License
+#  along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
 #
+#  (*) Removing authorship by any means, e.g. by distribution of derived
+#  works or verbatim, obfuscated, compiled or rewritten versions of any
+#  part of this work is a crime and is unethical regarding the effort and
+#  time spent here.
+#  Relevant employers or funding agencies will be notified accordingly.
 
 import traceback
 from functools import lru_cache, cached_property
@@ -75,8 +77,8 @@ class Data(withIdentification, withPrinting, withTiming):
     """
 
     # muda em                           update  iniget  iniget  iniget  init    step.new()      get     update
-    #           Let         Let                 c/ Tim.                         vários  map,cache,summ
-    #           maxtime  comparable  changed failure timeout duratio parntid inner   stream  storage step    history
+    #       Let         Let                 c/ Tim.                         vários  map,cache,summ
+    #       maxtime  comparable  changed failure timeout duratio parntid inner   stream  storage step    history
     # updatekwargs:x        x
     # protegid/automat:                 x       x       x       x       x                       x       nonkw   x
     # transformavel x       x                                                   x       x
@@ -228,7 +230,7 @@ class Data(withIdentification, withPrinting, withTiming):
     #
     #     Stream is kept intact???"""
     #     for f in self:
-    #         _ = self[f]
+    #     _ = self[f]
     #     return self
 
     @cached_property
@@ -461,14 +463,14 @@ class Data(withIdentification, withPrinting, withTiming):
     # def picklable_(self, unpicklable_parts=[]):
     #     """Remove unpicklable parts, but return them together as a list of dicts, one dict for each nested inner objects."""
     #     if isinstance(self, Picklable):
-    #         return self, unpicklable_parts
+    #     return self, unpicklable_parts
     #     unpicklable_parts = unpicklable_parts.copy()
     #     history = History(self.history.aslist)
     #     unpicklable_parts.append({"stream": self.stream})
     #     if self.inner:
-    #         inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
+    #     inner, unpicklable_parts = self.inner.picklable_(unpicklable_parts)
     #     else:
-    #         inner = None
+    #     inner = None
     #     newdata = Picklable(self.uuid, self.uuids, history, stream=None, storage_info=self.storage_info, inner=inner, **self._matrices)
     #     # TODO: como ficam os lazies antes de picklear?
     #     #  no fetch blz, só falta usar a lista de unpicklables
@@ -483,13 +485,13 @@ class Data(withIdentification, withPrinting, withTiming):
     #     """
     #     # REMINDER: Persistence/threading actions can be nested, so self can be already unpicklable
     #     if not isinstance(self, Picklable):
-    #         return self
+    #     return self
     #     if self.stream:
-    #         raise Exception("Inconsistency: this picklable Data object contains a stream!")
+    #     raise Exception("Inconsistency: this picklable Data object contains a stream!")
     #     # make a copy, since we will change history and stream directly; and convert to right class
     #     stream = unpicklable_parts and "stream" in unpicklable_parts[0] and unpicklable_parts[0]["stream"]
     #     if not isinstance(self.history[0], dict):
-    #         raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
+    #     raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
     #     inner = self.inner and self.inner.unpicklable
     #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self._matrices)
 
