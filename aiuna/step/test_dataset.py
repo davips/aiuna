@@ -20,24 +20,14 @@
 #  part of this work is a crime and is unethical regarding the effort and
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
+from unittest import TestCase
+
+from aiuna.content.creation import mathash
+from aiuna.step.dataset import Dataset
 
 
-from aiuna.content.root import Root
-from transf.dataindependentstep_ import DataIndependentStep_
-
-
-class New(DataIndependentStep_):
-    def __init__(self, hashes, **matrices):
-        super().__init__(hashes=hashes)
-        self.isclass = False
-        self.hashes = hashes
-        self.matrices = matrices
-        self.data = Root.update(self, **self.matrices)
-
-    def _process_(self, data):
-        if data is not Root:
-            raise Exception(f"{self.name} only accepts Root as Data. Use File(...).data or Sink instead.", type(data))
-        return self.data
-
-    def parameters(self):
-        return self._config  # TODO:will this work?
+class TestDataset(TestCase):
+    def test__process_(self):
+        d = Dataset().data
+        self.assertEqual("19b2d27779bc2d2444c11f5cc24c98ee", mathash("X", d.X))
+        self.assertEqual("8baa54c6c205d73f99bc1215b7d46c9c", mathash("y", d.y))

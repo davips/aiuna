@@ -26,8 +26,10 @@ from functools import lru_cache, cached_property
 
 import arff
 import numpy as np
+from pandas import DataFrame, Series
 
 from aiuna.compression import pack
+from aiuna.content.creation import new, translate_type
 from aiuna.history import History
 from linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from aiuna.mixin.timing import withTiming, TimeoutException
@@ -188,13 +190,13 @@ class Data(withIdentification, withPrinting, withTiming):
         Parameters
         ----------
         steps
-            List of Step objects that transforms this Data object.
+            Step object that process this Data object.
         fields
             Matrices or vector/scalar shortcuts to them.
 
         Returns
         -------
-        New Content object (it keeps references to the old one for performance).
+        New Data object (it keeps references to the old one for performance).
         :param step:
         """
         if not isinstance(step, Step):
@@ -202,14 +204,16 @@ class Data(withIdentification, withPrinting, withTiming):
         if isinstance(step, Timeout):
             changed = ["timeout", "duration"]
         else:
-            from aiuna.file import File
+            from aiuna.step.file import File
+            from aiuna.step.new import New
             changed = []
             for field, value in fields.items():
-                if not islazy(value) and not isinstance(step, File):
+                if not islazy(value) and not isinstance(step, (File, New)):
                     raise Exception(f"{field} should be callable! Not:", type(value))
                 if field in self.triggers + ["changed"]:
                     raise Exception(f"'{field}' cannot be externally set! Step:" + step.longname)
                 changed.append(field)
+        changed = list(sorted(changed))
 
         # Only update field uuids for the provided and changed ones!
         updated_fields = {"changed": changed}
@@ -359,8 +363,6 @@ class Data(withIdentification, withPrinting, withTiming):
 
     def __getattr__(self, item):
         """Create shortcuts to fields."""
-        # TODO y não funciona
-
         # Handle pandas suffix.
         if item.endswith("_pd"):
             name = item[:-3]
@@ -383,7 +385,7 @@ class Data(withIdentification, withPrinting, withTiming):
             return self[item[:-1]].shape[1]
 
         # Handle field access
-        if item in self.field_funcs_m:
+        if item in self.field_funcs_m or item.upper() in self.field_funcs_m:
             return self[item]
 
         # Handle missing known fields
@@ -434,6 +436,12 @@ class Data(withIdentification, withPrinting, withTiming):
         It is useful to cache in memory when more than one backend is used to store Data objects."""
         return pack(self[name])
 
+    @staticmethod
+    def from_pandas(X_pd: DataFrame, y_pd: Series):
+        X, y = X_pd.to_numpy(), y_pd.to_numpy().astype("float")
+        Xd, Yd = X_pd.columns.tolist(), [y_pd.name]
+        Xt, Yt = [translate_type(str(c)) for c in X_pd.dtypes], list(sorted(set(y)))
+        return new(X=X, y=y, Xd=Xd, Yd=Yd, Xt=Xt, Yt=Yt)
     # @property
     # @lru_cache()
     # def ids_lst(self):  #TODO ainda precisa?

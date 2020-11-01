@@ -20,13 +20,33 @@
 #  part of this work is a crime and is unethical regarding the effort and
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
+#
+#  aiuna is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  aiuna is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  (*) Removing authorship by any means, e.g. by distribution of derived
+#  works or verbatim, obfuscated, compiled or rewritten versions of any
+#  part of this work is a crime and is unethical regarding the effort and
+#  time spent here.
+#  Relevant employers or funding agencies will be notified accordingly.
 
 
 import inspect
 import json
 from functools import cached_property
 from aiuna.content.root import Root
-from aiuna.creation import read_arff
+from aiuna.content.creation import read_arff, new
+from aiuna.step.new import New
 from cruipto.uuid import UUID
 from transf.dataindependentstep_ import DataIndependentStep_
 
@@ -55,15 +75,16 @@ class File(DataIndependentStep_):
         config["hashes"] = self.hashes
         return config
 
-    def _uuid_(self):  # override uuid because default uuid is based on config, which includes file name/path
-        uuid = UUID(json.dumps({"name": self.name, "path": self.context, "hashes": self.hashes}, ensure_ascii=False, sort_keys=True).encode())
-        return uuid
+    def _uuid_(self):  # override uuid because default uuid is based on config, which includes unreliable args
+        return New(hashes=self.hashes).uuid
 
-    # REMINDER File cannot be lazy, since it depends on file content to know the uuid which will be used to generate the lazy Data object.
+    # REMINDER File cannot be lazy, since it depends on file content to know the uuid which will be used to generate
+    # the lazy Data object.
     @cached_property
     def data(self):
         d = read_arff(self.filename)
-        self._dataset, self._description, matrices, original_hashes = d["dataset"], d["description"], d["matrices"], d["original_hashes"]
+        ds = d["dataset"], d["description"], d["matrices"], d["original_hashes"]
+        self._dataset, self._description, matrices, original_hashes = ds
         if self._hashes:
             if self._hashes != original_hashes:
                 raise Exception(
@@ -71,7 +92,7 @@ class File(DataIndependentStep_):
         else:
             self._hashes = original_hashes
 
-        return Root.update(self, **matrices)
+        return new(**matrices)
 
     @cached_property
     def dataset(self):

@@ -20,6 +20,25 @@
 #  part of this work is a crime and is unethical regarding the effort and
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
+#
+#  aiuna is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  aiuna is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with aiuna.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  (*) Removing authorship by any means, e.g. by distribution of derived
+#  works or verbatim, obfuscated, compiled or rewritten versions of any
+#  part of this work is a crime and is unethical regarding the effort and
+#  time spent here.
+#  Relevant employers or funding agencies will be notified accordingly.
 
 
 import json
@@ -32,13 +51,26 @@ import numpy as np
 import sklearn.datasets as ds
 
 from linalghelper import fields2matrices
-from aiuna.new import New
+
+
+def mathash(k, v):
+    try:
+        dump = json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()
+        return md5(dump).hexdigest()
+    except TypeError as e:
+        print(f"Cannot calculate hash for {k} with value {v}")
+        exit()
+
+
+def hashes_mats(fields):
+    """Calculate pseudo-unique hash for each field."""
+    matrices = dict(fields2matrices(fields).items())
+    return {k: mathash(k, v) for k, v in matrices.items()}, matrices
 
 
 def new(**fields):
-    matrices = dict(fields2matrices(fields).items())
-    # TODO dumps() de ndarray pode ser incompleto e gerar md5 errado; usar pack?
-    hashes = {k: md5(json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()).hexdigest() for k, v in matrices.items()}
+    from aiuna.step.new import New
+    hashes, matrices = hashes_mats(fields)
     return New(hashes, **matrices).data
 
 
@@ -82,9 +114,7 @@ def read_arff(filename):
     Yd = [TgtAtt[0]]
     Yt = [translate_type(TgtAtt[1])]
 
-    # Calculate pseudo-unique hash for X and Y, and a pseudo-unique name.
-    matrices = {"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt}
-    original_hashes = {k: md5(json.dumps(v, sort_keys=True, ensure_ascii=False).encode() if isinstance(v, list) else v.tobytes()).hexdigest() for k, v in matrices.items()}
+    original_hashes, matrices = hashes_mats({"X": X, "Y": Y, "Xd": Xd, "Yd": Yd, "Xt": Xt, "Yt": Yt})
     return {"dataset": name, "description": description, "matrices": matrices, "original_hashes": original_hashes}
 
 
@@ -92,9 +122,9 @@ def translate_type(name):
     if isinstance(name, list):
         return name
     name = name.lower()
-    if name in ["numeric", "real", "float"]:
+    if name in ["numeric", "real"] or name.startswith("float"):
         return "real"
-    elif name in ["integer", "int"]:
+    elif name.startswith("int"):
         return "int"
     else:
         raise Exception("Unknown type:", name)
