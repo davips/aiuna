@@ -401,7 +401,7 @@ class Data(withIdentification, withPrinting, withTiming):
 
     def __setitem__(self, key, value):
         # process mutation
-        from aiuna.let import Let
+        from aiuna.step.let import Let
         self.mutate(Let(field=key, value=value) << self)
 
     # * ** -
