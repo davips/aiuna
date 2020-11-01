@@ -396,7 +396,7 @@ class Data(withIdentification, withPrinting, withTiming):
         return super().__getattribute__(item)
 
     def __delitem__(self, key):
-        from aiuna.delete import Del
+        from aiuna.step.delete import Del
         self.mutate(Del(field=key) << self)
 
     def __setitem__(self, key, value):

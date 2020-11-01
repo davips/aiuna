@@ -75,7 +75,7 @@ class Dataset(DataIndependentStep_):
         classes = list(map(str, d.target_names))
         X, y = d.data.to_numpy(), np.array([str(l) for l in Categorical.from_codes(d.target, classes)])
         Xd, Yd = d.feature_names, [d.target.name]
-        Xt, Yt = [translate_type(str(c)) for c in d.frame.dtypes], classes
+        Xt, Yt = [translate_type(str(c)) for c in d.frame.dtypes], [classes]
         return new(X=X, y=y, Xd=Xd, Yd=Yd, Xt=Xt, Yt=Yt)
 
     def _uuid_(self):  # override uuid to match with New and File
