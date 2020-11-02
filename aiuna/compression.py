@@ -58,6 +58,7 @@ cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 # ##################################################
 
 
+@lru_cache()
 def pack(obj):
     with safety():
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:

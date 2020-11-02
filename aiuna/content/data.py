@@ -429,13 +429,6 @@ class Data(withIdentification, withPrinting, withTiming):
     def _context_(self):
         return self.history ^ "names"
 
-    @lru_cache()
-    def field_dump(self, name):
-        """Cached compressed content for a given field.
-
-        It is useful to cache in memory when more than one backend is used to store Data objects."""
-        return pack(self[name])
-
     @staticmethod
     def from_pandas(X_pd: DataFrame, y_pd: Series):
         X, y = X_pd.to_numpy(), y_pd.to_numpy().astype("float")
