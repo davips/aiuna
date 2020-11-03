@@ -57,8 +57,24 @@ cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
 
 # ##################################################
 
+class HashableBinary:
+    def __init__(self, n, obj):
+        self.n = n
+        self.obj = obj
+
+    def __hash__(self):
+        return self.n
+
+
+def fpack(data, field):
+    return memopack(HashableBinary(data.uuids[field].n, data[field]))
+
 
 @lru_cache()
+def memopack(hashable_binary):
+    return pack(hashable_binary.obj)
+
+
 def pack(obj):
     with safety():
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:

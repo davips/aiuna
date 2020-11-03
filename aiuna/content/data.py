@@ -28,12 +28,10 @@ import arff
 import numpy as np
 from pandas import DataFrame, Series
 
-from aiuna.compression import pack
 from aiuna.content.creation import new, translate_type
-from aiuna.history import History
-from linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from aiuna.mixin.timing import withTiming, TimeoutException
 from cruipto.uuid import UUID
+from linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from transf.mixin.identification import withIdentification
 from transf.mixin.printing import withPrinting
 # TODO: iterable data like dict
