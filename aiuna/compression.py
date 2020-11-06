@@ -32,7 +32,7 @@ import numpy as np
 import zstandard as zs
 # Things that should be calculated only once.
 # ##################################################
-from transf.config import safety
+from transf.config import safety, new_lock
 # TODO: make a permanent representative dictionary and check if it
 #  reduces compression time and size of textual info like transformations.
 from cruipto.encoders import integers2bytes, bytes2integers
@@ -75,8 +75,11 @@ def memopack(hashable_binary):
     return pack(hashable_binary.obj)
 
 
+compression_lock = new_lock()
+
+
 def pack(obj):
-    with safety():
+    with safety(compression_lock):
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
             # X, ...
             h, w = obj.shape
@@ -103,7 +106,7 @@ def pack(obj):
 
 
 def unpack(dump_with_header):
-    with safety():
+    with safety(compression_lock):
         header = dump_with_header[:1]
         dump = dump_with_header[1:]
         if header == b"P":
