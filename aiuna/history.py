@@ -36,6 +36,7 @@ class History(withPrinting):
         self.nested = nested or [Leaf(step)]
         self.last = step if step else nested[-1].last
 
+    @cached_property
     def aslist(self):
         return [step.asdict for step in self]
 
