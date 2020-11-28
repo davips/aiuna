@@ -35,6 +35,5 @@ class Root(Data):
         raise SingletonException("Root data is a singleton and cannot be instantiated!")
 
 
-# 06YIZJGwpbx9nPR4asgVOMo is the uuid of the empty list []
 uuids = {"changed": UUID(b"[]")}
-Root = Root(UUID(), uuids, History(NoOp()), changed=[])
+Root = Root(UUID(), uuids, History(), changed=[])

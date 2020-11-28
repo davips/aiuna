@@ -33,8 +33,18 @@ class History(withPrinting):
 
     def __init__(self, step=None, nested=None):
         """Optimized iterable "list" of Leafs (wrapper for a step or a dict) based on structural sharing."""
-        self.nested = nested or [Leaf(step)]
-        self.last = step if step else nested[-1].last
+        if step is None and nested is None:
+            self.nested = []
+            self._last = None
+        else:
+            self.nested = nested or [Leaf(step)]
+            self._last = step if step else nested[-1].last
+
+    @property
+    def last(self):
+        if self._last is None:
+            raise Exception("Empty history has no last item.")
+        return self._last
 
     @cached_property
     def aslist(self):

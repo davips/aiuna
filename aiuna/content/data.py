@@ -35,6 +35,7 @@ from linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from transf.mixin.identification import withIdentification
 from transf.mixin.printing import withPrinting
 # TODO: iterable data like dict
+from transf.noop import NoOp
 from transf.step import Step, MissingField
 from transf.timeout import Timeout
 
@@ -111,7 +112,10 @@ class Data(withIdentification, withPrinting, withTiming):
         self.changed = fields["changed"]
         self.field_funcs_m = fields
         self._uuid, self.uuids = uuid, uuids
-        step = history.last
+        try:
+            step = history.last
+        except:
+            step = NoOp()
         self.step_func_m = step
         # lazy lambda name format: "_stepuuid..._from_storage_storageuuid..."
         self.step_uuid = step.uuid if isinstance(step, Step) else UUID(step.name[1:24])
