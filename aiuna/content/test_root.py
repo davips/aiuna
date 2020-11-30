@@ -22,9 +22,11 @@
 #  Relevant employers or funding agencies will be notified accordingly.
 from unittest import TestCase
 
-from aiuna.content.root import Root, SingletonException
+from aiuna.content.root import Root
 from aiuna.history import History
 from cruipto.uuid import UUID
+
+from akangatu.operator.nullary.empty import SingletonException
 from transf.noop import NoOp
 
 
