@@ -243,6 +243,11 @@ class Data(withIdentification, withPrinting, withTiming):
     def Xy(self):
         return self["X"], self["y"]
 
+    @property
+    def uuid(self):
+        return self._uuid
+
+    @property
     def _uuid_(self):
         return self._uuid
 
@@ -308,9 +313,11 @@ class Data(withIdentification, withPrinting, withTiming):
         UUID and __hash__ will change."""
         self._uuid = newdata.uuid
         self.uuids = newdata.uuids
-        self.step = newdata.step
+        self.step_func_m = newdata.step_func_m
+        self.step_uuid = newdata.step_uuid
         self.parent_uuid = newdata.parent_uuid
         self.field_funcs_m = newdata.field_funcs_m
+        self.history = newdata.history
 
         # REMINDER: cache invalidation seems unneeded according to tests, but we will do it anyway...
         for attr in self.__dict__.values():
@@ -347,7 +354,7 @@ class Data(withIdentification, withPrinting, withTiming):
 
         #   ...from storage? Just call it, without timing or catching exceptions as failures.
         if "_from_storage_" in self.field_funcs_m[kup].__name__:
-            self.field_funcs_m[kup] = field_as_matrix(self.field_funcs_m[kup]())
+            self.field_funcs_m[kup] = field_as_matrix(key, self.field_funcs_m[kup]())
             return self.field_funcs_m[kup]
 
         #   ...yet to be processed?
@@ -404,7 +411,7 @@ class Data(withIdentification, withPrinting, withTiming):
     def __setitem__(self, key, value):
         # process mutation
         from aiuna.step.let import Let
-        self.mutate(Let(field=key, value=value) << self)
+        self.mutate(self >> Let(field=key, value=value))
 
     # * ** -
     # @ cache
