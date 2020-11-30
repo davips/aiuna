@@ -376,7 +376,7 @@ class Data(withIdentification, withPrinting, withTiming):
             from pandas import DataFrame
             desc = name[:-2] + "d_m" if name.endswith("_m") else name + "d"
             if desc in self.field_funcs_m:
-                return DataFrame(self.field_funcs_m[name], columns=self.field_funcs_m[desc])
+                return DataFrame(self[name], columns=self[desc])
             else:
                 return DataFrame(self.field_funcs_m[name])
 
