@@ -50,7 +50,7 @@ import arff
 import numpy as np
 import sklearn.datasets as ds
 
-from linalghelper import fields2matrices
+from akangatu.linalghelper import fields2matrices
 
 
 def mathash(k, v):

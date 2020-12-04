@@ -20,7 +20,7 @@
 #  part of this work is a crime and is unethical regarding the effort and
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
-from transf.dataindependentstep_ import DataIndependentStep_
+from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 import numpy as np
 
 

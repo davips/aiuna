@@ -22,16 +22,16 @@
 #  Relevant employers or funding agencies will be notified accordingly.
 from unittest import TestCase
 
-from aiuna.content.root import Root
 from aiuna.history import History
 from cruipto.uuid import UUID
 
 from akangatu.operator.nullary.empty import SingletonException
-from transf.noop import NoOp
+from akangatu.transf.noop import NoOp
 
 
 class Test(TestCase):
     def test_storage(self):
+        from aiuna.content.root import Root
         self.assertTrue(Root >> NoOp == Root)
         self.assertRaises(SingletonException, lambda: Root({}, UUID(), History(NoOp)))
         self.assertTrue(Root >> NoOp == Root)

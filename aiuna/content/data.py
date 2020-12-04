@@ -31,13 +31,13 @@ from pandas import DataFrame, Series
 from aiuna.content.creation import new, translate_type
 from aiuna.mixin.timing import withTiming, TimeoutException
 from cruipto.uuid import UUID
-from linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
-from transf.mixin.identification import withIdentification
-from transf.mixin.printing import withPrinting
+from akangatu.linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
+from akangatu.transf.mixin.identification import withIdentification
+from akangatu.transf.mixin.printing import withPrinting
 # TODO: iterable data like dict
-from transf.noop import NoOp
-from transf.step import Step, MissingField
-from transf.timeout import Timeout
+from akangatu.transf.noop import NoOp
+from akangatu.transf.step import Step, MissingField
+from akangatu.transf.timeout import Timeout
 
 
 class Data(withIdentification, withPrinting, withTiming):

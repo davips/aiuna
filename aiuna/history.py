@@ -27,7 +27,7 @@ from functools import cached_property
 from cruipto.uuid import UUID
 
 from aiuna.leaf import Leaf
-from transf.mixin.printing import withPrinting
+from akangatu.transf.mixin.printing import withPrinting
 
 
 class History(withPrinting):
