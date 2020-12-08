@@ -372,6 +372,7 @@ class Data(withIdentification, withPrinting, withTiming):
 
     def __getattr__(self, item):
         """Create shortcuts to fields."""
+
         # Handle pandas suffix.
         if item.endswith("_pd"):
             name = item[:-3]
