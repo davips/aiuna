@@ -24,7 +24,7 @@
 
 from aiuna.content.data import Data
 from cruipto.uuid import UUID
-from transf.dataindependentstep_ import DataIndependentStep_
+from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 
 
 class Del(DataIndependentStep_):

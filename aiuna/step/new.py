@@ -41,7 +41,7 @@
 #  Relevant employers or funding agencies will be notified accordingly.
 
 from aiuna.content.root import Root
-from transf.dataindependentstep_ import DataIndependentStep_
+from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 
 
 class New(DataIndependentStep_):

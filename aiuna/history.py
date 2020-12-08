@@ -24,18 +24,45 @@
 
 from functools import cached_property
 
+from cruipto.uuid import UUID
+
 from aiuna.leaf import Leaf
-from transf.mixin.printing import withPrinting
+from akangatu.transf.mixin.printing import withPrinting
 
 
 class History(withPrinting):
     isleaf = False
 
-    def __init__(self, step=None, nested=None):
+    def __init__(self, step=None, nested=None, uuid=None):
         """Optimized iterable "list" of Leafs (wrapper for a step or a dict) based on structural sharing."""
-        self.nested = nested or [Leaf(step)]
-        self.last = step if step else nested[-1].last
+        if step:
+            if nested:
+                raise Exception("History cannot be built from both 'step' and 'nested'!")
+            self._last = step
+            self.uuid = step.uuid
+            self.nested = [Leaf(step)]
+        elif nested:
+            if uuid is None:
+                raise Exception("History cannot be built from 'nested' without 'uuid'!")
+            self._last = nested[-1].last
+            self.uuid = uuid
+            self.nested = nested
+        else:
+            self._last = None
+            self.uuid = UUID.identity
+            self.nested = []
 
+    @property
+    def id(self):
+        return self.uuid.id
+
+    @property
+    def last(self):
+        if self._last is None:
+            raise Exception("Empty history has no last item.")
+        return self._last
+
+    @cached_property
     def aslist(self):
         return [step.asdict for step in self]
 
@@ -43,10 +70,11 @@ class History(withPrinting):
         return {step.id: step.desc for step in self}
 
     def __add__(self, other):
-        return History(nested=[self, other])
+        return History(nested=[self, other], uuid=self.uuid * other.uuid)
 
     def __lshift__(self, step):
-        return History(nested=[self, History(step)])
+        h = History(step)
+        return History(nested=[self, h], uuid=self.uuid * h.uuid)
 
     def traverse(self, node):
         # TODO: remove recursion due to python conservative limits for longer histories (AL, DStreams, ...)
@@ -64,3 +92,6 @@ class History(withPrinting):
         # touch properties to avoid problems (is this really needed?)
         # void = [a.name + a.longname for a in self.traverse(self)]   #TODO voltar essa linha?
         return list(map(lambda x: getattr(x, attrname), self.traverse(self)))
+
+    def __eq__(self, other):
+        return self.uuid == other.uuid

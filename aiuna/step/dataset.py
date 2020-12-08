@@ -28,7 +28,7 @@ from sklearn import datasets
 
 from aiuna.content.creation import new, translate_type
 from aiuna.content.root import Root
-from transf.dataindependentstep_ import DataIndependentStep_
+from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 
 
 class Dataset(DataIndependentStep_):

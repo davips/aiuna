@@ -20,14 +20,20 @@
 #  part of this work is a crime and is unethical regarding the effort and
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
-from transf.dataindependentstep_ import DataIndependentStep_
+from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 import numpy as np
+
 
 class Let(DataIndependentStep_):
     def __init__(self, field, value):
         super().__init__(field=field, value=value)
         self.field = field
-        self.value = np.array([[value]])
+        if isinstance(value, (list, np.ndarray)):
+            self.value = value
+        elif isinstance(value, (float, int)):
+            self.value = np.array([[value]])
+        else:
+            raise Exception("Unknown value type", type(value))
 
     # TODO accept and store any kind of value in Data, not only 2d ndarrays (and str lists)
 
@@ -35,5 +41,5 @@ class Let(DataIndependentStep_):
     #    raises exception saying to use Set instead, which will md5-hash it
 
     def _process_(self, data):
-        dic = {self.field: self.value}
-        return data.replace(self, **dic)
+        dic = {self.field: lambda: self.value}
+        return data.update(self, **dic)
