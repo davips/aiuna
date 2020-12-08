@@ -75,11 +75,11 @@ def memopack(hashable_binary):
     return pack(hashable_binary.obj)
 
 
-compression_lock = new_lock()
+#compression_lock = new_lock()
 
 
 def pack(obj):
-    with safety(compression_lock):
+    with safety():
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
             # X, ...
             h, w = obj.shape
@@ -106,7 +106,7 @@ def pack(obj):
 
 
 def unpack(dump_with_header):
-    with safety(compression_lock):
+    with safety():
         header = dump_with_header[:1]
         dump = dump_with_header[1:]
         if header == b"P":
