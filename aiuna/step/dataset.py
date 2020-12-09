@@ -4412,7 +4412,7 @@ M,0.71,0.555,0.195,1.9485,0.9455,0.3765,0.495,3
 
     def _process_(self, data):
         if data is not Root:
-            msg = f"{self.name} only accepts Root as Data. Use Dataset(...).data or Sink instead {type(data)}"
+            msg = f"{self.name} only accepts Root as Data. Use Dataset(   ).data or Sink instead {type(data)}"
             raise Exception(msg)
         return self.data
 

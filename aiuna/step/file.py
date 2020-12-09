@@ -66,7 +66,7 @@ class File(DataIndependentStep_):
 
     def _process_(self, data):
         if data is not Root:
-            raise Exception(f"{self.name} only accepts Root as Data. Use File(...).data or Sink instead.", type(data))
+            raise Exception(f"{self.name} only accepts Root as Data. Use File(  ).data or Sink instead.", type(data))
         return self.data
 
     def _config(self):

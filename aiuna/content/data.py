@@ -323,7 +323,7 @@ class Data(withIdentification, withPrinting, withTiming):
         self.field_funcs_m = newdata.field_funcs_m
         self.history = newdata.history
 
-        # # REMINDER: cache invalidation seems unneeded according to tests, but we will do it anyway...
+        # # REMINDER: cache invalidation seems unneeded according to tests
         # for attr in self.__dict__.values():
         #     if callable(attr) and hasattr(attr, "cacheclear"):
         #         attr.cacheclear()
@@ -418,13 +418,20 @@ class Data(withIdentification, withPrinting, withTiming):
         from aiuna.step.let import Let
         self.mutate(self >> Let(field=key, value=value))
 
+    # importante TODO
     # * ** -
     # @ cache
     # & | ^ // %
-    # -d +d
-    # ~ sample
-    # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
-    # def plan(self, step):
+    # -step -> hold
+    # ~step -> sample
+
+    # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
+    # coisas a considerar no hash: ###########################################
+    #       embaralhamento?
+    #       AB != BA
+    #       AAAAA sem colisão
+    #       AA != I
+    # ###########################################
 
     def items(self):
         # TODO quais ficam de fora de fields? são importantes pra iterar?
