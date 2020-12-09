@@ -230,14 +230,14 @@ class Data(withIdentification, withPrinting, withTiming):
         newfields.update(updated_fields)
         return Data(uuid, uuids, self.history << step, **newfields)
 
-    # @cached_property
-    # def eager(self):
-    #     """Touch every lazy field by accessing all fields.
-    #
-    #     Stream is kept intact???"""
-    #     for f in self:
-    #     _ = self[f]
-    #     return self
+    @cached_property
+    def eager(self):
+        """Touch every lazy field by accessing all fields.
+
+        Stream is kept intact???"""
+        for f in self:
+            _ = self[f]
+        return self
 
     @cached_property
     def Xy(self):
@@ -323,10 +323,10 @@ class Data(withIdentification, withPrinting, withTiming):
         self.field_funcs_m = newdata.field_funcs_m
         self.history = newdata.history
 
-        # REMINDER: cache invalidation seems unneeded according to tests, but we will do it anyway...
-        for attr in self.__dict__.values():
-            if callable(attr) and hasattr(attr, "cacheclear"):
-                attr.cacheclear()
+        # # REMINDER: cache invalidation seems unneeded according to tests, but we will do it anyway...
+        # for attr in self.__dict__.values():
+        #     if callable(attr) and hasattr(attr, "cacheclear"):
+        #         attr.cacheclear()
 
     @lru_cache()
     def __getitem__(self, key):
