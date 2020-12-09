@@ -248,6 +248,10 @@ class Data(withIdentification, withPrinting, withTiming):
         return self._uuid
 
     @property
+    def id(self):
+        return self._uuid.id
+
+    @property
     def _uuid_(self):
         return self._uuid
 
