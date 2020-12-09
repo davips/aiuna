@@ -341,21 +341,19 @@ class Data(withIdentification, withPrinting, withTiming):
         -------
         Matrix, vector or scalar
         """
-        kup = key.upper() if len(key) == 1 else key
-        # print("GET", key, " <<<<<<<<<<<<<<<<<<<<<<", self.field_funcs_m[kup], islazy(self.field_funcs_m[kup]) and self.field_funcs_m[kup].__name__)
+        # Format single-letter field according to capitalization.
+        if len(key) == 1:
+            kup = key.upper()
+            if key.islower():
+                return mat2vec(self[kup])
+        else:
+            kup = key
 
         # Is it an already evaluated field?
         if not islazy(self.field_funcs_m[kup]):
-            if len(kup) > 1:
-                return self.field_funcs_m[kup]
-
-            # Format single-letter field according to capitalization.
-            if kup.islower():
-                return mat2vec(self.field_funcs_m[kup.upper()])
             return self.field_funcs_m[kup]
 
         # Is it a lazy field...
-
         #   ...from storage? Just call it, without timing or catching exceptions as failures.
         if "_from_storage_" in self.field_funcs_m[kup].__name__:
             self.field_funcs_m[kup] = field_as_matrix(key, self.field_funcs_m[kup]())
@@ -424,6 +422,8 @@ class Data(withIdentification, withPrinting, withTiming):
     # & | ^ // %
     # -step -> hold
     # ~step -> sample
+    #  ...
+    # +step -> permite ser destrutivo?
 
     # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
     # coisas a considerar no hash: ###########################################

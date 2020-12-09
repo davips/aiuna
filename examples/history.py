@@ -1,5 +1,5 @@
 # Checking history
-import aiuna.pack
+import aiuna
 
 X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 y = np.array([0, 1, 1])

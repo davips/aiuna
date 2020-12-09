@@ -1,5 +1,5 @@
 # Acessing a data field as a pandas DataFrame
-import aiuna.pack
+import aiuna
 
 d = File("iris.arff").data
 df = d.X_pd
