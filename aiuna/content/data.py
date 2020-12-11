@@ -425,6 +425,10 @@ class Data(withIdentification, withPrinting, withTiming):
     #  ...
     # +step -> permite ser destrutivo?
 
+    # d * A * B / e = d.hash * A.hash * B.hash / e.hash
+    #
+
+
     # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
     # coisas a considerar no hash: ###########################################
     #       embaralhamento?
