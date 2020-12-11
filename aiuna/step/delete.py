@@ -38,6 +38,7 @@ class Del(DataIndependentStep_):
         fields["changed"] = []
 
         uuids = data.uuids.copy()
+        del uuids[self.field]
         uuids["changed"] = UUID(b"[]")
 
-        return Data(data.uuid, uuids, data.history << self, **fields)
+        return Data(data.uuid * self.uuid, uuids, data.history << self, **fields)

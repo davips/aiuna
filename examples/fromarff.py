@@ -1,5 +1,5 @@
 # Creating data from ARFF file
-import aiuna.pack
+import aiuna
 
 d = File("iris.arff").data
 print(d.Xd)
@@ -11,5 +11,5 @@ print(d.X[:5])
 print(d.y[:5])
 # ...
 
-print(sorted(set(d.y)))
+print(d.y_pd.value_counts())
 # ...

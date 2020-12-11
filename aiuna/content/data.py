@@ -230,14 +230,14 @@ class Data(withIdentification, withPrinting, withTiming):
         newfields.update(updated_fields)
         return Data(uuid, uuids, self.history << step, **newfields)
 
-    # @cached_property
-    # def eager(self):
-    #     """Touch every lazy field by accessing all fields.
-    #
-    #     Stream is kept intact???"""
-    #     for f in self:
-    #     _ = self[f]
-    #     return self
+    @cached_property
+    def eager(self):
+        """Touch every lazy field by accessing all fields.
+
+        Stream is kept intact???"""
+        for f in self:
+            _ = self[f]
+        return self
 
     @cached_property
     def Xy(self):
@@ -246,6 +246,10 @@ class Data(withIdentification, withPrinting, withTiming):
     @property
     def uuid(self):
         return self._uuid
+
+    @property
+    def id(self):
+        return self._uuid.id
 
     @property
     def _uuid_(self):
@@ -319,10 +323,10 @@ class Data(withIdentification, withPrinting, withTiming):
         self.field_funcs_m = newdata.field_funcs_m
         self.history = newdata.history
 
-        # REMINDER: cache invalidation seems unneeded according to tests, but we will do it anyway...
-        for attr in self.__dict__.values():
-            if callable(attr) and hasattr(attr, "cacheclear"):
-                attr.cacheclear()
+        # # REMINDER: cache invalidation seems unneeded according to tests
+        # for attr in self.__dict__.values():
+        #     if callable(attr) and hasattr(attr, "cacheclear"):
+        #         attr.cacheclear()
 
     @lru_cache()
     def __getitem__(self, key):
@@ -337,21 +341,19 @@ class Data(withIdentification, withPrinting, withTiming):
         -------
         Matrix, vector or scalar
         """
-        kup = key.upper() if len(key) == 1 else key
-        # print("GET", key, " <<<<<<<<<<<<<<<<<<<<<<", self.field_funcs_m[kup], islazy(self.field_funcs_m[kup]) and self.field_funcs_m[kup].__name__)
+        # Format single-letter field according to capitalization.
+        if len(key) == 1:
+            kup = key.upper()
+            if key.islower():
+                return mat2vec(self[kup])
+        else:
+            kup = key
 
         # Is it an already evaluated field?
         if not islazy(self.field_funcs_m[kup]):
-            if len(kup) > 1:
-                return self.field_funcs_m[kup]
-
-            # Format single-letter field according to capitalization.
-            if kup.islower():
-                return mat2vec(self.field_funcs_m[kup.upper()])
             return self.field_funcs_m[kup]
 
         # Is it a lazy field...
-
         #   ...from storage? Just call it, without timing or catching exceptions as failures.
         if "_from_storage_" in self.field_funcs_m[kup].__name__:
             self.field_funcs_m[kup] = field_as_matrix(key, self.field_funcs_m[kup]())
@@ -414,13 +416,26 @@ class Data(withIdentification, withPrinting, withTiming):
         from aiuna.step.let import Let
         self.mutate(self >> Let(field=key, value=value))
 
+    # importante TODO
     # * ** -
     # @ cache
     # & | ^ // %
-    # -d +d
-    # ~ sample
-    # REMINDER: the detailed History is unpredictable, so it is impossible to provide a useful plan() based on future steps
-    # def plan(self, step):
+    # -step -> hold
+    # ~step -> sample
+    #  ...
+    # +step -> permite ser destrutivo?
+
+    # d * A * B / e = d.hash * A.hash * B.hash / e.hash
+    #
+
+
+    # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
+    # coisas a considerar no hash: ###########################################
+    #       embaralhamento?
+    #       AB != BA
+    #       AAAAA sem colisão
+    #       AA != I
+    # ###########################################
 
     def items(self):
         # TODO quais ficam de fora de fields? são importantes pra iterar?
