@@ -30,6 +30,7 @@ from pandas import DataFrame, Series
 
 from aiuna.content.creation import new, translate_type
 from aiuna.mixin.timing import withTiming, TimeoutException
+from cruipto.avatar23 import colors
 from cruipto.uuid import UUID
 from akangatu.linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from akangatu.transf.mixin.identification import withIdentification
@@ -428,7 +429,6 @@ class Data(withIdentification, withPrinting, withTiming):
     # d * A * B / e = d.hash * A.hash * B.hash / e.hash
     #
 
-
     # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
     # coisas a considerar no hash: ###########################################
     #       embaralhamento?
@@ -460,6 +460,7 @@ class Data(withIdentification, withPrinting, withTiming):
         Xd, Yd = X_pd.columns.tolist(), [y_pd.name]
         Xt, Yt = [translate_type(str(c)) for c in X_pd.dtypes], list(sorted(set(y)))
         return new(X=X, y=y, Xd=Xd, Yd=Yd, Xt=Xt, Yt=Yt)
+
     # @property
     # @lru_cache()
     # def ids_lst(self):  #TODO ainda precisa?
@@ -520,6 +521,18 @@ class Data(withIdentification, withPrinting, withTiming):
     #     raise Exception("Pickable Data should have a History of dicts instead of", type(self.history[0]))
     #     inner = self.inner and self.inner.unpicklable
     #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self._matrices)
+
+    @property
+    # @cached_property
+    def past(self):
+        """Map ancestor_id -> step/icon_colors. Last item refers to the current Data object."""
+        from aiuna.content.root import Root
+        dic = {}
+        h = Root
+        for s in self.history:
+            h >>= s
+            dic[h.id] = {"step": s.asdict_rec, "colors": colors(h.id)}
+        return dic
 
 
 def untranslate_type(name):
