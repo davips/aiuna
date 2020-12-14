@@ -53,7 +53,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Programming Language :: Python :: 3.8']
 
 INSTALL_REQUIRES = [
-    'numpy', 'liac-arff', "lz4", "zstandard", "pandas", "sklearn"
+    'numpy', 'liac-arff', "lz4", "zstandard", "pandas", "sklearn", "more_itertools", "aiuna"
 ]
 
 EXTRAS_REQUIRE = {
