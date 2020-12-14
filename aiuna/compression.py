@@ -70,9 +70,12 @@ def fpack(data, field):
     return memopack(HashableBinary(data.uuids[field].n, data[field]))
 
 
-@lru_cache()
+# @lru_cache()
 def memopack(hashable_binary):
     return pack(hashable_binary.obj)
+
+
+#compression_lock = new_lock()
 
 
 def pack(obj):
