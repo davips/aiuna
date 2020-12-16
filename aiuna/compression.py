@@ -35,7 +35,7 @@ import zstandard as zs
 from akangatu.transf.config import safety
 # TODO: make a permanent representative dictionary and check if it
 #  reduces compression time and size of textual info like transformations.
-from cruipto.encoders import integers2bytes, bytes2integers
+from garoupa.encoders import integers2bytes, bytes2integers
 
 
 @lru_cache()

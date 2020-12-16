@@ -23,7 +23,7 @@
 from unittest import TestCase
 
 from aiuna.history import History
-from cruipto.uuid import UUID
+from garoupa.uuid import UUID
 
 from akangatu.operator.nullary.empty import SingletonException
 from akangatu.transf.noop import NoOp
