@@ -23,7 +23,7 @@
 
 
 from aiuna.content.data import Data
-from cruipto.uuid import UUID
+from garoupa.uuid import UUID
 from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 
 

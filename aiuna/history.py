@@ -24,7 +24,7 @@
 
 from functools import cached_property
 
-from cruipto.uuid import UUID
+from garoupa.uuid import UUID
 
 from aiuna.leaf import Leaf
 from akangatu.transf.mixin.printing import withPrinting

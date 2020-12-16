@@ -30,8 +30,8 @@ from pandas import DataFrame, Series
 
 from aiuna.content.creation import new, translate_type
 from aiuna.mixin.timing import withTiming, TimeoutException
-from cruipto.avatar23 import colors
-from cruipto.uuid import UUID
+from garoupa.avatar23 import colors
+from garoupa.uuid import UUID
 from akangatu.linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from akangatu.transf.mixin.identification import withIdentification
 from akangatu.transf.mixin.printing import withPrinting

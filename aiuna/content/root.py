@@ -22,7 +22,7 @@
 #  Relevant employers or funding agencies will be notified accordingly.
 from aiuna.content.data import Data
 from aiuna.history import History
-from cruipto.uuid import UUID
+from garoupa.uuid import UUID
 
 
 class Root(Data):
