@@ -23,8 +23,6 @@
 
 import setuptools
 
-import aiuna
-
 NAME = "aiuna"
 
 VERSION = 0.1

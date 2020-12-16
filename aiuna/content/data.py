@@ -417,26 +417,6 @@ class Data(withIdentification, withPrinting, withTiming):
         from aiuna.step.let import Let
         self.mutate(self >> Let(field=key, value=value))
 
-    # importante TODO
-    # * ** -
-    # @ cache
-    # & | ^ // %
-    # -step -> hold
-    # ~step -> sample
-    #  ...
-    # +step -> permite ser destrutivo?
-
-    # d * A * B / e = d.hash * A.hash * B.hash / e.hash
-    #
-
-    # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
-    # coisas a considerar no hash: ###########################################
-    #       embaralhamento?
-    #       AB != BA
-    #       AAAAA sem colisão
-    #       AA != I
-    # ###########################################
-
     def items(self):
         # TODO quais ficam de fora de fields? são importantes pra iterar?
         for k in self:
@@ -542,3 +522,39 @@ def untranslate_type(name):
         return "NUMERIC"
     else:
         raise Exception("Unknown type:", name)
+
+    # importante TODO
+"""
+    * ** -
+    @ cache
+    & | ^ // %
+    -step -> hold
+    ~step -> sample
+     ...
+    +step -> lift to union
+
+    d * A * B / e = d.hash * A.hash * B.hash / e.hash
+
+
+    aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
+    coisas a considerar no hash: ###########################################
+          embaralhamento?
+          AB != BA
+          AAAAA sem colisão
+          AA != I
+    ###########################################
+    
+    d >> A                          ->  d >> Ad
+    d >> ~A                         ->  d >> Ar
+    d >> (A | B) = d >> ~(A | B)    ->  d >> Br
+    d >> (A | B)        ->  d >> Br
+
+
+    SkS(RndOvSamp, strategy=["not majority", "minority"])     
+    
+    SkT(PrincCompAn, n=[1, ..., 20])    n=[1, 2, 4, ..., 128])      n=[0.001, 0.01, 0.1, ..., 100]) 
+    SkT(PrincCompAn, n=([1, ..., 20], 2)) 
+    
+    SkP(SVC, c=lambda next: random.random)  ou  SkP(SVC, c=lambda next: 1 / counter if next else random.random())
+    
+"""
