@@ -35,7 +35,6 @@ from garoupa.uuid import UUID
 from akangatu.linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from akangatu.transf.mixin.identification import withIdentification
 from akangatu.transf.mixin.printing import withPrinting
-# TODO: iterable data like dict
 from akangatu.transf.noop import NoOp
 from akangatu.transf.step import Step, MissingField
 from akangatu.transf.timeout import Timeout
@@ -293,10 +292,10 @@ class Data(withIdentification, withPrinting, withTiming):
             print("Real sizes:", len(self.X[0]), "+", len(self.Y[0].shape))
             exit(0)
 
-    def __rlshift__(self, other):
-        if other.isclass:
-            other = other()
-        return other.process(self)
+    # def __rlshift__(self, other):
+    #     if other.isclass:
+    #         other = other()
+    #     return other.process(self)
 
     def __rshift__(self, other):
         if other.isclass:
@@ -367,7 +366,7 @@ class Data(withIdentification, withPrinting, withTiming):
                 self._duration += t
                 self.field_funcs_m[kup] = value
         except TimeoutException:
-            self.mutate(Timeout(self.maxtime) << self)
+            self.mutate(self >> Timeout(self.maxtime))
         except Exception as e:
             self._failure = self.step.translate(e, self)
             self.field_funcs_m[kup] = None  # REMINDER None means interrupted
@@ -410,7 +409,7 @@ class Data(withIdentification, withPrinting, withTiming):
 
     def __delitem__(self, key):
         from aiuna.step.delete import Del
-        self.mutate(Del(field=key) << self)
+        self.mutate(self >> Del(field=key))
 
     def __setitem__(self, key, value):
         # process mutation

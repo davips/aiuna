@@ -4429,3 +4429,6 @@ M,0.71,0.555,0.195,1.9485,0.9455,0.3765,0.495,3
 
     def _uuid_(self):  # override uuid to match with New and File
         return self.data.step_uuid
+
+
+dataset = Dataset()
