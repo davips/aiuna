@@ -23,6 +23,7 @@
 
 import traceback
 from functools import lru_cache, cached_property
+from pprint import pprint
 
 import arff
 import numpy as np
@@ -323,6 +324,9 @@ class Data(withIdentification, withPrinting, withTiming):
         self.field_funcs_m = newdata.field_funcs_m
         self.history = newdata.history
 
+        # TODO: use this instead?
+        # self.__dict__ = newdata.__dict__
+
         # # REMINDER: cache invalidation seems unneeded according to tests
         # for attr in self.__dict__.values():
         #     if callable(attr) and hasattr(attr, "cacheclear"):
@@ -522,6 +526,11 @@ class Data(withIdentification, withPrinting, withTiming):
     #     return Data(self.uuid, self.uuids, self.history, stream, self.storage_info, inner, **self._matrices)
 
     @property
+    def icon(self):
+        """Information to create an icon for this Data object."""
+        return {"id": self.id, "step": self.step.asdict_rec, "colors": colors(self.id)}
+
+    @property
     # @cached_property
     def past(self):
         """Map ancestor_id -> step/icon_colors. Last item refers to the current Data object."""
@@ -530,7 +539,11 @@ class Data(withIdentification, withPrinting, withTiming):
         h = Root
         for s in self.history:
             h >>= s
-            dic[h.id] = {"step": s.asdict_rec, "colors": colors(h.id)}
+            # noinspection PyUnresolvedReferences
+            icon = h.icon.copy()
+            pprint(icon)
+            del icon["id"]
+            dic[h.id] = icon
         return dic
 
 
