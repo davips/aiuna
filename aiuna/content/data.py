@@ -541,7 +541,6 @@ class Data(withIdentification, withPrinting, withTiming):
             h >>= s
             # noinspection PyUnresolvedReferences
             icon = h.icon.copy()
-            pprint(icon)
             del icon["id"]
             dic[h.id] = icon
         return dic
