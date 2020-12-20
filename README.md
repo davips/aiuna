@@ -1,4 +1,6 @@
 # aiuna scientific data for the classroom
+**WARNING: This project is still subject to major changes, e.g., in the next rewrite.**
+
 
 <p><a href="https://commons.wikimedia.org/wiki/File:Bradypus.jpg#/media/Ficheiro:Bradypus.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/1/18/Bradypus.jpg" alt="Bradypus variegatus - By Stefan Laube - (Dreizehenfaultier (Bradypus infuscatus), Gatunsee, Republik Panama), Public Domain" width="180" height="240"></a></p>
 
