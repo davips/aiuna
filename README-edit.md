@@ -16,7 +16,8 @@
 <<history>>
 
 # Grants
-Approximately 1/2 of the effort spent in the present code was kindly supported by Fapesp under grant number ...
+Part of the effort spent in the present code was kindly supported by Fapesp under supervision of 
+Prof. André C. P. L. F. de Carvalho at CEPID-CeMEAI (Grants 2013/07375-0 – 2019/01735-0).
 
 
 # History
