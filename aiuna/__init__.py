@@ -25,4 +25,4 @@ from .content.data import Data
 from .content.root import Root
 from .content.creation import new
 from .step.dataset import dataset
-from .step.file import File
+from .step.file import file

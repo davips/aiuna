@@ -424,7 +424,15 @@ class Data(withIdentification, withPrinting, withTiming):
         self.mutate(self >> Let(field=key, value=value))
 
     # importante TODO
-    # * ** -
+    # *                         product
+    # **                        cached product
+    # ~                         sample
+    # ~~                        ?
+    # s0 | s1 | s2              seq
+    # s0 | ...                  seq s0,s0,...,s0
+    # +s                        seq s0,s1,...,sn
+    #
+
     # @ cache
     # & | ^ // %
     # -step -> hold
@@ -432,11 +440,13 @@ class Data(withIdentification, withPrinting, withTiming):
     #  ...
     # +step -> permite ser destrutivo?
 
-    # d * A * B / e = d.hash * A.hash * B.hash / e.hash
-    #
+    # d.hash * A.hash * B.hash / e.hash
+    # s.id
+    # update() deveria aceitar qq obj com: {hash, id ?} ou aceitar hexmd5?
 
+    # ###########################################
     # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
-    # coisas a considerar no hash: ###########################################
+    # coisas a considerar no hash:
     #       embaralhamento?
     #       AB != BA
     #       AAAAA sem colisão
