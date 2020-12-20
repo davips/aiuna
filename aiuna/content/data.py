@@ -379,6 +379,9 @@ class Data(withIdentification, withPrinting, withTiming):
     def __getattr__(self, item):
         """Create shortcuts to fields."""
 
+        if item.startswith("__"):
+            return super().__getattribute__(item)
+
         # Handle pandas suffix.
         if item.endswith("_pd"):
             name = item[:-3]
@@ -533,16 +536,13 @@ class Data(withIdentification, withPrinting, withTiming):
     @property
     # @cached_property
     def past(self):
-        """Map ancestor_id -> step/icon_colors. Last item refers to the current Data object."""
+        """Map ancestor_id -> afterstep/icon_colors. Last item refers to the current Data object."""
         from aiuna.content.root import Root
         dic = {}
-        h = Root
-        for s in self.history:
-            h >>= s
-            # noinspection PyUnresolvedReferences
-            icon = h.icon.copy()
-            del icon["id"]
-            dic[h.id] = icon
+        d = Root
+        for s in list(self.history) + [NoOp()]:
+            dic[d.id] = {"step": s.asdict_rec, "colors": colors(d.id)}
+            d >>= s
         return dic
 
 
