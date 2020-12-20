@@ -21,28 +21,8 @@
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
 
-def load_abusive_builtins():
-    """Autoimport main classes and modules for fast demonstrations"""
-    import numpy
-    # TODO:repor isso?  check circular imports when "import aiuna" is not used
-    from ._version import __version__  # noqa: ignore
-    from .content.data import Data
-    from .content.root import Root
-    from .content.creation import new
-    from .step.file import File
-
-    # vars
-    __builtins__["Root"] = __builtins__["d"] = __builtins__["data"] = Root
-
-    # modules
-    __builtins__["np"] = numpy
-
-    # helper functions and classes
-    autoimport = [new, Data, File]
-
-    # autoimporting...
-    for item in autoimport:
-        __builtins__[item.__name__] = item
-
-
-load_abusive_builtins()
+from .content.data import Data
+from .content.root import Root
+from .content.creation import new
+from .step.dataset import dataset
+from .step.file import File
