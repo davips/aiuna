@@ -51,7 +51,7 @@ from akangatu.transf.dataindependentstep_ import DataIndependentStep_
 
 
 class File(DataIndependentStep_):
-    def __init__(self, name, path="./", hashes=None):
+    def __init__(self, name="iris.arff", path="./", hashes=None):
         self.isclass = False
         if not path.endswith("/"):
             print(path)
@@ -116,3 +116,9 @@ class File(DataIndependentStep_):
 
     # def _context_(self):
     #     return "aiuna.step.file"
+
+
+file = File()
+# TODO: autocomplete vai funcionar para args dos callable?
+
+# TODO: forçar implementação do __call__ em vez de __init__?

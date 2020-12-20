@@ -14,12 +14,13 @@
 ```python3
 from aiuna import *
 
-d = dataset.data  # 'iris' is the default dataset
+d = file("iris.arff").data
+
 print(d.Xd)
 ```
 
 ```
-['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
+['sepallength', 'sepalwidth', 'petallength', 'petalwidth']
 ```
 ```python3
 
@@ -39,7 +40,7 @@ print(d.y[:5])
 ```
 
 ```
-['setosa' 'setosa' 'setosa' 'setosa' 'setosa']
+['Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa']
 ```
 ```python3
 
@@ -47,10 +48,10 @@ print(d.y_pd.value_counts())
 ```
 
 ```
-target    
-virginica     50
-versicolor    50
-setosa        50
+class          
+Iris-virginica     50
+Iris-versicolor    50
+Iris-setosa        50
 dtype: int64
 ```
 

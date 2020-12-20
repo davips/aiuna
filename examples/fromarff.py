@@ -1,7 +1,8 @@
 # Creating data from ARFF file
 from aiuna import *
 
-d = dataset.data  # 'iris' is the default dataset
+d = file("iris.arff").data
+
 print(d.Xd)
 # ...
 
