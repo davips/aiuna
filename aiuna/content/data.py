@@ -382,27 +382,6 @@ class Data(withIdentification, withPrinting, withTiming):
         if item.startswith("__"):
             return super().__getattribute__(item)
 
-        # Handle pandas suffix.
-        if item.endswith("_pd"):
-            name = item[:-3]
-            if name.upper() not in self.field_funcs_m:
-                print(f"Field {name} not found when trying to convert it to pandas. Available ones:",
-                      self.field_funcs_m)
-                exit()
-            name = name.upper()
-            from pandas import DataFrame
-            desc = name[:-2] + "d_m" if name.endswith("_m") else name + "d"
-            if desc in self.field_funcs_m:
-                return DataFrame(self[name], columns=self[desc])
-            else:
-                return DataFrame(self.field_funcs_m[name])
-
-        # Handle numpy shortcuts
-        if item.endswith("w"):
-            return self[item[:-1]].shape[0]
-        if item.endswith("h"):
-            return self[item[:-1]].shape[1]
-
         # Handle field access
         if item in self.field_funcs_m or item.upper() in self.field_funcs_m:
             return self[item]
