@@ -7,85 +7,63 @@
 
 # Examples
 
-<details>
-<summary>Creating data from ARFF file</summary>
+**Creating data from ARFF file**
 <p>
 
-```python3
-from aiuna import *
+```python3from aiuna import *
 
 d = file("iris.arff").data
 
 print(d.Xd)
+# ['sepallength', 'sepalwidth', 'petallength', 'petalwidth']
 ```
 
-```
-['sepallength', 'sepalwidth', 'petallength', 'petalwidth']
-```
 ```python3
-
 print(d.X[:5])
-```
-
-```
-[[5.1 3.5 1.4 0.2]
+# [[5.1 3.5 1.4 0.2]
  [4.9 3.  1.4 0.2]
  [4.7 3.2 1.3 0.2]
  [4.6 3.1 1.5 0.2]
  [5.  3.6 1.4 0.2]]
 ```
-```python3
 
+```python3
 print(d.y[:5])
+# ['Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa']
 ```
 
-```
-['Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa' 'Iris-setosa']
-```
 ```python3
-
 print(d.y_pd.value_counts())
-```
-
-```
-class          
-Iris-virginica     50
-Iris-versicolor    50
+# class          
 Iris-setosa        50
+Iris-versicolor    50
+Iris-virginica     50
 dtype: int64
 ```
 
-</p>
-</details>
 
-<details>
-<summary>Acessing a data field as a pandas DataFrame</summary>
+</p>
+
+**Acessing a data field as a pandas DataFrame**
 <p>
 
-```python3
-from aiuna import *
+```python3from aiuna import *
 
 d = dataset.data  # 'iris' is the default dataset
 df = d.X_pd
 print(df.head())
-```
-
-```
-   sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
+#    sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
 0                5.1               3.5                1.4               0.2
 1                4.9               3.0                1.4               0.2
 2                4.7               3.2                1.3               0.2
 3                4.6               3.1                1.5               0.2
 4                5.0               3.6                1.4               0.2
 ```
-```python3
 
+```python3
 mycol = d.X_pd["petal length (cm)"]
 print(mycol[:5])
-```
-
-```
-0    1.4
+# 0    1.4
 1    1.4
 2    1.3
 3    1.5
@@ -93,25 +71,20 @@ print(mycol[:5])
 Name: petal length (cm), dtype: float64
 ```
 
-</p>
-</details>
 
-<details>
-<summary>Creating data from numpy arrays</summary>
+</p>
+
+**Creating data from numpy arrays**
 <p>
 
-```python3
-from aiuna import *
+```python3from aiuna import *
 import numpy as np
 
 X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 y = np.array([0, 1, 1])
 d = new(X=X, y=y)
 print(d)
-```
-
-```
-{
+# {
     "uuid": "06NLDM4mLEMrHPOaJvEBqdo",
     "uuids": {
         "changed": "3Sc2JjUPMlnNtlq3qdx9Afy",
@@ -148,22 +121,17 @@ print(d)
 }
 ```
 
-</p>
-</details>
 
-<details>
-<summary>Checking history</summary>
+</p>
+
+**Checking history**
 <p>
 
-```python3
-from aiuna import *
+```python3from aiuna import *
 
 d = dataset.data  # 'iris' is the default dataset
 print(d.history)
-```
-
-```
-{
+# {
     "02o8BsNH0fhOYFF6JqxwaLF": {
         "name": "New",
         "path": "aiuna.step.new",
@@ -180,14 +148,11 @@ print(d.history)
     }
 }
 ```
-```python3
 
+```python3
 del d["X"]
 print(d.history)
-```
-
-```
-{
+# {
     "02o8BsNH0fhOYFF6JqxwaLF": {
         "name": "New",
         "path": "aiuna.step.new",
@@ -211,22 +176,16 @@ print(d.history)
     }
 }
 ```
-```python3
 
+```python3
 d["Z"] = 42
 print(d.Z, type(d.Z))
+# [[42]] <class 'numpy.ndarray'>
 ```
 
-```
-[[42]] <class 'numpy.ndarray'>
-```
 ```python3
-
 print(d.history)
-```
-
-```
-{
+# {
     "02o8BsNH0fhOYFF6JqxwaLF": {
         "name": "New",
         "path": "aiuna.step.new",
@@ -259,8 +218,8 @@ print(d.history)
 }
 ```
 
+
 </p>
-</details>
 
 # Grants
 Part of the effort spent in the present code was kindly supported by Fapesp under supervision of 
