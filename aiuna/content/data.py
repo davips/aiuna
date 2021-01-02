@@ -402,52 +402,27 @@ class Data(withIdentification, withPrinting, withTiming):
         from aiuna.step.let import Let
         self.mutate(self >> Let(field=key, value=value))
 
-    # importante TODO
-    # *                         product
-    # **                        cached product
-    # ~                         sample
-    # ~~                        ?
-    # s0 | s1 | s2              seq
-    # s0 | ...                  seq s0,s0,...,s0
-    # +s                        seq s0,s1,...,sn
-    #
-
-    # @ cache
-    # & | ^ // %
-    # -step -> hold
-    # ~step -> sample
-    #  ...
-    # +step -> permite ser destrutivo?
-
-    # d.hash * A.hash * B.hash / e.hash
-    # s.id
-    # update() deveria aceitar qq obj com: {hash, id ?} ou aceitar hexmd5?
-
-    # ###########################################
-    # aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
-    # coisas a considerar no hash:
-    #       embaralhamento?
-    #       AB != BA
-    #       AAAAA sem colisão
-    #       AA != I
-    # ###########################################
-
     def items(self):
         # TODO quais ficam de fora de fields? são importantes pra iterar?
         for k in self:
             yield k, self[k]
 
+
     def __iter__(self):
         yield from self.field_funcs_m
+
 
     def __len__(self):
         return len(self.field_funcs_m)  # TODO idem
 
+
     def _name_(self):
         return self._uuid
 
+
     def _context_(self):
         return self.history ^ "names"
+
 
     @staticmethod
     def from_pandas(X_pd: DataFrame, y_pd: Series):
@@ -455,6 +430,7 @@ class Data(withIdentification, withPrinting, withTiming):
         Xd, Yd = X_pd.columns.tolist(), [y_pd.name]
         Xt, Yt = [translate_type(str(c)) for c in X_pd.dtypes], list(sorted(set(y)))
         return new(X=X, y=y, Xd=Xd, Yd=Yd, Xt=Xt, Yt=Yt)
+
 
     # @property
     # @lru_cache()
@@ -522,6 +498,7 @@ class Data(withIdentification, withPrinting, withTiming):
         """Information to create an icon for this Data object."""
         return {"id": self.id, "step": self.step.asdict_rec, "colors": colors(self.id)}
 
+
     @property
     # @cached_property
     def past(self):
@@ -540,5 +517,61 @@ def untranslate_type(name):
         return name
     if name in ["real", "int"]:
         return "NUMERIC"
-    else:
-        raise Exception("Unknown type:", name)
+    raise Exception("Unknown type:", name)
+
+
+""" importante TODO
+
+-({a0, a1} + {b0, b1}) = a0 | a1 | + {b0, b1} 
+
+
+    step =    an infinitely nested unit set (INUS)    A = {{ ... {a} ... }}; or,
+              a set of steps                          D = {A, B, C}
+
+    A * B                     product            (** cached product)
+    A + B                     union
+    A | B                     stack
+    +S                        summation (union) of all unit sets in stack S
+    -A                        stacking (disunion) of all unit sets in set A
+
+    Properties (A: set, S: stack, a: INUS)
+    +A = error
+    -S = error
+    -a = a
+
+    -(A | B) = +A | +B
+    s0 | s1 | s2              sequence s0,s1,s2
+    s0 | ...                  sequence s0,s0,...,s0
+    +S                        sequence s0,s1,...,sn
+    +(A|B) = {a0,a1,b0,b1}
+    -{a0,a1,b0,b1} = (A|B)
+
+    ~                         sample
+    ~~                        ?
+
+    @ cache
+    & | ^ // %
+    -step -> hold
+    ~step -> sample
+     ...
+    +step -> permite ser destrutivo?
+
+    d.hash * A.hash * B.hash / e.hash
+    s.id
+    update() deveria aceitar qq obj com: {hash, id ?} ou aceitar hexmd5?
+
+    ###########################################
+    aceitar repetições de step, melhorar hash ou forçar sanduiches de step recheados com algo inerte?
+    coisas a considerar no hash:
+          embaralhamento?
+          AB != BA
+          AAAAA sem colisão
+          AA != I
+    ###########################################
+
+    ------------------------
+    def alternativa, que enfraquece o uso dos ops unários:
+    A unit set is equivalent to its contained element.
+    A stack of a single element is the element itself.
+    ------------------------
+"""
