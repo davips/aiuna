@@ -4416,7 +4416,8 @@ M,0.71,0.555,0.195,1.9485,0.9455,0.3765,0.495,3
             raise Exception(msg)
         return self.data
 
-    @cached_property
+    # @cached_property
+    @property
     def data(self):
         if isinstance(self.loader, Data):
             return self.loader

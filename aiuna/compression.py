@@ -38,7 +38,7 @@ from akangatu.transf.config import safety
 from garoupa.encoders import integers2bytes, bytes2integers
 
 
-@lru_cache()
+# @lru_cache()
 def compression_dict():  # TODO: update dictionary
     txt_comming_from_a_file_for_training_of_compressor = "aasfdkjgd kajgsdf af kajgakjsg fkajgs df\n" * 653
     samples = [

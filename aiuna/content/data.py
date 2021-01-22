@@ -132,7 +132,8 @@ class Data(withIdentification, withPrinting, withTiming):
             self.step_func_m = self.step_func_m()
         return self.step_func_m
 
-    @cached_property
+    # @cached_property
+    @property
     def changed_asdict(self):
         """Evaluate and return all fields in 'changed'."""
         return {lazy_field: self.field_funcs_m[lazy_field] for lazy_field in self.changed}
@@ -231,7 +232,8 @@ class Data(withIdentification, withPrinting, withTiming):
         newfields.update(updated_fields)
         return Data(uuid, uuids, self.history << step, **newfields)
 
-    @cached_property
+    # @cached_property
+    @property
     def eager(self):
         """Touch every lazy field by accessing all fields.
 
@@ -240,7 +242,8 @@ class Data(withIdentification, withPrinting, withTiming):
             _ = self[f]
         return self
 
-    @cached_property
+    # @cached_property
+    @property
     def Xy(self):
         return self["X"], self["y"]
 
@@ -332,7 +335,7 @@ class Data(withIdentification, withPrinting, withTiming):
         #     if callable(attr) and hasattr(attr, "cacheclear"):
         #         attr.cacheclear()
 
-    @lru_cache()
+    # @lru_cache()
     def __getitem__(self, key):
         """Safe access to a field, with a friendly error message.
 
