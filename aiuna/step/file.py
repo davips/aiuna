@@ -118,6 +118,9 @@ class File(DataIndependentStep_):
     def parameters(self):
         return self._config()
 
+    def __call__(self, *args, **kwargs):
+        return File(*args, **kwargs)
+
     # def _context_(self):
     #     return "aiuna.step.file"
 
