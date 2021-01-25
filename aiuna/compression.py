@@ -38,7 +38,7 @@ from akangatu.transf.config import safety
 from garoupa.encoders import integers2bytes, bytes2integers
 
 
-@lru_cache()
+###@lru_cache()
 def compression_dict():  # TODO: update dictionary
     txt_comming_from_a_file_for_training_of_compressor = "aasfdkjgd kajgsdf af kajgakjsg fkajgs df\n" * 653
     samples = [
@@ -46,14 +46,6 @@ def compression_dict():  # TODO: update dictionary
         for s in txt_comming_from_a_file_for_training_of_compressor.split("\n")
     ]
     return zs.train_dictionary(dict_size=99999999, samples=samples, threads=-1)
-
-
-cctx = zs.ZstdCompressor(threads=-1)
-cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict_id=False)
-
-cctxdec = zs.ZstdDecompressor()
-cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
-
 
 # ##################################################
 
@@ -70,7 +62,7 @@ def fpack(data, field):
     return memopack(HashableBinary(data.uuids[field].n, data[field]))
 
 
-# @lru_cache()
+# ###@lru_cache()
 def memopack(hashable_binary):
     return pack(hashable_binary.obj)
 
@@ -79,7 +71,14 @@ def memopack(hashable_binary):
 
 
 def pack(obj):
-    with safety():
+
+        cctx = zs.ZstdCompressor(threads=-1)
+        cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict_id=False)
+
+        cctxdec = zs.ZstdDecompressor()
+        cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
+
+    # with safety():
         if isinstance(obj, np.ndarray) and str(obj.dtype) == "float64" and len(obj.shape) == 2:
             # X, ...
             h, w = obj.shape
@@ -106,7 +105,13 @@ def pack(obj):
 
 
 def unpack(dump_with_header):
-    with safety():
+        cctx = zs.ZstdCompressor(threads=-1)
+        cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict_id=False)
+
+        cctxdec = zs.ZstdDecompressor()
+        cctxdicdec = zs.ZstdDecompressor(dict_data=compression_dict())
+
+    # with safety():
         header = dump_with_header[:1]
         dump = dump_with_header[1:]
         if header == b"P":

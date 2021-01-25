@@ -79,7 +79,8 @@ class File(DataIndependentStep_):
 
     # REMINDER File cannot be lazy, since it depends on file content to know the uuid which will be used to generate
     # the lazy Data object.
-    @cached_property
+    ###@cached_property
+    @property
     def data(self):
         d = read_arff(self.filename)
         ds = d["dataset"], d["description"], d["matrices"], d["original_hashes"]
@@ -93,19 +94,22 @@ class File(DataIndependentStep_):
 
         return new(**matrices)
 
-    @cached_property
+    ###@cached_property
+    @property
     def dataset(self):
         if self._hashes is None:
             _ = self.data  # force file reading
         return self._dataset
 
-    @cached_property
+    ###@cached_property
+    @property
     def description(self):
         if self._hashes is None:
             _ = self.data  # force file reading
         return self._description
 
-    @cached_property
+    ###@cached_property
+    @property
     def hashes(self):
         if self._hashes is None:
             _ = self.data  # force calculation of hashes

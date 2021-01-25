@@ -62,7 +62,8 @@ class History(withPrinting):
             raise Exception("Empty history has no last item.")
         return self._last
 
-    @cached_property
+    ###@cached_property
+    @property
     def aslist(self):
         return [step.asdict for step in self]
 
