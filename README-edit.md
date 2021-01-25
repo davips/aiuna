@@ -1,3 +1,6 @@
+![test](https://github.com/davips/aiuna/workflows/test/badge.svg)
+[![codecov](https://codecov.io/gh/davips/aiuna/branch/main/graph/badge.svg)](https://codecov.io/gh/davips/aiuna)
+
 # aiuna scientific data for the classroom
 **WARNING: This project is still subject to major changes, e.g., in the next rewrite.**
 
