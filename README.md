@@ -47,9 +47,14 @@ print(d.y[:5])
 
 ```python3
 
-#print(d.y_pd.value_counts())
-#...
-
+from pandas import DataFrame
+print(DataFrame(d.y).value_counts())
+"""
+Iris-setosa        50
+Iris-versicolor    50
+Iris-virginica     50
+dtype: int64
+"""
 ```
 
 
