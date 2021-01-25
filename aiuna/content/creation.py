@@ -132,8 +132,8 @@ def translate_type(name):
 
 def read_csv(filename, target='class'):
     raise NotImplementedError
-    df = pd.read_csv(filename)  # 1169_airlines explodes here with RAM < 6GiB
-    return read_data_frame(df, filename, target)
+    # df = pd.read_csv(filename)  # 1169_airlines explodes here with RAM < 6GiB
+    # return read_data_frame(df, filename, target)
 
 
 def random_classification_dataset(n_attributes, n_classes, n_instances):
@@ -149,9 +149,9 @@ def random_classification_dataset(n_attributes, n_classes, n_instances):
         n_samples=n_instances, n_features=n_attributes, n_classes=n_classes, n_informative=n + 1
     )
     raise NotImplementedError
-    name = "RndData-" + uuid(pickle.dumps((X, y)))
-    dataset = Dataset(name, "rnd", X=enumerate(n_attributes * ["rnd"]), Y=["class"])
-    return Data(dataset, X=X, Y=as_column_vector(y))
+    # name = "RndData-" + uuid(pickle.dumps((X, y)))
+    # dataset = Dataset(name, "rnd", X=enumerate(n_attributes * ["rnd"]), Y=["class"])
+    # return Data(dataset, X=X, Y=as_column_vector(y))
 
 
 def as_column_vector(vec):
