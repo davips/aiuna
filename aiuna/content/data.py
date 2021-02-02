@@ -171,13 +171,14 @@ class Data(withIdentification, withPrinting, withTiming):
     # TODO  verificar se algo imutavel depende do asdict (que vai ser mutavel)
     @property
     def asdict(self):  # overriding because there are lazy fields in Data, so asdict is mutable and noncached
-        dic = {"uuid": self.uuid, "uuids": self.uuids,
-               "step": self.step_func_m.name if islazy(self.step_func_m) else self.step_func_m.asdict}
+        dic = self.field_funcs_m.copy()
         if self.hasinner:
             dic["inner"] = self.field_funcs_m["inner"].__name__ if islazy(self.inner) else self.inner.asdict
         if self.hasstream:
             dic["stream"] = "iterator"
-        dic.update(self.field_funcs_m)
+        dic.update({"uuid": self.uuid, "uuids": self.uuids,
+                    "step": self.step_func_m.name if islazy(self.step_func_m) else self.step_func_m.asdict}
+                   )
         return dic
 
     def inners(self):
