@@ -22,7 +22,7 @@
 #  Relevant employers or funding agencies will be notified accordingly.
 
 
-from functools import cached_property
+# from functools import cached_property
 
 from garoupa.uuid import UUID
 

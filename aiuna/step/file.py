@@ -43,7 +43,7 @@
 
 import inspect
 import json
-from functools import cached_property
+# from functools import cached_property
 from aiuna.content.root import Root
 from aiuna.content.creation import read_arff, new
 from aiuna.step.new import New

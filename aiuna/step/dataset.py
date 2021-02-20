@@ -20,7 +20,7 @@
 #  part of this work is a crime and is unethical regarding the effort and
 #  time spent here.
 #  Relevant employers or funding agencies will be notified accordingly.
-from functools import cached_property
+# from functools import cached_property
 
 import numpy as np
 from pandas import Categorical
