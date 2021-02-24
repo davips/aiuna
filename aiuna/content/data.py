@@ -416,7 +416,8 @@ class Data(withIdentification, withPrinting, withTiming):
     def items(self):
         # TODO quais ficam de fora de fields? são importantes pra iterar?
         for k in self:
-            yield k, self[k]
+            if k not in ["uuid", "uuids", "step"]:
+                yield k, self[k]
 
     def __iter__(self):
         yield from self.field_funcs_m
