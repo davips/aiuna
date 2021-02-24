@@ -29,14 +29,14 @@ from pandas import DataFrame, Series
 
 from aiuna.content.creation import new, translate_type
 from aiuna.mixin.timing import withTiming, TimeoutException
-from garoupa.avatar23 import colors
-from garoupa.uuid import UUID
 from akangatu.linalghelper import evolve_id, mat2vec, field_as_matrix, islazy
 from akangatu.transf.mixin.identification import withIdentification
 from akangatu.transf.mixin.printing import withPrinting
 from akangatu.transf.noop import NoOp
 from akangatu.transf.step import Step, MissingField
 from akangatu.transf.timeout import Timeout
+from garoupa.avatar23 import colors
+from garoupa.uuid import UUID
 
 
 class Data(withIdentification, withPrinting, withTiming):
@@ -95,7 +95,7 @@ class Data(withIdentification, withPrinting, withTiming):
     # REMINDER changed precisa vir do update() pq não sabemos se algum lazy veio do step anterior
     triggers = ["failure", "timeout", "duration"]
     maxtime, comparable = None, None
-    _duration = 0
+    _duration, _failure = 0, None
 
     def __hash__(self):
         return id(self)
@@ -211,23 +211,31 @@ class Data(withIdentification, withPrinting, withTiming):
             from aiuna.step.new import New
             changed = []
             for field, value in fields.items():
-                if not islazy(value) and not isinstance(step, (File, New)):
-                    raise Exception(f"{field} should be callable! Not:", type(value))
-                if field in self.triggers + ["changed"]:
-                    raise Exception(f"'{field}' cannot be externally set! Step:" + step.longname)
-                changed.append(field)
+                if value is not None:
+                    if not islazy(value) and not isinstance(step, (File, New)):
+                        raise Exception(f"{field} should be callable! Not:", type(value))
+                    if field in self.triggers + ["changed"]:
+                        raise Exception(f"'{field}' cannot be externally set! Step:" + step.longname)
+                    changed.append(field)
         changed = list(sorted(changed))
 
         # Only update field uuids for the provided and changed ones!
         updated_fields = {"changed": changed}
         # REMINDER: conversão saiu de _update() para self[] (que é o novo .field()) para conciliar laziness e aceitação de vetores e escalares
         for k, v in fields.items():
-            kup = k.upper() if len(k) == 1 else k
-            if (kup not in self.field_funcs_m) or self.field_funcs_m[kup] is not v:
-                updated_fields[kup] = v
+            if v is not None:
+                kup = k.upper() if len(k) == 1 else k
+                if (kup not in self.field_funcs_m) or self.field_funcs_m[kup] is not v:
+                    updated_fields[kup] = v
         uuid, uuids = evolve_id(self.uuid, self.uuids, step, updated_fields)
 
         newfields = self.field_funcs_m.copy()
+
+        # Remove Nones.
+        for k, v in fields.items():
+            if v is None:
+                del newfields[k]
+
         newfields.update(updated_fields)
         return Data(uuid, uuids, self.history << step, **newfields)
 
@@ -374,6 +382,7 @@ class Data(withIdentification, withPrinting, withTiming):
         except TimeoutException:
             self.mutate(self >> Timeout(self.maxtime))
         except Exception as e:
+            print(self.name, "failure:", str(e))
             self._failure = self.step.translate(e, self)
             self.field_funcs_m[kup] = None  # REMINDER None means interrupted
         return self.field_funcs_m[kup]
