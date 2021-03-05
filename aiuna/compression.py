@@ -73,7 +73,7 @@ def memopack(hashable_binary):
 
 
 def pack(obj):
-    return orjson.dump(obj)
+    return orjson.dumps(obj)
     # cctx = zs.ZstdCompressor(threads=-1)
     # cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict_id=False)
     #
@@ -107,7 +107,7 @@ def pack(obj):
 
 
 def unpack(dump_with_header):
-    return orjson.load(dump_with_header)
+    return orjson.loads(dump_with_header)
     # cctx = zs.ZstdCompressor(threads=-1)
     # cctxdic = zs.ZstdCompressor(threads=-1, dict_data=compression_dict(), write_dict_id=False)
     #
