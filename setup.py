@@ -25,7 +25,7 @@ import setuptools
 
 NAME = "aiuna"
 
-VERSION = "0.2102.11"
+VERSION = "0.2102.12"
 
 AUTHOR = 'Davi Pereira-Santos'
 
@@ -51,7 +51,8 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Programming Language :: Python :: 3.8']
 
 INSTALL_REQUIRES = [
-    'numpy', 'liac-arff', "lz4", "zstandard", "pandas", "sklearn", "more_itertools", "akangatu"
+    'numpy', 'liac-arff', "lz4", "zstandard", "pandas", "sklearn", "more_itertools", "akangatu",
+    'orjson'
 ]
 
 EXTRAS_REQUIRE = {
