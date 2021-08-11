@@ -25,7 +25,7 @@ import setuptools
 
 NAME = "aiuna"
 
-VERSION = "0.2103.14"
+VERSION = "0.2103.15"
 
 AUTHOR = 'Davi Pereira-Santos'
 
